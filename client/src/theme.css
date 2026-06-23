@@ -1,0 +1,32 @@
+:root {
+  /* base */
+  --bg: #282828;            /* dark0 */
+  --fg: #ebdbb2;            /* light1 */
+  --surface: #3c3836;       /* dark1 */
+  --border: #504945;        /* dark2 */
+  --border-active: #665c54; /* dark3 */
+  --muted: #928374;         /* gray */
+
+  /* wordle tile states */
+  --tile-correct: #98971a;  /* green */
+  --tile-present: #d79921;  /* yellow */
+  --tile-absent: #504945;   /* dark2 */
+  --tile-text: #ebdbb2;     /* light1 */
+
+  /* feedback */
+  --success: #b8bb26;       /* bright green */
+  --error: #fb4934;         /* bright red */
+  --error-bg: #3c3836;      /* dark1 */
+  --success-bg: #3c3836;    /* dark1 */
+
+  /* interactive */
+  --accent: #83a598;        /* blue/aqua */
+  --button-bg: #3c3836;     /* dark1 */
+  --button-fg: #ebdbb2;     /* light1 */
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  margin: 0;
+}

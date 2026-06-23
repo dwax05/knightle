@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, type ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
+import { applyTheme } from "./theme-apply";
 
 type User = { id: number; firstName: string; lastName: string };
 
@@ -40,19 +41,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // inside AuthProvider, alongside login/register
   async function authedPost(url: string, body: object) {
-    const res = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(body),
-    });
-    if (res.status === 401) {
-      logout(); // token expired -> bounce to login
-      return { error: "Session expired, please log in again" };
+    try {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify(body),
+      });
+      if (res.status === 401) {
+        logout();
+        return { error: "Session expired, please log in again" };
+      }
+      if (!res.ok) return { error: `Request failed (${res.status})` };
+      return await res.json();
+    } catch {
+      return { error: "Network or server error" };
     }
-    return res.json();
   }
 
   async function post(url: string, body: object) {
@@ -83,7 +86,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setToken(null);
     localStorage.removeItem("user");
     localStorage.removeItem("token");
+    applyTheme(""); // wipe custom theme back to defaults
   }
+
+  // after persist() in login/register success, or in a useEffect on token:
+  async function loadTheme() {
+    if (!token) return;
+    const data = await authedPost("/api/theme/get", {});
+    if (data.css) applyTheme(data.css);
+  }
+
+  useEffect(() => {
+    if (token) loadTheme();
+  }, [token]);
 
   return (
     <Ctx.Provider value={{ user, token, login, register, logout, authedPost }}>

@@ -6,12 +6,12 @@ const ROWS = 6;
 const COLS = 5;
 
 const MARK_COLORS: Record<Mark, string> = {
-  correct: "#6aaa64",
-  present: "#c9b458",
-  absent: "#787c7e",
+  correct: "var(--tile-correct)",
+  present: "var(--tile-present)",
+  absent: "var(--tile-absent)",
 };
 
-export function Game() {
+export function Game({ onGameEnd }: { onGameEnd?: () => void }) {
   const { authedPost } = useAuth();
   const [gameId, setGameId] = useState<string | null>(null);
   const [guesses, setGuesses] = useState<string[]>([]); // submitted words
@@ -53,12 +53,14 @@ export function Game() {
     if (data.won) {
       setDone("won");
       setMessage("You got it!");
+      onGameEnd?.();
     } else if (data.lost) {
       setDone("lost");
       setAnswer(data.answer);
       setMessage(`The word was ${data.answer.toUpperCase()}`);
+      onGameEnd?.();
     }
-  }, [current, gameId, done, authedPost]);
+  }, [current, gameId, done, authedPost, onGameEnd]);
 
   // keyboard input
   useEffect(() => {
@@ -93,23 +95,15 @@ export function Game() {
               <div
                 key={c}
                 style={{
-                  width: 56,
-                  height: 56,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: 28,
-                  fontWeight: 700,
-                  textTransform: "uppercase",
-                  color: cell.mark ? "#fff" : "#000",
-                  background: cell.mark ? MARK_COLORS[cell.mark] : "#fff",
+                  width: 56, height: 56,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: 28, fontWeight: 700, textTransform: "uppercase",
+                  color: cell.mark ? "var(--tile-text)" : "var(--fg)",
+                  background: cell.mark ? MARK_COLORS[cell.mark] : "var(--bg)",
                   border: cell.mark
                     ? "2px solid transparent"
-                    : cell.ch
-                      ? "2px solid #878a8c"
-                      : "2px solid #d3d6da",
-                }}
-              >
+                    : `2px solid ${cell.ch ? "var(--border-active)" : "var(--border)"}`,
+                }}>
                 {cell.ch}
               </div>
             ))}
@@ -117,19 +111,21 @@ export function Game() {
         ))}
       </div>
 
-      {!done && (
-        <button
-          onClick={submitGuess}
-          disabled={current.length !== COLS}
-          style={{ padding: "8px 20px", fontSize: 16 }}
-        >
-          Submit guess
-        </button>
-      )}
+      {
+        !done && (
+          <button
+            onClick={submitGuess}
+            disabled={current.length !== COLS}
+            style={{ padding: "8px 20px", fontSize: 16 }}
+          >
+            Submit guess
+          </button>
+        )
+      }
 
       <div style={{ minHeight: 24, fontWeight: 600 }}>{message}</div>
 
       {done && <button onClick={newGame}>New game</button>}
-    </div>
+    </div >
   );
 }

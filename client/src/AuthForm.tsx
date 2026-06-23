@@ -113,8 +113,8 @@ export function AuthForm() {
             padding: "8px 10px",
             borderRadius: 6,
             fontSize: 14,
-            color: status.type === "error" ? "#b00020" : "#0a6b2e",
-            background: status.type === "error" ? "#fde8ec" : "#e6f6ec",
+            color: status.type === "error" ? "var(--error)" : "var(--success)",
+            background: status.type === "error" ? "var(--error-bg)" : "var(--success-bg)",
           }}
         >
           {status.message}
