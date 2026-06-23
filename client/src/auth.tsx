@@ -37,6 +37,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setToken(data.accessToken);
     localStorage.setItem("user", JSON.stringify(u));
     localStorage.setItem("token", data.accessToken);
+    loadThemeWithToken(data.accessToken);
+  }
+
+  async function loadThemeWithToken(tok: string) {
+    try {
+      const res = await fetch("/api/theme/get", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${tok}` },
+        body: "{}",
+      });
+      const data = await res.json();
+      if (data.css) applyTheme(data.css);
+    } catch { }
   }
 
   // inside AuthProvider, alongside login/register

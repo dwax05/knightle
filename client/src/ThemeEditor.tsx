@@ -3,24 +3,22 @@ import { useAuth } from "./auth";
 import { applyTheme } from "./theme-apply";
 
 const TEMPLATE = `:root {
-  --bg: #282828;           
-  --fg: #ebdbb2;           
-  --surface: #3c3836;      
-  --border: #504945;       
-  --border-active: #665c54;
-  --muted: #928374;        
-  --tile-correct: #98971a; 
-  --tile-present: #d79921; 
-  --tile-absent: #504945;  
-  --tile-text: #ebdbb2;    
-  --success: #b8bb26;      
-  --error: #fb4934;        
-  --error-bg: #3c3836;     
-  --success-bg: #3c3836;   
-  --accent: #83a598;       
-  --button-bg: #3c3836;    
-  --button-fg: #ebdbb2;    
-}`
+  --bg: #1a1b26;
+  --fg: #c0caf5;
+  --surface: #24283b;
+  --border: #414868;
+  --tile-correct: #9ece6a;
+  --tile-present: #e0af68;
+  --tile-absent: #565f89;
+  --tile-text: #1a1b26;
+  --success: #9ece6a;
+  --error: #f7768e;
+  --accent: #7aa2f7;
+  --button-bg: #24283b;
+  --button-fg: #c0caf5;
+}`;
+
+const SWATCHES = ["--tile-correct", "--tile-present", "--tile-absent", "--accent", "--error"];
 
 export function ThemeEditor({ onClose }: { onClose: () => void }) {
   const { authedPost } = useAuth();
@@ -34,10 +32,7 @@ export function ThemeEditor({ onClose }: { onClose: () => void }) {
     })();
   }, [authedPost]);
 
-  // live preview as they type
-  useEffect(() => {
-    applyTheme(css);
-  }, [css]);
+  useEffect(() => { applyTheme(css); }, [css]);
 
   async function save() {
     const data = await authedPost("/api/theme/save", { css });
@@ -53,42 +48,58 @@ export function ThemeEditor({ onClose }: { onClose: () => void }) {
   }
 
   return (
-    <div style={{ maxWidth: 600, margin: "2rem auto", display: "grid", gap: 12 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <h2 style={{ margin: 0 }}>Theme editor</h2>
-        <button onClick={onClose}>← Back to game</button>
-      </div>
-      <textarea
-        value={css}
-        onChange={(e) => setCss(e.target.value)}
-        spellCheck={false}
-        style={{
-          width: "100%",
-          minHeight: 320,
-          fontFamily: "monospace",
-          fontSize: 13,
-          padding: 12,
-          background: "var(--surface)",
-          color: "var(--fg)",
-          border: "1px solid var(--border)",
-          borderRadius: 6,
-        }}
-      />
+    <div className="max-w-2xl mx-auto px-4 py-8">
+      <div className="flex flex-col gap-5 p-6 sm:p-8 rounded-2xl bg-surface border border-border-app/40">
+        {/* header */}
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-fg">Theme editor</h1>
+          <button
+            onClick={onClose}
+            className="px-3 py-1.5 rounded-lg bg-bg text-fg text-sm border border-border-app/60 hover:opacity-80 transition"
+          >
+            ← Back to game
+          </button>
+        </div>
 
-      <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-        <button onClick={save}>Save theme</button>
-        <button onClick={reset}>Reset to default</button>
-        {status && <span style={{ color: "var(--success)" }}>{status}</span>}
-      </div>
+        {/* editor */}
+        <textarea
+          value={css}
+          onChange={(e) => setCss(e.target.value)}
+          spellCheck={false}
+          className="w-full min-h-80 p-4 rounded-xl bg-bg text-fg font-mono text-sm leading-relaxed
+                     border border-border-app/60 focus:border-accent focus:outline-none
+                     focus:ring-2 focus:ring-accent/30 resize-y transition"
+        />
 
-      {/* swatch preview */}
-      <div style={{ display: "flex", gap: 6 }}>
-        {["--tile-correct", "--tile-present", "--tile-absent", "--accent", "--error"].map((v) => (
-          <div key={v} style={{ textAlign: "center", fontSize: 10 }}>
-            <div style={{ width: 44, height: 44, background: `var(${v})`, borderRadius: 4, border: "1px solid var(--border)" }} />
-            {v.replace("--", "")}
-          </div>
-        ))}
+        {/* actions */}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={save}
+            className="px-4 py-2 rounded-lg bg-accent text-tiletext font-semibold hover:opacity-90 active:opacity-80 transition"
+          >
+            Save theme
+          </button>
+          <button
+            onClick={reset}
+            className="px-4 py-2 rounded-lg bg-bg text-fg border border-border-app/60 hover:opacity-80 transition"
+          >
+            Reset to default
+          </button>
+          {status && <span className="text-sm text-success font-medium">{status}</span>}
+        </div>
+
+        {/* swatch preview */}
+        <div className="flex gap-3 pt-2 border-t border-border-app/30">
+          {SWATCHES.map((v) => (
+            <div key={v} className="flex flex-col items-center gap-1.5 pt-3">
+              <div
+                className="w-11 h-11 rounded-lg border border-border-app/40"
+                style={{ background: `var(${v})` }}
+              />
+              <span className="text-[10px] text-muted">{v.replace("--", "")}</span>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
