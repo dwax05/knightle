@@ -1,5 +1,21 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg: var(--bg);
+  --color-fg: var(--fg);
+  --color-surface: var(--surface);
+  --color-border-app: var(--border);
+  --color-muted: var(--muted);
+  --color-correct: var(--tile-correct);
+  --color-present: var(--tile-present);
+  --color-absent: var(--tile-absent);
+  --color-tiletext: var(--tile-text);
+  --color-success: var(--success);
+  --color-error: var(--error);
+  --color-accent: var(--accent);
+}
+
 :root {
-  /* base */
   --bg: #282828;            /* dark0 */
   --fg: #ebdbb2;            /* light1 */
   --surface: #3c3836;       /* dark1 */
@@ -23,10 +39,15 @@
   --accent: #83a598;        /* blue/aqua */
   --button-bg: #3c3836;     /* dark1 */
   --button-fg: #ebdbb2;     /* light1 */
+
 }
 
 body {
   background: var(--bg);
   color: var(--fg);
   margin: 0;
+}
+
+button {
+  touch-action: manipulation;
 }

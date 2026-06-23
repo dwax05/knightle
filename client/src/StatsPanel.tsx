@@ -29,7 +29,7 @@ export function StatsPanel({ refreshKey }: { refreshKey: number }) {
   const maxBar = stats ? Math.max(1, ...stats.distribution) : 1;
 
   return (
-    <div style={{ width: 260, display: "grid", gap: 20 }}>
+    <div className="w-full max-w-md lg:w-64 flex flex-col gap-5">
       <div>
         <h3 style={{ margin: "0 0 8px" }}>Statistics</h3>
         {stats ? (
