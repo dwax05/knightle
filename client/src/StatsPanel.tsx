@@ -9,26 +9,16 @@ type Stats = {
   distribution: number[];
 };
 
-type Game = {
-  answer: string;
-  guesses: number;
-  won: boolean;
-  playedAt: string;
-};
-
 export function StatsPanel({ refreshKey }: { refreshKey: number }) {
   const { authedPost } = useAuth();
   const [stats, setStats] = useState<Stats | null>(null);
-  const [history, setHistory] = useState<Game[]>([]);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       const s = await authedPost("/api/stats", {});
-      const h = await authedPost("/api/history", {});
       if (cancelled) return;
       if (s.stats) setStats(s.stats);
-      if (h.games) setHistory(h.games);
     })();
     return () => { cancelled = true; };
   }, [refreshKey, authedPost]);
@@ -80,36 +70,6 @@ export function StatsPanel({ refreshKey }: { refreshKey: number }) {
           </>
         ) : (
           <p style={{ fontSize: 13, color: "var(--muted)" }}>No stats yet</p>
-        )}
-      </div>
-
-      <div>
-        <h3 style={{ margin: "0 0 8px" }}>Recent games</h3>
-        {history.length === 0 ? (
-          <p style={{ fontSize: 13, color: "var(--muted)" }}>No games played yet</p>
-        ) : (
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
-            <thead>
-              <tr style={{ textAlign: "left", color: "var(--muted)" }}>
-                <th style={{ padding: "4px 0" }}>Word</th>
-                <th>Result</th>
-                <th>Guesses</th>
-              </tr>
-            </thead>
-            <tbody>
-              {history.map((g, i) => (
-                <tr key={i} style={{ borderTop: "1px solid var(--border)" }}>
-                  <td style={{ padding: "4px 0", textTransform: "uppercase", fontWeight: 600 }}>
-                    {g.answer}
-                  </td>
-                  <td style={{ color: g.won ? "var(--success)" : "var(--error)" }}>
-                    {g.won ? "Win" : "Loss"}
-                  </td>
-                  <td>{g.won ? g.guesses : "—"}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
         )}
       </div>
     </div>
