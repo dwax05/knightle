@@ -1,0 +1,33 @@
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+  server:
+    build: ./server
+    restart: unless-stopped
+    ports:
+      - "3500:3500"
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/myapp
+    depends_on:
+      - mongo
+    volumes:
+      - ./server:/app
+      - /app/node_modules
+  client:
+    build: ./client
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    depends_on:
+      - server
+    volumes:
+      - ./client:/app
+      - /app/node_modules
+
+volumes:
+  mongo-data:
