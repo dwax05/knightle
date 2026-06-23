@@ -128,6 +128,31 @@ export function setApp(app: Express, client: MongoClient) {
     });
   });
 
+  app.post("/api/leaderboard", requireAuth, async (req: AuthedRequest, res) => {
+    const top = await db
+      .collection("Stats")
+      .find({ wins: { $gt: 0 } })
+      .sort({ wins: -1 })
+      .limit(10)
+      .toArray();
+
+    // attach display names from Users
+    const result = await Promise.all(
+      top.map(async (s) => {
+        const user = await db.collection("Users").findOne({ UserID: s.userId });
+        return {
+          name: user ? user.Login : "Unknown",
+          wins: s.wins,
+          played: s.played,
+          maxStreak: s.maxStreak,
+          isMe: s.userId === req.user!.userId,
+        };
+      })
+    );
+
+    res.status(200).json({ leaderboard: result, error: "" });
+  });
+
   // fetch the user's stats
   app.post("/api/stats", requireAuth, async (req: AuthedRequest, res) => {
     const stats = await db

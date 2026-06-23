@@ -4,6 +4,7 @@ import { AuthForm } from "./AuthForm";
 import { Game } from "./Game";
 import { StatsPanel } from "./StatsPanel";
 import { ThemeEditor } from "./ThemeEditor";
+import { Leaderboard } from "./Leaderboard";
 
 function Home() {
   const { user, logout } = useAuth();
@@ -34,7 +35,10 @@ function Home() {
           <h1 className="text-4xl font-bold mb-4 text-fg">Knightle</h1>
           <Game onGameEnd={() => setRefreshKey((k) => k + 1)} />
         </div>
-        <StatsPanel refreshKey={refreshKey} />
+        <div className="flex flex-col gap-6 w-full lg:w-auto items-center lg:items-stretch">
+          <StatsPanel refreshKey={refreshKey} />
+          <Leaderboard refreshKey={refreshKey} />
+        </div>
       </div>
     </div>
   );
