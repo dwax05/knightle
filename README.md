@@ -1,4 +1,4 @@
-[#](#.md) Wordle
+# Wordle
 
 MERN stack (React + Vite, Express, MongoDB) running via Docker Compose.
 
