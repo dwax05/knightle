@@ -3,20 +3,24 @@ import { useAuth } from "./auth";
 import { applyTheme } from "./theme-apply";
 
 const TEMPLATE = `:root {
-  --bg: #1a1b26;
-  --fg: #c0caf5;
-  --surface: #24283b;
-  --border: #414868;
-  --tile-correct: #9ece6a;
-  --tile-present: #e0af68;
-  --tile-absent: #565f89;
-  --tile-text: #1a1b26;
-  --success: #9ece6a;
-  --error: #f7768e;
-  --accent: #7aa2f7;
-  --button-bg: #24283b;
-  --button-fg: #c0caf5;
-}`;
+  --bg: #282828;           
+  --fg: #ebdbb2;           
+  --surface: #3c3836;      
+  --border: #504945;       
+  --border-active: #665c54;
+  --muted: #928374;        
+  --tile-correct: #98971a; 
+  --tile-present: #d79921; 
+  --tile-absent: #504945;  
+  --tile-text: #ebdbb2;    
+  --success: #b8bb26;      
+  --error: #fb4934;        
+  --error-bg: #3c3836;     
+  --success-bg: #3c3836;   
+  --accent: #83a598;       
+  --button-bg: #3c3836;    
+  --button-fg: #ebdbb2;    
+}`
 
 export function ThemeEditor({ onClose }: { onClose: () => void }) {
   const { authedPost } = useAuth();
@@ -54,12 +58,6 @@ export function ThemeEditor({ onClose }: { onClose: () => void }) {
         <h2 style={{ margin: 0 }}>Theme editor</h2>
         <button onClick={onClose}>← Back to game</button>
       </div>
-
-      <p style={{ fontSize: 13, color: "var(--muted)", margin: 0 }}>
-        Paste your pywal <code>colors.css</code> or edit the variables below.
-        Only <code>--name: value</code> pairs are applied; everything else is ignored.
-      </p>
-
       <textarea
         value={css}
         onChange={(e) => setCss(e.target.value)}

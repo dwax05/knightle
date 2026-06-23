@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AuthProvider, useAuth } from "./auth";
 import { AuthForm } from "./AuthForm";
 import { Game } from "./Game";
@@ -8,7 +8,13 @@ import { ThemeEditor } from "./ThemeEditor";
 function Home() {
   const { user, logout } = useAuth();
   const [refreshKey, setRefreshKey] = useState(0);
-  const [view, setView] = useState<"game" | "theme">("game");
+  const [view, setView] = useState<"game" | "theme">(
+    () => (localStorage.getItem("view") as "game" | "theme") || "game"
+  );
+
+  useEffect(() => {
+    localStorage.setItem("view", view);
+  }, [view]);
   if (!user) return <AuthForm />;
 
   if (view === "theme") return <ThemeEditor onClose={() => setView("game")} />;
