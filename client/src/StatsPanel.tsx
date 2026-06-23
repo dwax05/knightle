@@ -34,7 +34,7 @@ export function StatsPanel({ refreshKey }: { refreshKey: number }) {
         <h3 style={{ margin: "0 0 8px" }}>Statistics</h3>
         {stats ? (
           <>
-            <div style={{ display: "flex", gap: 12, marginBottom: 12 }}>
+            <div style={{ display: "flex", gap: 12, marginBottom: 12, justifyContent: "center" }}>
               <Stat label="Played" value={stats.played} />
               <Stat label="Win %" value={winPct} />
               <Stat label="Streak" value={stats.currentStreak} />
