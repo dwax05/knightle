@@ -13,6 +13,7 @@ services:
       - "3500:3500"
     environment:
       - MONGO_URI=mongodb://mongo:27017/myapp
+      - ACCESS_TOKEN_SECRET=3gfsembuws08
     depends_on:
       - mongo
     volumes:

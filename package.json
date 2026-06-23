@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "mongodb": "^7.3.0"
+  },
+  "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.10",
+    "jsonwebtoken": "^9.0.3"
+  }
+}

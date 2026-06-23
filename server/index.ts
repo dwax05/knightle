@@ -1,15 +1,22 @@
 import express from "express";
-import mongoose from "mongoose";
 import cors from "cors";
+import { MongoClient } from "mongodb";
+import { setApp } from "./api";
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-mongoose.connect(process.env.MONGO_URI ?? "mongodb://localhost:27017/myapp")
-  .then(() => console.log("db connected"))
-  .catch(console.error);
+const uri = process.env.MONGO_URI ?? "mongodb://mongo:27017";
+const client = new MongoClient(uri);
 
-app.get("/api/health", (_req, res) => res.json({ ok: true }));
+async function start() {
+  await client.connect();
+  console.log("db connected");
 
-app.listen(3000, () => console.log("server on :3000"));
+  setApp(app, client);
+
+  app.listen(3500, () => console.log("server on :3500"));
+}
+
+start().catch(console.error);
