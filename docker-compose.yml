@@ -2,10 +2,17 @@ services:
   mongo:
     image: mongo:7
     restart: unless-stopped
-    ports:
-      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=knightle_admin
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD}
+    healthcheck:
+      test: ["CMD", "mongosh", "-u", "knightle_admin", "-p", "${MONGO_PASSWORD}", "--authenticationDatabase", "admin", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     volumes:
       - mongo-data:/data/db
+
   server:
     build: ./server
     restart: unless-stopped
@@ -14,10 +21,12 @@ services:
     env_file:
       - ./server/.env
     depends_on:
-      - mongo
+      mongo:
+        condition: service_healthy
     volumes:
       - ./server:/app
       - /app/node_modules
+
   client:
     build: ./client
     restart: unless-stopped

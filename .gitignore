@@ -1,3 +1,5 @@
 server/.env
+.env
 postman/
 .postman/
+csvtoarray.sh
