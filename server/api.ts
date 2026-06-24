@@ -124,7 +124,6 @@ export function setApp(app: Express, client: MongoClient) {
     );
 
     if (finished) {
-      console.log("stats user id:", req.user!.userId);
       await updateStats(req.user!.userId, won, guessNum);
     }
 
