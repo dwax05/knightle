@@ -20,6 +20,7 @@ export function VersusGame({ code, onExit, onRematch }: {
   const [winner, setWinner] = useState<number | null>(null);
   const [status, setStatus] = useState("active");
   const [myGuessCount, setMyGuessCount] = useState(0);
+  const [round, setRound] = useState(0);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const submitGuess = useCallback(async () => {
@@ -56,6 +57,18 @@ export function VersusGame({ code, onExit, onRematch }: {
     else typeLetter(key);
   }, [submitGuess, backspace, typeLetter]);
 
+  const resetForNewRound = useCallback((newRound: number) => {
+    setGuesses([]);
+    setMarks([]);
+    setCurrent("");
+    setFinished(false);
+    setMessage("");
+    setWinner(null);
+    setStatus("active");
+    setMyGuessCount(0);
+    setRound(newRound);
+  }, []);
+
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (finished) return;
@@ -67,16 +80,27 @@ export function VersusGame({ code, onExit, onRematch }: {
     return () => window.removeEventListener("keydown", onKey);
   }, [finished, submitGuess, backspace, typeLetter]);
 
-  // poll opponent state every 1.5s
   useEffect(() => {
     pollRef.current = setInterval(async () => {
       const data = await authedPost("/api/versus/state", { code });
+      if (typeof data.round === "number" && data.round > round) {
+        resetForNewRound(data.round);  // a new round started — restart the board
+        return;
+      }
       if (data.opponent) setOpponent(data.opponent);
       if (data.winner) setWinner(data.winner);
       if (data.status) setStatus(data.status);
     }, 1500);
     return () => { if (pollRef.current) clearInterval(pollRef.current); };
-  }, [code, authedPost]);
+  }, [code, authedPost, round, resetForNewRound]);
+
+  const handleRematch = useCallback(async () => {
+    const data = await authedPost("/api/versus/rematch", { code });
+    if (data.error) { setMessage(data.error); return; }
+    // the poll will pick up the new round and reset both clients;
+    // but reset ours immediately for snappiness
+    resetForNewRound(round + 1);
+  }, [code, authedPost, round, resetForNewRound]);
 
   const myId = user?.id;
   const isDone = status === "done";
@@ -113,13 +137,8 @@ export function VersusGame({ code, onExit, onRematch }: {
 
       {isDone && (
         <VersusResult
-          result={{
-            youWon,
-            winnerName,
-            winnerGuesses,
-            isDraw: winner == null,
-          }}
-          onRematch={onRematch}
+          result={{ youWon, winnerName, winnerGuesses, isDraw: winner == null }}
+          onRematch={handleRematch}
           onLeave={onExit}
         />
       )}

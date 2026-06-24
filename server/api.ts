@@ -285,6 +285,7 @@ export function setApp(app: Express, client: MongoClient) {
       won,
       finished,
       guessNum: newGuessCount,
+      round: updated!.round ?? 0,        // ← add
       answer: finished ? game.answer : undefined,
       opponent: opponentPublicState(updated, uid),
       winner: updated!.winner,
@@ -303,10 +304,43 @@ export function setApp(app: Express, client: MongoClient) {
     res.status(200).json({
       status: game.status,
       winner: game.winner,
-      answer: game.status === "done" ? game.answer : undefined, // only after match ends
+      round: game.round ?? 0,
+      answer: game.status === "done" ? game.answer : undefined,
       opponent: opponentPublicState(game, uid),
       error: "",
     });
+  });
+
+  app.post("/api/versus/rematch", requireAuth, async (req: AuthedRequest, res) => {
+    const code = String(req.body.code ?? "").toUpperCase();
+    if (!/^[A-Z]{4}$/.test(code)) return res.status(200).json({ error: "Invalid code" });
+
+    const uid = String(req.user!.userId);
+    const game = await db.collection("Versus").findOne({ code });
+    if (!game || !game.players[uid]) return res.status(200).json({ error: "Not in this room" });
+
+    // reset every player's slot, pick a new word, bump the round
+    const newAnswer = ANSWERS[Math.floor(Math.random() * ANSWERS.length)];
+    const resetPlayers: any = {};
+    for (const [id, p] of Object.entries(game.players)) {
+      resetPlayers[id] = { login: (p as any).login, guesses: [], finished: false, won: false };
+    }
+
+    await db.collection("Versus").updateOne(
+      { code },
+      {
+        $set: {
+          answer: newAnswer,
+          players: resetPlayers,
+          winner: null,
+          status: "active",
+          createdAt: new Date(),
+        },
+        $inc: { round: 1 },   // increments the round counter (starts undefined -> 1)
+      }
+    );
+
+    res.status(200).json({ code, error: "" });
   });
 
   async function updateStats(userId: number, won: boolean, guessNum: number) {
