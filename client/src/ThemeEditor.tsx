@@ -3,20 +3,23 @@ import { useAuth } from "./auth";
 import { applyTheme } from "./theme-apply";
 
 const TEMPLATE = `:root {
-  --bg: #1a1b26;
-  --fg: #c0caf5;
-  --surface: #24283b;
-  --border: #414868;
-  --tile-correct: #9ece6a;
-  --tile-present: #e0af68;
-  --tile-absent: #565f89;
-  --tile-text: #1a1b26;
-  --success: #9ece6a;
-  --error: #f7768e;
-  --accent: #7aa2f7;
-  --button-bg: #24283b;
-  --button-fg: #c0caf5;
-}`;
+  --bg: #1e1e2e;
+  --fg: #cdd6f4;
+  --surface: #313244;
+  --border: #45475a;
+  --muted: #928374;
+  --tile-correct: #a6e3a1;
+  --tile-present: #f9e2af;
+  --tile-absent: #45475a;
+  --tile-text: #1e1e2e;
+  --success: #a6e3a1;
+  --error: #f38ba8;
+  --accent: #89b4fa;
+  --button-bg: #313244;
+  --button-fg: #cdd6f4;
+}
+
+`;
 
 const SWATCHES = ["--tile-correct", "--tile-present", "--tile-absent", "--accent", "--error"];
 
