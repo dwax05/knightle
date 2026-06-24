@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useAuth } from "./auth";
+import { VersusGame } from "./VersusGame.tsx";
 
 type Phase = "lobby" | "waiting" | "active";
 
@@ -111,14 +112,5 @@ export function Versus({ onExit }: { onExit: () => void }) {
   }
 
   // ---- ACTIVE (placeholder until Stage 2) ----
-  return (
-    <div className="max-w-sm mx-auto mt-16 text-center flex flex-col gap-4">
-      <h2 className="text-2xl font-bold text-fg">Match started!</h2>
-      <p className="text-muted">Room <span className="font-mono text-accent">{code}</span> is active.</p>
-      <p className="text-sm text-muted">(Stage 2: the versus board goes here)</p>
-      <button onClick={onExit} className="text-sm text-muted hover:text-fg transition">
-        ← Leave
-      </button>
-    </div>
-  );
+  return <VersusGame code={code} onExit={onExit} />;
 }
