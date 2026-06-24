@@ -5,7 +5,9 @@ import { createToken } from "./createJWT";
 import { requireAuth, type AuthedRequest } from "./auth";
 import { ANSWERS, VALID_GUESSES } from "./words";
 import { scoreGuess } from "./wordle";
+import bcrypt from "bcrypt";
 
+const SALT_ROUNDS = 10;
 const MAX_GUESSES = 6;
 
 export function setApp(app: Express, client: MongoClient) {
@@ -13,7 +15,6 @@ export function setApp(app: Express, client: MongoClient) {
 
   app.post("/api/register", async (req, res) => {
     const { login, password, firstName, lastName } = req.body;
-
     if (!login || !password) {
       return res.status(200).json({ error: "Login and password required" });
     }
@@ -23,44 +24,37 @@ export function setApp(app: Express, client: MongoClient) {
       return res.status(200).json({ error: "User already exists" });
     }
 
-    // simple incrementing UserID
-    const last = await db
-      .collection("Users")
-      .find()
-      .sort({ UserID: -1 })
-      .limit(1)
-      .toArray();
+    const last = await db.collection("Users").find().sort({ UserID: -1 }).limit(1).toArray();
     const nextId = last.length ? last[0].UserID + 1 : 1;
+
+    const hashed = await bcrypt.hash(password, SALT_ROUNDS);
 
     const user = {
       UserID: nextId,
       FirstName: firstName ?? "",
       LastName: lastName ?? "",
       Login: login,
-      Password: password, // still plaintext — see note
+      Password: hashed,   // store the hash, never the raw password
     };
     await db.collection("Users").insertOne(user);
 
     const token = createToken(user.FirstName, user.LastName, user.UserID);
-    res.status(200).json({
-      id: nextId,
-      firstName: user.FirstName,
-      lastName: user.LastName,
-      ...token,
-    });
+    res.status(200).json({ id: nextId, firstName: user.FirstName, lastName: user.LastName, ...token });
   });
 
   app.post("/api/login", async (req, res) => {
     const { login, password } = req.body;
-    const results = await db
-      .collection("Users")
-      .find({ Login: login, Password: password })
-      .toArray();
 
-    if (results.length === 0) {
+    const user = await db.collection("Users").findOne({ Login: login });
+    if (!user) {
       return res.status(200).json({ error: "Login/Password incorrect" });
     }
-    const user = results[0];
+
+    const match = await bcrypt.compare(password, user.Password);
+    if (!match) {
+      return res.status(200).json({ error: "Login/Password incorrect" });
+    }
+
     const token = createToken(user.FirstName, user.LastName, user.UserID);
     res.status(200).json({
       id: user.UserID,

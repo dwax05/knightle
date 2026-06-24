@@ -1,0 +1,7 @@
+workspace:
+  id: 2d44b5af-1d3d-48bc-8762-ce7ffba2eebe
+cloudResources:
+  collections:
+    ../postman/collections/Knightle: 55216013-02ecdea7-a508-4b3c-98c6-f7f4c66d0dda
+  environments:
+    ../postman/environments/Knightle Local.environment.yaml: 55216013-0cd55359-f9c2-4be6-a7b0-a3ae12df6dc4

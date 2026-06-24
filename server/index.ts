@@ -14,8 +14,10 @@ async function start() {
   await client.connect();
   console.log("db connected");
 
-  setApp(app, client);
+  await client.db().collection("Users").createIndex({ Login: 1 }, { unique: true });
+  await client.db().collection("Stats").createIndex({ userId: 1 }, { unique: true });
 
+  setApp(app, client);
   app.listen(3500, () => console.log("server on :3500"));
 }
 
