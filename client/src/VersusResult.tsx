@@ -1,16 +1,9 @@
-type Result = {
-  youWon: boolean;
-  winnerName: string;
-  winnerGuesses: number;
-  isDraw?: boolean;
-};
-
 export function VersusResult({
-  result,
-  onRematch,
-  onLeave,
+  result, rematchMe, rematchOpponent, onRematch, onLeave,
 }: {
-  result: Result;
+  result: { youWon: boolean; winnerName: string; winnerGuesses: number; isDraw?: boolean };
+  rematchMe: boolean;
+  rematchOpponent: boolean;
   onRematch: () => void;
   onLeave: () => void;
 }) {
@@ -33,6 +26,14 @@ export function VersusResult({
           )}
         </div>
 
+        {/* rematch status line */}
+        {rematchOpponent && !rematchMe && (
+          <p className="text-sm text-accent animate-pulse">Opponent wants a rematch!</p>
+        )}
+        {rematchMe && !rematchOpponent && (
+          <p className="text-sm text-muted animate-pulse">Waiting for opponent to accept...</p>
+        )}
+
         <div className="flex gap-3 w-full mt-2">
           <button
             onClick={onLeave}
@@ -42,9 +43,10 @@ export function VersusResult({
           </button>
           <button
             onClick={onRematch}
-            className="flex-1 py-2.5 rounded-lg bg-accent text-tiletext font-semibold hover:opacity-90 transition"
+            disabled={rematchMe}
+            className="flex-1 py-2.5 rounded-lg bg-accent text-tiletext font-semibold hover:opacity-90 disabled:opacity-50 transition"
           >
-            Rematch
+            {rematchMe ? "Ready ✓" : rematchOpponent ? "Accept rematch" : "Rematch"}
           </button>
         </div>
       </div>

@@ -21,6 +21,8 @@ export function VersusGame({ code, onExit, onRematch }: {
   const [status, setStatus] = useState("active");
   const [myGuessCount, setMyGuessCount] = useState(0);
   const [round, setRound] = useState(0);
+  const [rematchMe, setRematchMe] = useState(false);
+  const [rematchOpponent, setRematchOpponent] = useState(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const submitGuess = useCallback(async () => {
@@ -84,12 +86,18 @@ export function VersusGame({ code, onExit, onRematch }: {
     pollRef.current = setInterval(async () => {
       const data = await authedPost("/api/versus/state", { code });
       if (typeof data.round === "number" && data.round > round) {
-        resetForNewRound(data.round);  // a new round started — restart the board
+        resetForNewRound(data.round);
+        setRematchMe(false);
+        setRematchOpponent(false);
         return;
       }
       if (data.opponent) setOpponent(data.opponent);
       if (data.winner) setWinner(data.winner);
       if (data.status) setStatus(data.status);
+      if (data.rematch) {
+        setRematchMe(data.rematch.me);
+        setRematchOpponent(data.rematch.opponent);
+      }
     }, 1500);
     return () => { if (pollRef.current) clearInterval(pollRef.current); };
   }, [code, authedPost, round, resetForNewRound]);
@@ -97,10 +105,8 @@ export function VersusGame({ code, onExit, onRematch }: {
   const handleRematch = useCallback(async () => {
     const data = await authedPost("/api/versus/rematch", { code });
     if (data.error) { setMessage(data.error); return; }
-    // the poll will pick up the new round and reset both clients;
-    // but reset ours immediately for snappiness
-    resetForNewRound(round + 1);
-  }, [code, authedPost, round, resetForNewRound]);
+    setRematchMe(true);  // reflect our request immediately
+  }, [code, authedPost]);
 
   const myId = user?.id;
   const isDone = status === "done";
@@ -138,6 +144,8 @@ export function VersusGame({ code, onExit, onRematch }: {
       {isDone && (
         <VersusResult
           result={{ youWon, winnerName, winnerGuesses, isDraw: winner == null }}
+          rematchMe={rematchMe}
+          rematchOpponent={rematchOpponent}
           onRematch={handleRematch}
           onLeave={onExit}
         />

@@ -307,6 +307,10 @@ export function setApp(app: Express, client: MongoClient) {
       round: game.round ?? 0,
       answer: game.status === "done" ? game.answer : undefined,
       opponent: opponentPublicState(game, uid),
+      rematch: {
+        me: !!game.rematch?.[uid],
+        opponent: opponentRematchRequested(game, uid),
+      },
       error: "",
     });
   });
@@ -318,29 +322,42 @@ export function setApp(app: Express, client: MongoClient) {
     const uid = String(req.user!.userId);
     const game = await db.collection("Versus").findOne({ code });
     if (!game || !game.players[uid]) return res.status(200).json({ error: "Not in this room" });
+    if (game.status !== "done") return res.status(200).json({ error: "Match isn't over" });
 
-    // reset every player's slot, pick a new word, bump the round
-    const newAnswer = ANSWERS[Math.floor(Math.random() * ANSWERS.length)];
-    const resetPlayers: any = {};
-    for (const [id, p] of Object.entries(game.players)) {
-      resetPlayers[id] = { login: (p as any).login, guesses: [], finished: false, won: false };
-    }
-
+    // record this player's rematch request
     await db.collection("Versus").updateOne(
       { code },
-      {
-        $set: {
-          answer: newAnswer,
-          players: resetPlayers,
-          winner: null,
-          status: "active",
-          createdAt: new Date(),
-        },
-        $inc: { round: 1 },   // increments the round counter (starts undefined -> 1)
-      }
+      { $set: { [`rematch.${uid}`]: true } }
     );
 
-    res.status(200).json({ code, error: "" });
+    // re-read and check if BOTH players have now requested
+    const updated = await db.collection("Versus").findOne({ code });
+    const playerIds = Object.keys(updated!.players);
+    const allReady = playerIds.every((id) => updated!.rematch?.[id]);
+
+    if (allReady) {
+      const newAnswer = ANSWERS[Math.floor(Math.random() * ANSWERS.length)];
+      const resetPlayers: any = {};
+      for (const [id, p] of Object.entries(updated!.players)) {
+        resetPlayers[id] = { login: (p as any).login, guesses: [], finished: false, won: false };
+      }
+      await db.collection("Versus").updateOne(
+        { code },
+        {
+          $set: {
+            answer: newAnswer,
+            players: resetPlayers,
+            winner: null,
+            status: "active",
+            createdAt: new Date(),
+          },
+          $unset: { rematch: "" },     // clear the requests for the new round
+          $inc: { round: 1 },
+        }
+      );
+    }
+
+    res.status(200).json({ error: "" });
   });
 
   async function updateStats(userId: number, won: boolean, guessNum: number) {
@@ -361,6 +378,11 @@ export function setApp(app: Express, client: MongoClient) {
       { $set: stats },
       { upsert: true }
     );
+  }
+
+  function opponentRematchRequested(game: any, myUid: string): boolean {
+    const oppUid = Object.keys(game.players).find((id) => id !== myUid);
+    return !!(oppUid && game.rematch?.[oppUid]);
   }
 
   async function makeRoomCode(db: Db): Promise<string> {
