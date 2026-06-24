@@ -213,9 +213,11 @@ export function setApp(app: Express, client: MongoClient) {
 
   // player 2 enters the code
   app.post("/api/versus/join", requireAuth, async (req: AuthedRequest, res) => {
-    const { code } = req.body;
+    const code = String(req.body.code ?? "").toUpperCase();
+    if (!/^[A-Z]{4}$/.test(code)) return res.status(200).json({ error: "Invalid code" });
+
     const uid = String(req.user!.userId);
-    const game = await db.collection("Versus").findOne({ code: code?.toUpperCase() });
+    const game = await db.collection("Versus").findOne({ code: code });
 
     if (!game) return res.status(200).json({ error: "Room not found" });
     if (game.status !== "waiting" && !game.players[uid])
@@ -238,7 +240,10 @@ export function setApp(app: Express, client: MongoClient) {
 
   // GUESS — score against the shared answer, record in this player's slot
   app.post("/api/versus/guess", requireAuth, async (req: AuthedRequest, res) => {
-    const { code, guess } = req.body;
+    const code = String(req.body.code ?? "").toUpperCase();
+    if (!/^[A-Z]{4}$/.test(code)) return res.status(200).json({ error: "Invalid code" });
+
+    const guess = req.body.guess;
     const uid = String(req.user!.userId);
     const g = String(guess ?? "").toLowerCase();
 
@@ -257,17 +262,21 @@ export function setApp(app: Express, client: MongoClient) {
     const finished = won || newGuessCount >= MAX_GUESSES;
 
     const update: any = {
-      [`players.${uid}.guesses`]: [...player.guesses, g],
-      [`players.${uid}.finished`]: finished,
-      [`players.${uid}.won`]: won,
+      $push: { [`players.${uid}.guesses`]: g },
+      $set: {
+        [`players.${uid}.finished`]: finished,
+        [`players.${uid}.won`]: won,
+      },
     };
 
-    if (won && !game.winner) {
-      update.winner = req.user!.userId;
-      update.status = "done";
+    if (won) {
+      await db.collection("Versus").updateOne(
+        { code: game.code, winner: null },
+        { $set: { winner: req.user!.userId, status: "done" } }
+      );
     }
 
-    await db.collection("Versus").updateOne({ code: game.code }, { $set: update });
+    await db.collection("Versus").updateOne({ code: game.code }, update); // ← no $set wrapper
 
     // return this player's marks + opponent's public state
     const updated = await db.collection("Versus").findOne({ code: game.code });
@@ -294,6 +303,7 @@ export function setApp(app: Express, client: MongoClient) {
     res.status(200).json({
       status: game.status,
       winner: game.winner,
+      answer: game.status === "done" ? game.answer : undefined, // only after match ends
       opponent: opponentPublicState(game, uid),
       error: "",
     });

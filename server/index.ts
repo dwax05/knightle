@@ -18,7 +18,10 @@ async function start() {
 
   await client.db().collection("Users").createIndex({ Login: 1 }, { unique: true });
   await client.db().collection("Stats").createIndex({ userId: 1 }, { unique: true });
-  await client.db().collection("Versus").createIndex({ code: 1 });
+  await client.db().collection("Versus").createIndex(
+    { createdAt: 1 },
+    { expireAfterSeconds: 4 * 60 * 60 } // 4 hours
+  );
 
   setApp(app, client);
   app.listen(3500, () => console.log("server on :3500"));
