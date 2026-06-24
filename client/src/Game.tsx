@@ -103,7 +103,7 @@ export function Game({ onGameEnd }: { onGameEnd?: () => void }) {
             {rowLetters(r).map((cell, c) => (
               <div
                 key={c}
-                className={`w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center text-2xl font-bold uppercase rounded border-2 ${cell.mark
+                className={`w-15 h-15 sm:w-16 sm:h-16 flex items-center justify-center text-2xl font-bold uppercase rounded border-2 ${cell.mark
                   ? MARK_CLASSES[cell.mark]
                   : cell.ch
                     ? "border-border-app text-fg"

@@ -30,7 +30,7 @@ function Home() {
         </button>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-8 items-center lg:items-start justify-center mt-14">
+      <div className="flex flex-col lg:flex-row gap-18 items-center lg:items-start justify-center mt-14">
         <div className="flex flex-col items-center">
           <h1 className="text-4xl font-bold mb-4 text-fg">Knightle</h1>
           <Game onGameEnd={() => setRefreshKey((k) => k + 1)} />
