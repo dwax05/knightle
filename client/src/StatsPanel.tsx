@@ -31,7 +31,7 @@ export function StatsPanel({ refreshKey }: { refreshKey: number }) {
   return (
     <div className="w-full max-w-md lg:w-64 flex flex-col gap-5">
       <div>
-        <h3 style={{ margin: "0 0 8px", display: "flex", justifyContent: "center" }}>Statistics</h3>
+        <h3 className="text-lg font-bold text-fg text-center">Statistics</h3>
         {stats ? (
           <>
             <div style={{ display: "flex", gap: 12, marginBottom: 12, justifyContent: "center" }}>
