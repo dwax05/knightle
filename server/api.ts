@@ -191,6 +191,114 @@ export function setApp(app: Express, client: MongoClient) {
     res.status(200).json({ error: "" });
   });
 
+  // player 1 starts a room
+  app.post("/api/versus/create", requireAuth, async (req: AuthedRequest, res) => {
+    const code = await makeRoomCode(db);
+    const answer = ANSWERS[Math.floor(Math.random() * ANSWERS.length)];
+    const uid = String(req.user!.userId);
+
+    await db.collection("Versus").insertOne({
+      code,
+      answer,
+      players: {
+        [uid]: { login: req.user!.login, guesses: [], finished: false, won: false },
+      },
+      winner: null,
+      status: "waiting",
+      createdAt: new Date(),
+    });
+
+    res.status(200).json({ code, error: "" });
+  });
+
+  // player 2 enters the code
+  app.post("/api/versus/join", requireAuth, async (req: AuthedRequest, res) => {
+    const { code } = req.body;
+    const uid = String(req.user!.userId);
+    const game = await db.collection("Versus").findOne({ code: code?.toUpperCase() });
+
+    if (!game) return res.status(200).json({ error: "Room not found" });
+    if (game.status !== "waiting" && !game.players[uid])
+      return res.status(200).json({ error: "Room is full or already started" });
+    if (game.players[uid])
+      return res.status(200).json({ error: "", code: game.code }); // rejoining own room
+
+    await db.collection("Versus").updateOne(
+      { code: game.code },
+      {
+        $set: {
+          [`players.${uid}`]: { login: req.user!.login, guesses: [], finished: false, won: false },
+          status: "active",
+        },
+      }
+    );
+
+    res.status(200).json({ code: game.code, error: "" });
+  });
+
+  // GUESS — score against the shared answer, record in this player's slot
+  app.post("/api/versus/guess", requireAuth, async (req: AuthedRequest, res) => {
+    const { code, guess } = req.body;
+    const uid = String(req.user!.userId);
+    const g = String(guess ?? "").toLowerCase();
+
+    if (g.length !== 5 || !VALID_GUESSES.has(g))
+      return res.status(200).json({ error: "Not a valid word" });
+
+    const game = await db.collection("Versus").findOne({ code: code?.toUpperCase() });
+    if (!game || !game.players[uid]) return res.status(200).json({ error: "No active game" });
+    if (game.players[uid].finished) return res.status(200).json({ error: "You're already done" });
+    if (game.status === "done") return res.status(200).json({ error: "Game is over" });
+
+    const marks = scoreGuess(g, game.answer);
+    const won = marks.every((m) => m === "correct");
+    const player = game.players[uid];
+    const newGuessCount = player.guesses.length + 1;
+    const finished = won || newGuessCount >= MAX_GUESSES;
+
+    const update: any = {
+      [`players.${uid}.guesses`]: [...player.guesses, g],
+      [`players.${uid}.finished`]: finished,
+      [`players.${uid}.won`]: won,
+    };
+
+    if (won && !game.winner) {
+      update.winner = req.user!.userId;
+      update.status = "done";
+    }
+
+    await db.collection("Versus").updateOne({ code: game.code }, { $set: update });
+
+    // return this player's marks + opponent's public state
+    const updated = await db.collection("Versus").findOne({ code: game.code });
+    res.status(200).json({
+      marks,
+      won,
+      finished,
+      guessNum: newGuessCount,
+      answer: finished ? game.answer : undefined,
+      opponent: opponentPublicState(updated, uid),
+      winner: updated!.winner,
+      status: updated!.status,
+      error: "",
+    });
+  });
+
+  // STATE — for polling the opponent's progress
+  app.post("/api/versus/state", requireAuth, async (req: AuthedRequest, res) => {
+    const { code } = req.body;
+    const uid = String(req.user!.userId);
+    const game = await db.collection("Versus").findOne({ code: code?.toUpperCase() });
+    if (!game || !game.players[uid]) return res.status(200).json({ error: "No active game" });
+
+    res.status(200).json({
+      status: game.status,
+      winner: game.winner,
+      opponent: opponentPublicState(game, uid),
+      error: "",
+    });
+  });
+
   async function updateStats(userId: number, won: boolean, guessNum: number) {
     const stats =
       (await db.collection("Stats").findOne({ userId })) ?? emptyStats(userId);
@@ -209,6 +317,30 @@ export function setApp(app: Express, client: MongoClient) {
       { $set: stats },
       { upsert: true }
     );
+  }
+
+  async function makeRoomCode(db: Db): Promise<string> {
+    const letters = "ABCDEFGHJKLMNPQRSTUVWXYZ"; // no I/O to avoid confusion
+    for (let attempt = 0; attempt < 10; attempt++) {
+      const code = Array.from({ length: 4 }, () =>
+        letters[Math.floor(Math.random() * letters.length)]
+      ).join("");
+      const existing = await db.collection("Versus").findOne({ code, status: { $ne: "done" } });
+      if (!existing) return code;
+    }
+    throw new Error("Could not generate unique code");
+  }
+
+  function opponentPublicState(game: any, myUid: string) {
+    const oppUid = Object.keys(game.players).find((id) => id !== myUid);
+    if (!oppUid) return null; // opponent hasn't joined yet
+    const o = game.players[oppUid];
+    return {
+      login: o.login,
+      guessCount: o.guesses.length,
+      finished: o.finished,
+      won: o.won,
+    };
   }
 }
 
