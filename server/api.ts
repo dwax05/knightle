@@ -16,9 +16,14 @@ export function setApp(app: Express, client: MongoClient) {
   const db = client.db();
 
   app.post("/api/register", async (req, res) => {
-    const { login, password, firstName, lastName } = req.body;
-    if (!login || !password) {
-      return res.status(200).json({ error: "Login and password required" });
+    const { login, password, email } = req.body;
+    if (!login || !password || !email) {
+      return res.status(200).json({ error: "Username, email, and password required" });
+    }
+
+    // basic email shape check
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return res.status(200).json({ error: "Invalid email address" });
     }
 
     const existing = await db.collection("Users").findOne({ Login: login });
@@ -33,15 +38,19 @@ export function setApp(app: Express, client: MongoClient) {
 
     const user = {
       UserID: nextId,
-      FirstName: firstName ?? "",
-      LastName: lastName ?? "",
       Login: login,
-      Password: hashed,   // store the hash, never the raw password
+      Email: email,
+      Password: hashed,
+      EmailVerified: false,  // groundwork for later verification
     };
     await db.collection("Users").insertOne(user);
 
-    const token = createToken(user.FirstName, user.LastName, user.UserID);
-    res.status(200).json({ id: nextId, firstName: user.FirstName, lastName: user.LastName, ...token });
+    const token = createToken(user.Login, user.UserID);
+    res.status(200).json({
+      id: user.UserID,
+      login: user.Login,
+      ...token,
+    });
   });
 
   const loginLimiter = rateLimit({
@@ -196,10 +205,11 @@ export function setApp(app: Express, client: MongoClient) {
     } else {
       stats.currentStreak = 0;
     }
-
-    await db
-      .collection("Stats")
-      .updateOne({ userId }, { $set: stats }, { upsert: true });
+    await db.collection("Stats").updateOne(
+      { userId },
+      { $set: stats },
+      { upsert: true }
+    );
   }
 }
 

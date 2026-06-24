@@ -15,6 +15,7 @@ async function start() {
   console.log("db connected");
 
   await client.db().collection("Users").createIndex({ Login: 1 }, { unique: true });
+  await client.db().collection("Users").createIndex({ Email: 1 }, { unique: true });
   await client.db().collection("Stats").createIndex({ userId: 1 }, { unique: true });
 
   setApp(app, client);

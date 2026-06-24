@@ -7,7 +7,7 @@ export function AuthForm() {
   const { login, register } = useAuth();
   const [mode, setMode] = useState<"login" | "register">("login");
   const [form, setForm] = useState({
-    login: "", password: "", confirm: "", firstName: "", lastName: "",
+    login: "", password: "", confirm: "", email: "",
   });
   const [status, setStatus] = useState<Status>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -19,6 +19,8 @@ export function AuthForm() {
     if (!form.login.trim()) return "Username is required";
     if (!form.password) return "Password is required";
     if (mode === "register") {
+      if (!form.email.trim()) return "Email is required";
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) return "Invalid email address";
       if (form.password.length < 6) return "Password must be at least 6 characters";
       if (form.password !== form.confirm) return "Passwords don't match";
     }
@@ -65,10 +67,7 @@ export function AuthForm() {
         </div>
 
         {mode === "register" && (
-          <div className="flex gap-2">
-            <input className={inputClass} placeholder="First name" value={form.firstName} onChange={set("firstName")} />
-            <input className={inputClass} placeholder="Last name" value={form.lastName} onChange={set("lastName")} />
-          </div>
+          <input className={inputClass} type="email" placeholder="Email" value={form.email} onChange={set("email")} />
         )}
 
         <input className={inputClass} placeholder="Username" value={form.login} onChange={set("login")} />

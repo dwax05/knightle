@@ -1,10 +1,9 @@
 import jwt from "jsonwebtoken";
 
-export function createToken(fn: string, ln: string, id: number) {
+export function createToken(login: string, id: number) {
   try {
-    const user = { userId: id, firstName: fn, lastName: ln };
-    const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET as string);
-    // for expiry: jwt.sign(user, secret, { expiresIn: "30m" })
+    const user = { userId: id, login };
+    const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET as string, { expiresIn: "1h" });
     return { accessToken };
   } catch (e: any) {
     return { error: e.message };

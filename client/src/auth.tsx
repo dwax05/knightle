@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
 import { applyTheme } from "./theme-apply";
 
-type User = { id: number; firstName: string; lastName: string };
+type User = { id: number; login: string };
 
 type AuthCtx = {
   user: User | null;
@@ -12,12 +12,7 @@ type AuthCtx = {
   authedPost: (url: string, body: object) => Promise<any>;
 };
 
-type RegisterData = {
-  login: string;
-  password: string;
-  firstName: string;
-  lastName: string;
-};
+type RegisterData = { login: string; password: string; email: string };
 
 const Ctx = createContext<AuthCtx>(null!);
 export const useAuth = () => useContext(Ctx);
@@ -32,7 +27,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
 
   function persist(data: any) {
-    const u = { id: data.id, firstName: data.firstName, lastName: data.lastName };
+    const u = { id: data.id, login: data.login };
     setUser(u);
     setToken(data.accessToken);
     localStorage.setItem("user", JSON.stringify(u));
