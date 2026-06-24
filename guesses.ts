@@ -1,9 +1,5 @@
-export const ANSWERS = [
-  "crane", "audio", "house", "ghost", "vivid",
-];
-
-export const VALID_GUESSES = new Set([
-  ...ANSWERS,
+// 2309 words generated from wordle-dict.csv
+export const VALID_GUESSES = [
   "aback", "abase", "abate", "abbey", "abbot", "abhor", "abide", "abled",
   "abode", "abort", "about", "above", "abuse", "abyss", "acorn", "acrid",
   "actor", "acute", "adage", "adapt", "adept", "admin", "admit", "adobe",
@@ -293,4 +289,4 @@ export const VALID_GUESSES = new Set([
   "wrack", "wrath", "wreak", "wreck", "wrest", "wring", "wrist", "write",
   "wrong", "wrote", "wrung", "wryly", "yacht", "yearn", "yeast", "yield",
   "young", "youth", "zebra", "zesty", "zonal",
-]);
+];

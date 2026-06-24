@@ -72,11 +72,10 @@ export function setApp(app: Express, client: MongoClient) {
       return res.status(200).json({ error: "Login/Password incorrect" });
     }
 
-    const token = createToken(user.FirstName, user.LastName, user.UserID);
+    const token = createToken(user.Login, user.UserID);
     res.status(200).json({
       id: user.UserID,
-      firstName: user.FirstName,
-      lastName: user.LastName,
+      login: user.Login,
       ...token,
     });
   });
