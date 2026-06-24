@@ -27,7 +27,7 @@ export function Leaderboard({ refreshKey }: { refreshKey: number }) {
 
   return (
     <div className="w-full max-w-md lg:w-64 flex flex-col gap-3">
-      <h3 className="text-lg font-bold text-fg">Leaderboard</h3>
+      <h3 className="text-lg font-bold text-fg text-center">Leaderboard</h3>
       {entries.length === 0 ? (
         <p className="text-sm text-muted">No wins yet — be the first!</p>
       ) : (
