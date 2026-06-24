@@ -112,5 +112,16 @@ export function Versus({ onExit }: { onExit: () => void }) {
   }
 
   // ---- ACTIVE (placeholder until Stage 2) ----
-  return <VersusGame code={code} onExit={onExit} />;
+  return (
+    <VersusGame
+      code={code}
+      onExit={onExit}
+      onRematch={() => {
+        setCode("");
+        setJoinCode("");
+        setError("");
+        setPhase("lobby");
+      }}
+    />
+  );
 }

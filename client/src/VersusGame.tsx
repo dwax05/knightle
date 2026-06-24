@@ -1,11 +1,16 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useAuth } from "./auth";
 import { Board, COLS, type Mark } from "./Board";
+import { VersusResult } from "./VersusResult";
 
 type Opponent = { login: string; guessCount: number; finished: boolean; won: boolean } | null;
 
-export function VersusGame({ code, onExit }: { code: string; onExit: () => void }) {
-  const { authedPost } = useAuth();
+export function VersusGame({ code, onExit, onRematch }: {
+  code: string;
+  onExit: () => void;
+  onRematch: () => void;
+}) {
+  const { authedPost, user } = useAuth();
   const [guesses, setGuesses] = useState<string[]>([]);
   const [marks, setMarks] = useState<Mark[][]>([]);
   const [current, setCurrent] = useState("");
@@ -14,6 +19,7 @@ export function VersusGame({ code, onExit }: { code: string; onExit: () => void 
   const [opponent, setOpponent] = useState<Opponent>(null);
   const [winner, setWinner] = useState<number | null>(null);
   const [status, setStatus] = useState("active");
+  const [myGuessCount, setMyGuessCount] = useState(0);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const submitGuess = useCallback(async () => {
@@ -23,6 +29,7 @@ export function VersusGame({ code, onExit }: { code: string; onExit: () => void 
     setMessage("");
     setGuesses((g) => [...g, current]);
     setMarks((m) => [...m, data.marks]);
+    setMyGuessCount((n) => n + 1);
     setCurrent("");
     if (data.opponent) setOpponent(data.opponent);
     if (data.winner) setWinner(data.winner);
@@ -71,11 +78,18 @@ export function VersusGame({ code, onExit }: { code: string; onExit: () => void 
     return () => { if (pollRef.current) clearInterval(pollRef.current); };
   }, [code, authedPost]);
 
+  const myId = user?.id;
+  const isDone = status === "done";
+  const youWon = winner != null && String(winner) === String(myId);
+
+  // winner's guess count: if you won, your count; else opponent's
+  const winnerGuesses = youWon ? myGuessCount : (opponent?.guessCount ?? 0);
+  const winnerName = youWon ? "You" : (opponent?.login ?? "Opponent");
+
   return (
     <div className="max-w-xl mx-auto mt-8 flex flex-col items-center gap-4">
       <h2 className="text-2xl font-bold text-fg">Versus — Room {code}</h2>
 
-      {/* opponent progress strip */}
       <div className="w-full max-w-md flex items-center justify-between px-3 py-2 rounded-lg bg-surface text-sm">
         <span className="text-fg font-semibold">
           {opponent ? opponent.login : "Waiting for opponent..."}
@@ -89,19 +103,26 @@ export function VersusGame({ code, onExit }: { code: string; onExit: () => void 
         )}
       </div>
 
-      <Board guesses={guesses} marks={marks} current={current} done={finished} onKeyPress={onKeyPress} />
+      <Board guesses={guesses} marks={marks} current={current} done={finished || isDone} onKeyPress={onKeyPress} />
 
       <div className="min-h-6 font-semibold text-fg">{message}</div>
-
-      {status === "done" && (
-        <div className="text-lg font-bold text-accent">
-          {winner === null ? "Game over" : "Match complete — check who won!"}
-        </div>
-      )}
 
       <button onClick={onExit} className="text-sm text-muted hover:text-fg transition">
         ← Leave match
       </button>
+
+      {isDone && (
+        <VersusResult
+          result={{
+            youWon,
+            winnerName,
+            winnerGuesses,
+            isDraw: winner == null,
+          }}
+          onRematch={onRematch}
+          onLeave={onExit}
+        />
+      )}
     </div>
   );
 }
