@@ -1,11 +1,13 @@
 import type { Express } from "express";
 import type { MongoClient } from "mongodb";
 import { randomUUID } from "crypto";
+import bcrypt from "bcrypt";
+import rateLimit from "express-rate-limit";
+
 import { createToken } from "./createJWT";
 import { requireAuth, type AuthedRequest } from "./auth";
 import { ANSWERS, VALID_GUESSES } from "./words";
 import { scoreGuess } from "./wordle";
-import bcrypt from "bcrypt";
 
 const SALT_ROUNDS = 10;
 const MAX_GUESSES = 6;
@@ -42,7 +44,13 @@ export function setApp(app: Express, client: MongoClient) {
     res.status(200).json({ id: nextId, firstName: user.FirstName, lastName: user.LastName, ...token });
   });
 
-  app.post("/api/login", async (req, res) => {
+  const loginLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 min
+    max: 10,                   // 10 attempts per window per IP
+    message: { error: "Too many attempts, try again later" },
+  });
+
+  app.post("/api/login", loginLimiter, async (req, res) => {
     const { login, password } = req.body;
 
     const user = await db.collection("Users").findOne({ Login: login });

@@ -4,8 +4,8 @@ import { MongoClient } from "mongodb";
 import { setApp } from "./api";
 
 const app = express();
-app.use(cors());
-app.use(express.json());
+app.use(cors({ origin: "http://localhost:5173" }));
+app.use(express.json({ limit: "10kb" }));
 
 const uri = process.env.MONGO_URI ?? "mongodb://mongo:27017";
 const client = new MongoClient(uri);
