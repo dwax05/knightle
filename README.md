@@ -1,17 +1,58 @@
-# Wordle
+# Knightle
 
-MERN stack (React + Vite, Express, MongoDB) running via Docker Compose.
+A full-stack Wordle clone with user accounts, stats tracking, a leaderboard, a custom CSS theme editor, and a 2-player versus mode.
+
+## Stack
+
+| Layer | Tech |
+|-------|------|
+| Client | React 19, TypeScript, Vite, Tailwind CSS 4 |
+| Server | Express 5, TypeScript, MongoDB 7 |
+| Auth | JWT + bcrypt, rate-limited login |
+| Dev | Docker Compose, tsx watch |
+
+## Features
+
+- **Solo game** — server-side answer selection, 6 guesses, color-coded tile feedback
+- **Accounts** — register/login with hashed passwords and JWT session tokens
+- **Stats** — win rate, current/max streak, guess distribution
+- **Leaderboard** — top 10 players by wins
+- **Versus mode** — create a room, share a 4-letter code, race a friend on the same word; rematch support
+- **Theme editor** — inject custom CSS to restyle the board per-user
 
 ## Ports
 
 | Service | Port |
 |---------|------|
 | Client (Vite) | 5173 |
-| Server (Express API) | 3000 |
+| Server (Express) | 3500 |
 | MongoDB | 27017 |
 
 ## Run
 
 ```bash
+cp server/.env.example server/.env   # fill in MONGO_PASSWORD and JWT_SECRET
 docker compose up --build
 ```
+
+Open http://localhost:5173.
+
+## API
+
+All endpoints are `POST /api/*`. Auth-required routes expect `Authorization: Bearer <token>`.
+
+| Endpoint | Auth | Description |
+|----------|------|-------------|
+| `/api/register` | — | Create account |
+| `/api/login` | — | Returns JWT |
+| `/api/newgame` | ✓ | Start a solo game |
+| `/api/guess` | ✓ | Submit a guess |
+| `/api/stats` | ✓ | Fetch personal stats |
+| `/api/leaderboard` | ✓ | Top 10 by wins |
+| `/api/theme/get` | ✓ | Load saved CSS theme |
+| `/api/theme/save` | ✓ | Save CSS theme |
+| `/api/versus/create` | ✓ | Open a versus room |
+| `/api/versus/join` | ✓ | Join by room code |
+| `/api/versus/guess` | ✓ | Submit versus guess |
+| `/api/versus/state` | ✓ | Poll opponent progress |
+| `/api/versus/rematch` | ✓ | Request a rematch |
