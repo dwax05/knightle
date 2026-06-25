@@ -8,6 +8,18 @@ import { Leaderboard } from "./Leaderboard";
 import { Versus } from "./Versus";
 import { ProfilePage } from "./ProfilePage";
 
+function NavButton({ onClick, emoji, label }: { onClick: () => void; emoji: string; label: string }) {
+  return (
+    <button
+      onClick={onClick}
+      className="flex items-center gap-2 px-3.5 py-2.5 text-sm font-medium text-muted hover:text-fg hover:bg-bg/70 active:bg-bg transition-colors duration-150"
+    >
+      <span className="text-base leading-none">{emoji}</span>
+      <span className="hidden sm:inline tracking-wide">{label}</span>
+    </button>
+  );
+}
+
 function Home() {
   const { user } = useAuth();
   const [refreshKey, setRefreshKey] = useState(0);
@@ -25,17 +37,13 @@ function Home() {
   if (view === "profile") return <ProfilePage onClose={() => setView("game")} />;
   return (
     <div className="max-w-4xl mx-auto px-4 py-6 relative">
-      <div className="absolute top-4 right-4 flex gap-2 z-10">
-        <button onClick={() => setView("versus")} className="px-3 py-1.5 rounded-lg bg-surface text-fg text-sm border border-border-app/60 hover:opacity-80">
-          ⚔️ Versus
-        </button>
-        <button onClick={() => setView("theme")} className="px-3 py-1.5 rounded-lg bg-surface text-fg text-sm border border-border-app hover:opacity-80">
-          🎨 Theme
-        </button>
-        <button onClick={() => setView("profile")} className="px-3 py-1.5 rounded-lg bg-surface text-fg text-sm border border-border-app hover:opacity-80">
-          👤 Profile
-        </button>
-      </div>
+      <nav className="absolute top-4 right-4 z-10 flex items-stretch bg-surface border border-border-app/50 rounded-xl overflow-hidden">
+        <NavButton onClick={() => setView("versus")} emoji="⚔️" label="Versus" />
+        <div className="w-px bg-border-app/40 self-stretch" />
+        <NavButton onClick={() => setView("theme")} emoji="🎨" label="Theme" />
+        <div className="w-px bg-border-app/40 self-stretch" />
+        <NavButton onClick={() => setView("profile")} emoji="👤" label="Profile" />
+      </nav>
 
       <div className="flex flex-col lg:flex-row gap-18 items-center lg:items-start justify-center mt-14">
         <div className="flex flex-col items-center">
