@@ -1,35 +1,25 @@
 @import "tailwindcss";
 
+/* Bridge CSS variables to Tailwind color utilities.
+   All values are var(…) references so custom themes override automatically. */
 @theme {
   --color-bg: var(--bg);
   --color-fg: var(--fg);
   --color-surface: var(--surface);
   --color-border-app: var(--border);
   --color-muted: var(--muted);
+
   --color-correct: var(--tile-correct);
   --color-present: var(--tile-present);
   --color-absent: var(--tile-absent);
   --color-tiletext: var(--tile-text);
+
   --color-success: var(--success);
   --color-error: var(--error);
   --color-accent: var(--accent);
-}
 
-:root {
-  --bg: #1e1e2e;
-  --fg: #cdd6f4;
-  --surface: #313244;
-  --border: #45475a;
-  --muted: #928374;
-  --tile-correct: #a6e3a1;
-  --tile-present: #f9e2af;
-  --tile-absent: #45475a;
-  --tile-text: #1e1e2e;
-  --success: #a6e3a1;
-  --error: #f38ba8;
-  --accent: #89b4fa;
-  --button-bg: #313244;
-  --button-fg: #cdd6f4;
+  --color-button-bg: var(--button-bg);
+  --color-button-fg: var(--button-fg);
 }
 
 body {
