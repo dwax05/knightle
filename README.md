@@ -13,12 +13,13 @@ A full-stack Wordle clone with user accounts, stats tracking, a leaderboard, a c
 
 ## Features
 
-- **Solo game** — server-side answer selection, 6 guesses, color-coded tile feedback
+- **Solo game** — server-side answer selection, 6 guesses, color-coded tile feedback with flip animations
 - **Accounts** — register/login with hashed passwords and JWT session tokens
+- **Profile** — change password, log out, clear game data, delete account
 - **Stats** — win rate, current/max streak, guess distribution
 - **Leaderboard** — top 10 players by wins
 - **Versus mode** — create a room, share a 4-letter code, race a friend on the same word; rematch support
-- **Theme editor** — inject custom CSS to restyle the board per-user
+- **Theme editor** — inject custom CSS to restyle the board per-user (Gruvbox dark default)
 
 ## Ports
 
@@ -51,6 +52,9 @@ All endpoints are `POST /api/*`. Auth-required routes expect `Authorization: Bea
 | `/api/leaderboard` | ✓ | Top 10 by wins |
 | `/api/theme/get` | ✓ | Load saved CSS theme |
 | `/api/theme/save` | ✓ | Save CSS theme |
+| `/api/password-reset` | ✓ | Change password (requires current password) |
+| `/api/clear-game-data` | ✓ | Delete all stats and game history |
+| `/api/delete-account` | ✓ | Delete account and all associated data |
 | `/api/versus/create` | ✓ | Open a versus room |
 | `/api/versus/join` | ✓ | Join by room code |
 | `/api/versus/guess` | ✓ | Submit versus guess |
