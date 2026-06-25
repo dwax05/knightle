@@ -4,3 +4,7 @@ postman/
 .postman/
 csvtoarray.sh
 handoffs/
+CLAUDE.md
+docs/
+.DS_Store
+**/.DS_Store
