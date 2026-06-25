@@ -364,6 +364,56 @@ export function setApp(app: Express, client: MongoClient) {
     res.status(200).json({ error: "" });
   });
 
+  app.post("/api/password-reset", requireAuth, async (req: AuthedRequest, res) => {
+    const { currentPassword, newPassword } = req.body;
+    if (!currentPassword || !newPassword) {
+      return res.status(200).json({ error: "Current and new password required" });
+    }
+    if (typeof newPassword !== "string" || newPassword.length < 6) {
+      return res.status(200).json({ error: "New password must be at least 6 characters" });
+    }
+
+    const user = await db.collection("Users").findOne({ UserID: req.user!.userId });
+    if (!user) return res.status(200).json({ error: "User not found" });
+
+    const match = await bcrypt.compare(currentPassword, user.Password);
+    if (!match) return res.status(200).json({ error: "Current password is incorrect" });
+
+    const hashed = await bcrypt.hash(newPassword, SALT_ROUNDS);
+    await db.collection("Users").updateOne(
+      { UserID: req.user!.userId },
+      { $set: { Password: hashed } }
+    );
+    res.status(200).json({ error: "" });
+  });
+
+  app.post("/api/clear-game-data", requireAuth, async (req: AuthedRequest, res) => {
+    await Promise.all([
+      db.collection("Stats").deleteOne({ userId: req.user!.userId }),
+      db.collection("Games").deleteMany({ userId: req.user!.userId }),
+    ]);
+    res.status(200).json({ error: "" });
+  });
+
+  app.post("/api/delete-account", requireAuth, async (req: AuthedRequest, res) => {
+    const { password } = req.body;
+    if (!password) return res.status(200).json({ error: "Password required" });
+
+    const user = await db.collection("Users").findOne({ UserID: req.user!.userId });
+    if (!user) return res.status(200).json({ error: "User not found" });
+
+    const match = await bcrypt.compare(password, user.Password);
+    if (!match) return res.status(200).json({ error: "Password is incorrect" });
+
+    await Promise.all([
+      db.collection("Users").deleteOne({ UserID: req.user!.userId }),
+      db.collection("Stats").deleteOne({ userId: req.user!.userId }),
+      db.collection("Games").deleteMany({ userId: req.user!.userId }),
+      db.collection("Themes").deleteOne({ userId: req.user!.userId }),
+    ]);
+    res.status(200).json({ error: "" });
+  });
+
   async function updateStats(userId: number, won: boolean, guessNum: number) {
     const stats =
       (await db.collection("Stats").findOne({ userId })) ?? emptyStats(userId);

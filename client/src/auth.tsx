@@ -9,6 +9,7 @@ type AuthCtx = {
   register: (data: RegisterData) => Promise<string | null>;
   logout: () => void;
   authedPost: (url: string, body: object) => Promise<any>;
+  deleteAccount: (password: string) => Promise<string | null>;
 };
 
 type RegisterData = { login: string; password: string; email: string };
@@ -82,6 +83,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     applyTheme(""); // wipe custom theme back to defaults
   }
 
+  async function deleteAccount(password: string): Promise<string | null> {
+    const data = await authedPost("/api/delete-account", { password });
+    if (data.error) return data.error;
+    logout();
+    return null;
+  }
+
   async function loadTheme() {
     if (!token) return;
     const data = await authedPost("/api/theme/get", {});
@@ -93,7 +101,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [token]);
 
   return (
-    <Ctx.Provider value={{ user, login, register, logout, authedPost }}>
+    <Ctx.Provider value={{ user, login, register, logout, authedPost, deleteAccount }}>
       {children}
     </Ctx.Provider>
   );

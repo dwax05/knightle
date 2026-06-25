@@ -6,21 +6,23 @@ import { StatsPanel } from "./StatsPanel";
 import { ThemeEditor } from "./ThemeEditor";
 import { Leaderboard } from "./Leaderboard";
 import { Versus } from "./Versus";
+import { ProfilePage } from "./ProfilePage";
 
 function Home() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const [refreshKey, setRefreshKey] = useState(0);
-  const [view, setView] = useState<"game" | "theme" | "versus">(
+  const [view, setView] = useState<"game" | "theme" | "versus" | "profile">(
     () => (localStorage.getItem("view") as "game" | "theme" | "versus") || "game"
   );
 
   useEffect(() => {
-    localStorage.setItem("view", view);
+    localStorage.setItem("view", view === "profile" ? "game" : view);
   }, [view]);
   if (!user) return <AuthForm />;
 
   if (view === "theme") return <ThemeEditor onClose={() => setView("game")} />;
   if (view === "versus") return <Versus onExit={() => setView("game")} />;
+  if (view === "profile") return <ProfilePage onClose={() => setView("game")} />;
   return (
     <div className="max-w-4xl mx-auto px-4 py-6 relative">
       <div className="absolute top-4 right-4 flex gap-2 z-10">
@@ -30,8 +32,8 @@ function Home() {
         <button onClick={() => setView("theme")} className="px-3 py-1.5 rounded-lg bg-surface text-fg text-sm border border-border-app hover:opacity-80">
           🎨 Theme
         </button>
-        <button onClick={logout} className="px-3 py-1.5 rounded-lg bg-surface text-fg text-sm border border-border-app hover:opacity-80">
-          Log out
+        <button onClick={() => setView("profile")} className="px-3 py-1.5 rounded-lg bg-surface text-fg text-sm border border-border-app hover:opacity-80">
+          👤 Profile
         </button>
       </div>
 
