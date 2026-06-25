@@ -1,6 +1,10 @@
+import { useEffect, useState } from "react";
+
 type Mark = "correct" | "present" | "absent";
 const ROWS = 6;
 const COLS = 5;
+export const FLIP_DURATION = 500;  // ms — must match @keyframes flip-tile
+export const TILE_STAGGER = 100;   // ms between each tile in the row
 
 const MARK_CLASSES: Record<Mark, string> = {
   correct: "bg-correct text-tiletext border-correct",
@@ -23,13 +27,33 @@ export function Board({
   current,
   done,
   onKeyPress,
+  revealingRow,
 }: {
   guesses: string[];
   marks: Mark[][];
   current: string;
   done: boolean;
   onKeyPress: (key: string) => void;
+  revealingRow: number;
 }) {
+  // tracks which columns in revealingRow have crossed the flip midpoint
+  const [revealedCols, setRevealedCols] = useState<Set<number>>(new Set());
+
+  useEffect(() => {
+    if (revealingRow < 0) {
+      setRevealedCols(new Set());
+      return;
+    }
+    setRevealedCols(new Set());
+    const timers = Array.from({ length: COLS }, (_, col) =>
+      setTimeout(
+        () => setRevealedCols((prev) => new Set([...prev, col])),
+        col * TILE_STAGGER + FLIP_DURATION / 2
+      )
+    );
+    return () => timers.forEach(clearTimeout);
+  }, [revealingRow]);
+
   function rowLetters(row: number): { ch: string; mark?: Mark }[] {
     if (row < guesses.length)
       return guesses[row].split("").map((ch, i) => ({ ch, mark: marks[row][i] }));
@@ -52,19 +76,26 @@ export function Board({
       <div className="grid gap-1.5">
         {Array.from({ length: ROWS }, (_, r) => (
           <div key={r} className="flex gap-1.5">
-            {rowLetters(r).map((cell, c) => (
-              <div
-                key={c}
-                className={`w-15 h-15 sm:w-16 sm:h-16 flex items-center justify-center text-2xl font-bold uppercase rounded border-2 ${cell.mark
-                  ? MARK_CLASSES[cell.mark]
-                  : cell.ch
-                    ? "border-border-app text-fg"
-                    : "border-border-app/40 text-fg"
-                  }`}
-              >
-                {cell.ch}
-              </div>
-            ))}
+            {rowLetters(r).map((cell, c) => {
+              const isRevealing = r === revealingRow;
+              // show the mark color only once the tile has passed its flip midpoint
+              const showMark = cell.mark && (r !== revealingRow || revealedCols.has(c));
+              const colorClass = showMark
+                ? MARK_CLASSES[cell.mark!]
+                : cell.ch
+                  ? "border-border-app text-fg"
+                  : "border-border-app/40 text-fg";
+
+              return (
+                <div
+                  key={c}
+                  className={`w-15 h-15 sm:w-16 sm:h-16 flex items-center justify-center text-2xl font-bold uppercase rounded border-2 ${colorClass} ${isRevealing ? "animate-flip-tile" : ""}`}
+                  style={isRevealing ? { animationDelay: `${c * TILE_STAGGER}ms` } : undefined}
+                >
+                  {cell.ch}
+                </div>
+              );
+            })}
           </div>
         ))}
       </div>

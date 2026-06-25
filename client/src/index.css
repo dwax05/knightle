@@ -20,6 +20,13 @@
 
   --color-button-bg: var(--button-bg);
   --color-button-fg: var(--button-fg);
+
+  --animate-flip-tile: flip-tile 500ms ease-in-out;
+}
+
+@keyframes flip-tile {
+  0%, 100% { transform: perspective(400px) rotateX(0deg); }
+  50%       { transform: perspective(400px) rotateX(-90deg); }
 }
 
 body {

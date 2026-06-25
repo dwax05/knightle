@@ -1,6 +1,8 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useAuth } from "./auth";
-import { Board, COLS, type Mark } from "./Board";
+import { Board, COLS, FLIP_DURATION, TILE_STAGGER, type Mark } from "./Board";
+
+const REVEAL_TOTAL = (COLS - 1) * TILE_STAGGER + FLIP_DURATION + 50;
 
 export function Game({ onGameEnd }: { onGameEnd?: () => void }) {
   const { authedPost } = useAuth();
@@ -10,27 +12,39 @@ export function Game({ onGameEnd }: { onGameEnd?: () => void }) {
   const [current, setCurrent] = useState("");
   const [done, setDone] = useState<null | "won" | "lost">(null);
   const [message, setMessage] = useState("");
+  const [revealingRow, setRevealingRow] = useState(-1);
+  const revealTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   async function newGame() {
+    if (revealTimer.current) clearTimeout(revealTimer.current);
     const data = await authedPost("/api/newgame", {});
     if (data.error) return setMessage(data.error);
     setGameId(data.gameId);
-    setGuesses([]); setMarks([]); setCurrent(""); setDone(null); setMessage("");
+    setGuesses([]); setMarks([]); setCurrent(""); setDone(null);
+    setMessage(""); setRevealingRow(-1);
   }
 
   useEffect(() => { newGame(); }, []);
+  useEffect(() => () => { if (revealTimer.current) clearTimeout(revealTimer.current); }, []);
 
   const submitGuess = useCallback(async () => {
-    if (current.length !== COLS || !gameId || done) return;
+    if (current.length !== COLS || !gameId || done || revealingRow >= 0) return;
     const data = await authedPost("/api/guess", { gameId, guess: current });
     if (data.error) { setMessage(data.error); return; }
+
+    const rowIdx = guesses.length;
     setMessage("");
     setGuesses((g) => [...g, current]);
     setMarks((m) => [...m, data.marks]);
     setCurrent("");
-    if (data.won) { setDone("won"); setMessage("You got it!"); onGameEnd?.(); }
-    else if (data.lost) { setDone("lost"); setMessage(`The word was ${data.answer.toUpperCase()}`); onGameEnd?.(); }
-  }, [current, gameId, done, authedPost, onGameEnd]);
+    setRevealingRow(rowIdx);
+
+    revealTimer.current = setTimeout(() => {
+      setRevealingRow(-1);
+      if (data.won) { setDone("won"); setMessage("You got it!"); onGameEnd?.(); }
+      else if (data.lost) { setDone("lost"); setMessage(`The word was ${data.answer.toUpperCase()}`); onGameEnd?.(); }
+    }, REVEAL_TOTAL);
+  }, [current, gameId, done, revealingRow, guesses.length, authedPost, onGameEnd]);
 
   const typeLetter = useCallback((ch: string) => {
     if (done) return;
@@ -61,7 +75,14 @@ export function Game({ onGameEnd }: { onGameEnd?: () => void }) {
 
   return (
     <div className="flex flex-col items-center gap-4">
-      <Board guesses={guesses} marks={marks} current={current} done={!!done} onKeyPress={onKeyPress} />
+      <Board
+        guesses={guesses}
+        marks={marks}
+        current={current}
+        done={!!done}
+        onKeyPress={onKeyPress}
+        revealingRow={revealingRow}
+      />
       <div className="min-h-6 font-semibold text-fg">{message}</div>
       {done && (
         <button onClick={newGame} className="px-4 py-2 rounded-lg bg-accent text-tiletext font-semibold">
