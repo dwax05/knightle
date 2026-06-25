@@ -1,5 +1,5 @@
 import type { Express } from "express";
-import type { MongoClient } from "mongodb";
+import type { MongoClient, Db } from "mongodb";
 import { randomUUID } from "crypto";
 import bcrypt from "bcrypt";
 import rateLimit from "express-rate-limit";
@@ -141,24 +141,28 @@ export function setApp(app: Express, client: MongoClient) {
   app.post("/api/leaderboard", requireAuth, async (req: AuthedRequest, res) => {
     const top = await db
       .collection("Stats")
-      .find({ wins: { $gt: 0 } })
-      .sort({ wins: -1 })
-      .limit(10)
+      .aggregate([
+        { $match: { wins: { $gt: 0 } } },
+        { $sort: { wins: -1 } },
+        { $limit: 10 },
+        {
+          $lookup: {
+            from: "Users",
+            localField: "userId",
+            foreignField: "UserID",
+            as: "user",
+          },
+        },
+      ])
       .toArray();
 
-    // attach display names from Users
-    const result = await Promise.all(
-      top.map(async (s) => {
-        const user = await db.collection("Users").findOne({ UserID: s.userId });
-        return {
-          name: user ? user.Login : "Unknown",
-          wins: s.wins,
-          played: s.played,
-          maxStreak: s.maxStreak,
-          isMe: s.userId === req.user!.userId,
-        };
-      })
-    );
+    const result = top.map((s) => ({
+      name: s.user?.[0]?.Login ?? "Unknown",
+      wins: s.wins,
+      played: s.played,
+      maxStreak: s.maxStreak,
+      isMe: s.userId === req.user!.userId,
+    }));
 
     res.status(200).json({ leaderboard: result, error: "" });
   });
@@ -250,7 +254,7 @@ export function setApp(app: Express, client: MongoClient) {
     if (g.length !== 5 || !VALID_GUESSES.has(g))
       return res.status(200).json({ error: "Not a valid word" });
 
-    const game = await db.collection("Versus").findOne({ code: code?.toUpperCase() });
+    const game = await db.collection("Versus").findOne({ code });
     if (!game || !game.players[uid]) return res.status(200).json({ error: "No active game" });
     if (game.players[uid].finished) return res.status(200).json({ error: "You're already done" });
     if (game.status === "done") return res.status(200).json({ error: "Game is over" });

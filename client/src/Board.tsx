@@ -15,7 +15,7 @@ const KEYS = [
 ];
 
 export type { Mark };
-export { COLS, ROWS };
+export { COLS };
 
 export function Board({
   guesses,

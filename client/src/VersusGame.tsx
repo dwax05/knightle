@@ -19,7 +19,6 @@ export function VersusGame({ code, onExit, onRematch }: {
   const [opponent, setOpponent] = useState<Opponent>(null);
   const [winner, setWinner] = useState<number | null>(null);
   const [status, setStatus] = useState("active");
-  const [myGuessCount, setMyGuessCount] = useState(0);
   const [round, setRound] = useState(0);
   const [rematchMe, setRematchMe] = useState(false);
   const [rematchOpponent, setRematchOpponent] = useState(false);
@@ -32,7 +31,6 @@ export function VersusGame({ code, onExit, onRematch }: {
     setMessage("");
     setGuesses((g) => [...g, current]);
     setMarks((m) => [...m, data.marks]);
-    setMyGuessCount((n) => n + 1);
     setCurrent("");
     if (data.opponent) setOpponent(data.opponent);
     if (data.winner) setWinner(data.winner);
@@ -67,7 +65,6 @@ export function VersusGame({ code, onExit, onRematch }: {
     setMessage("");
     setWinner(null);
     setStatus("active");
-    setMyGuessCount(0);
     setRound(newRound);
   }, []);
 
@@ -113,7 +110,7 @@ export function VersusGame({ code, onExit, onRematch }: {
   const youWon = winner != null && String(winner) === String(myId);
 
   // winner's guess count: if you won, your count; else opponent's
-  const winnerGuesses = youWon ? myGuessCount : (opponent?.guessCount ?? 0);
+  const winnerGuesses = youWon ? guesses.length : (opponent?.guessCount ?? 0);
   const winnerName = youWon ? "You" : (opponent?.login ?? "Opponent");
 
   return (

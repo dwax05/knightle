@@ -11,7 +11,7 @@ function Home() {
   const { user, logout } = useAuth();
   const [refreshKey, setRefreshKey] = useState(0);
   const [view, setView] = useState<"game" | "theme" | "versus">(
-    () => (localStorage.getItem("view") as "game" | "theme") || "game"
+    () => (localStorage.getItem("view") as "game" | "theme" | "versus") || "game"
   );
 
   useEffect(() => {
