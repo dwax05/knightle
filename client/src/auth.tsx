@@ -5,7 +5,6 @@ type User = { id: number; login: string };
 
 type AuthCtx = {
   user: User | null;
-  token: string | null;
   login: (login: string, password: string) => Promise<string | null>;
   register: (data: RegisterData) => Promise<string | null>;
   logout: () => void;
@@ -32,22 +31,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setToken(data.accessToken);
     localStorage.setItem("user", JSON.stringify(u));
     localStorage.setItem("token", data.accessToken);
-    loadThemeWithToken(data.accessToken);
   }
 
-  async function loadThemeWithToken(tok: string) {
-    try {
-      const res = await fetch("/api/theme/get", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${tok}` },
-        body: "{}",
-      });
-      const data = await res.json();
-      if (data.css) applyTheme(data.css);
-    } catch { }
-  }
-
-  // inside AuthProvider, alongside login/register
   async function authedPost(url: string, body: object) {
     try {
       const res = await fetch(url, {
@@ -97,7 +82,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     applyTheme(""); // wipe custom theme back to defaults
   }
 
-  // after persist() in login/register success, or in a useEffect on token:
   async function loadTheme() {
     if (!token) return;
     const data = await authedPost("/api/theme/get", {});
@@ -109,7 +93,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [token]);
 
   return (
-    <Ctx.Provider value={{ user, token, login, register, logout, authedPost }}>
+    <Ctx.Provider value={{ user, login, register, logout, authedPost }}>
       {children}
     </Ctx.Provider>
   );

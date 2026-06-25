@@ -5,12 +5,13 @@ import { Game } from "./Game";
 import { StatsPanel } from "./StatsPanel";
 import { ThemeEditor } from "./ThemeEditor";
 import { Leaderboard } from "./Leaderboard";
+import { Versus } from "./Versus";
 
 function Home() {
   const { user, logout } = useAuth();
   const [refreshKey, setRefreshKey] = useState(0);
-  const [view, setView] = useState<"game" | "theme">(
-    () => (localStorage.getItem("view") as "game" | "theme") || "game"
+  const [view, setView] = useState<"game" | "theme" | "versus">(
+    () => (localStorage.getItem("view") as "game" | "theme" | "versus") || "game"
   );
 
   useEffect(() => {
@@ -19,9 +20,13 @@ function Home() {
   if (!user) return <AuthForm />;
 
   if (view === "theme") return <ThemeEditor onClose={() => setView("game")} />;
+  if (view === "versus") return <Versus onExit={() => setView("game")} />;
   return (
     <div className="max-w-4xl mx-auto px-4 py-6 relative">
       <div className="absolute top-4 right-4 flex gap-2 z-10">
+        <button onClick={() => setView("versus")} className="px-3 py-1.5 rounded-lg bg-surface text-fg text-sm border border-border-app/60 hover:opacity-80">
+          ⚔️ Versus
+        </button>
         <button onClick={() => setView("theme")} className="px-3 py-1.5 rounded-lg bg-surface text-fg text-sm border border-border-app hover:opacity-80">
           🎨 Theme
         </button>
