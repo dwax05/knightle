@@ -23,6 +23,7 @@
 
   --animate-flip-tile: flip-tile 500ms ease-in-out;
   --animate-fade-in: fadeIn 0.2s ease;
+  --animate-slide-down: slideDown 0.2s ease;
 }
 
 @keyframes fadeIn {
@@ -30,9 +31,24 @@
   to   { opacity: 1; transform: scale(1); }
 }
 
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
 @keyframes flip-tile {
   0%, 100% { transform: perspective(400px) rotateX(0deg); }
   50%       { transform: perspective(400px) rotateX(-90deg); }
+}
+
+html, body {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  display: none;
 }
 
 body {

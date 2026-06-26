@@ -66,6 +66,7 @@ export function Game({ onGameEnd }: { onGameEnd?: () => void }) {
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
+      if (e.target instanceof HTMLInputElement) return;
       if (done) return;
       if (e.key === "Enter") submitGuess();
       else if (e.key === "Backspace") backspace();

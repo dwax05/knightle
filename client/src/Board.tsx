@@ -48,6 +48,7 @@ export function Board({
       return null;
     }
     function onDown(e: KeyboardEvent) {
+      if (e.target instanceof HTMLInputElement) return;
       const id = toKeyId(e);
       if (!id) return;
       setPressedKey(id);
@@ -139,7 +140,7 @@ export function Board({
                 <button
                   key={key}
                   onClick={() => onKeyPress(key)}
-                  className={`${wide ? "px-2 sm:px-3 text-xs" : "flex-1 min-w-8 sm:min-w-8"} h-13 sm:h-14 rounded font-semibold uppercase ${bg} hover:bg-surface hover:brightness-110 active:scale-95 active:brightness-75 transition-all duration-75 ${pressedKey === key ? "scale-95 brightness-75" : ""}`}
+                  className={`${wide ? "px-2 sm:px-3 text-xs" : "flex-1 min-w-8"} h-13 sm:h-14 rounded font-semibold uppercase ${bg} hover:bg-surface hover:brightness-110 active:scale-95 active:brightness-75 transition-all duration-75 ${pressedKey === key ? "scale-95 brightness-75" : ""}`}
                 >
                   {key === "back" ? "⌫" : key}
                 </button>
