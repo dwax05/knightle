@@ -28,7 +28,9 @@ export function Game({ onGameEnd }: { onGameEnd?: () => void }) {
   }, [authedPost]);
 
   useEffect(() => {
+    let cancelled = false;
     authedPost("/api/activegame", {}).then((data) => {
+      if (cancelled) return;
       if (!data.error && data.game) {
         setGameId(data.game.gameId);
         setGuesses(data.game.guesses);
@@ -38,6 +40,7 @@ export function Game({ onGameEnd }: { onGameEnd?: () => void }) {
         newGame();
       }
     });
+    return () => { cancelled = true; };
   }, []);
   useEffect(() => () => { if (revealTimer.current) clearTimeout(revealTimer.current); }, []);
 
