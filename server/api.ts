@@ -134,18 +134,13 @@ export function setApp(app: Express, client: MongoClient) {
     }
 
     const marks = scoreGuess(g, game.answer);
-    const guessNum = (Array.isArray(game.guesses) ? game.guesses.length : game.guesses) + 1;
+    const guessNum = game.guesses.length + 1;
     const won = marks.every((m) => m === "correct");
     const lost = !won && guessNum >= MAX_GUESSES;
     const finished = won || lost;
 
-    await db.collection("Games").updateOne(
-      { gameId },
-      {
-        $push: { guesses: g, marks: marks } as any,
-        $set: { finished },
-      }
-    );
+    await db.collection("Games").updateOne({ gameId }, { $set: { finished } });
+    await db.collection("Games").updateOne({ gameId }, { $push: { guesses: g, marks } });
 
     if (finished) {
       await updateStats(req.user!.userId, won, guessNum);
