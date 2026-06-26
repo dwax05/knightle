@@ -67,6 +67,15 @@ export function VersusGame({ code, onExit }: {
     setRound(newRound);
   }, []);
 
+  const handleRematch = useCallback(async () => {
+    const data = await authedPost("/api/versus/rematch", { code });
+    if (data.error) { setMessage(data.error); return; }
+    setRematchMe(true);
+  }, [code, authedPost]);
+
+  const myId = user?.id;
+  const isDone = status === "done";
+
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.target instanceof HTMLInputElement) return;
@@ -99,15 +108,6 @@ export function VersusGame({ code, onExit }: {
     }, 1500);
     return () => { if (pollRef.current) clearInterval(pollRef.current); };
   }, [code, authedPost, round, resetForNewRound]);
-
-  const handleRematch = useCallback(async () => {
-    const data = await authedPost("/api/versus/rematch", { code });
-    if (data.error) { setMessage(data.error); return; }
-    setRematchMe(true);  // reflect our request immediately
-  }, [code, authedPost]);
-
-  const myId = user?.id;
-  const isDone = status === "done";
   const youWon = winner != null && String(winner) === String(myId);
 
   // winner's guess count: if you won, your count; else opponent's
