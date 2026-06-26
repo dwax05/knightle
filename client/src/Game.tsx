@@ -12,6 +12,7 @@ export function Game({ onGameEnd }: { onGameEnd?: () => void }) {
   const [marks, setMarks] = useState<Mark[][]>([]);
   const [current, setCurrent] = useState("");
   const [done, setDone] = useState<null | "won" | "lost">(null);
+  const [finalGuessCount, setFinalGuessCount] = useState(0);
   const [answer, setAnswer] = useState("");
   const [message, setMessage] = useState("");
   const [revealingRow, setRevealingRow] = useState(-1);
@@ -43,8 +44,8 @@ export function Game({ onGameEnd }: { onGameEnd?: () => void }) {
 
     revealTimer.current = setTimeout(() => {
       setRevealingRow(-1);
-      if (data.won) { setGuesses([]); setMarks([]); setDone("won"); onGameEnd?.(); }
-      else if (data.lost) { setGuesses([]); setMarks([]); setDone("lost"); setAnswer(data.answer ?? ""); onGameEnd?.(); }
+      if (data.won) { setFinalGuessCount(guesses.length + 1); setGuesses([]); setMarks([]); setDone("won"); onGameEnd?.(); }
+      else if (data.lost) { setFinalGuessCount(guesses.length + 1); setGuesses([]); setMarks([]); setDone("lost"); setAnswer(data.answer ?? ""); onGameEnd?.(); }
     }, REVEAL_TOTAL);
   }, [current, gameId, done, revealingRow, guesses.length, authedPost, onGameEnd]);
 
@@ -90,7 +91,7 @@ export function Game({ onGameEnd }: { onGameEnd?: () => void }) {
       {done && (
         <GameResult
           outcome={done}
-          guessCount={guesses.length}
+          guessCount={finalGuessCount}
           answer={answer}
           onNewGame={newGame}
         />
