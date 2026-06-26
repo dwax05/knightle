@@ -29,9 +29,9 @@ export function StatsPanel({ refreshKey }: { refreshKey: number }) {
   const maxBar = stats ? Math.max(1, ...stats.distribution) : 1;
 
   return (
-    <div className="w-full max-w-md lg:w-64 flex flex-col gap-5">
+    <div className="w-full max-w-md lg:w-64 bg-surface border border-border-app/30 rounded-2xl p-4 flex flex-col gap-5 shadow-lg shadow-black/40">
       <div>
-        <h3 className="text-lg font-bold text-fg text-center">Statistics</h3>
+        <h3 className="text-sm font-semibold tracking-widest uppercase text-muted text-center pb-3 border-b border-border-app/40">Statistics</h3>
         {stats ? (
           <>
             <div className="flex gap-3 mb-3 justify-center">

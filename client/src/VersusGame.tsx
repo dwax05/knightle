@@ -5,10 +5,9 @@ import { VersusResult } from "./VersusResult";
 
 type Opponent = { login: string; guessCount: number; finished: boolean; won: boolean } | null;
 
-export function VersusGame({ code, onExit, onRematch }: {
+export function VersusGame({ code, onExit }: {
   code: string;
   onExit: () => void;
-  onRematch: () => void;
 }) {
   const { authedPost, user } = useAuth();
   const [guesses, setGuesses] = useState<string[]>([]);
@@ -70,6 +69,7 @@ export function VersusGame({ code, onExit, onRematch }: {
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
+      if (e.target instanceof HTMLInputElement) return;
       if (finished) return;
       if (e.key === "Enter") submitGuess();
       else if (e.key === "Backspace") backspace();
@@ -114,29 +114,21 @@ export function VersusGame({ code, onExit, onRematch }: {
   const winnerName = youWon ? "You" : (opponent?.login ?? "Opponent");
 
   return (
-    <div className="max-w-xl mx-auto mt-8 flex flex-col items-center gap-4">
-      <h2 className="text-2xl font-bold text-fg">Versus — Room {code}</h2>
-
-      <div className="w-full max-w-md flex items-center justify-between px-3 py-2 rounded-lg bg-surface text-sm">
+    <div className="w-full flex flex-col items-center gap-4">
+      <div className="w-full flex items-center justify-between pb-3 border-b border-border-app/40 text-sm px-2 lg:px-0">
+        <span className="text-sm font-semibold tracking-widest uppercase text-muted">Opponent</span>
         <span className="text-fg font-semibold">
-          {opponent ? opponent.login : "Waiting for opponent..."}
+          {opponent
+            ? opponent.finished
+              ? opponent.won ? `${opponent.login} solved it` : `${opponent.login} failed`
+              : `${opponent.login} — guess ${opponent.guessCount}/6`
+            : "Waiting..."}
         </span>
-        {opponent && (
-          <span className="text-muted">
-            {opponent.finished
-              ? opponent.won ? "solved" : "failed"
-              : `guess ${opponent.guessCount}/6`}
-          </span>
-        )}
       </div>
 
-      <Board guesses={guesses} marks={marks} current={current} done={finished || isDone} onKeyPress={onKeyPress} />
+      <Board guesses={guesses} marks={marks} current={current} done={finished || isDone} onKeyPress={onKeyPress} revealingRow={-1} />
 
       <div className="min-h-6 font-semibold text-fg">{message}</div>
-
-      <button onClick={onExit} className="text-sm text-muted hover:text-fg transition">
-        ← Leave match
-      </button>
 
       {isDone && (
         <VersusResult

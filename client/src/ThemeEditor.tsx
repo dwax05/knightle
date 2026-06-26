@@ -52,7 +52,7 @@ export function ThemeEditor({ onClose }: { onClose: () => void }) {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
-      <div className="flex flex-col gap-5 p-6 sm:p-8 rounded-2xl bg-surface border border-border-app/40">
+      <div className="flex flex-col gap-5 p-6 sm:p-8 rounded-2xl bg-surface border border-border-app/40 shadow-lg shadow-black/40">
         {/* header */}
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold text-fg">Theme editor</h1>
