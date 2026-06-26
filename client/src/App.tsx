@@ -64,13 +64,11 @@ function HamburgerMenu({ onNavigate }: { onNavigate: (view: "theme" | "profile")
 }
 
 function Home() {
-  const { user } = useAuth();
   const [refreshKey, setRefreshKey] = useState(0);
   const [mobileTab, setMobileTab] = useState<"stats" | "leaderboard">("stats");
   const [versusCode, setVersusCode] = useState<string | null>(null);
   const [lobbyOpen, setLobbyOpen] = useState(false);
   const [view, setView] = useState<"game" | "theme" | "profile">("game");
-  if (!user) return <AuthForm />;
 
   if (view === "theme") return <ThemeEditor onClose={() => setView("game")} />;
   if (view === "profile") return <ProfilePage onClose={() => setView("game")} />;
@@ -145,10 +143,15 @@ function Home() {
   );
 }
 
+function AuthGate() {
+  const { user } = useAuth();
+  return user ? <Home /> : <AuthForm />;
+}
+
 export default function App() {
   return (
     <AuthProvider>
-      <Home />
+      <AuthGate />
     </AuthProvider>
   );
 }
