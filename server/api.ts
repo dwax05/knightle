@@ -82,15 +82,22 @@ export function setApp(app: Express, client: MongoClient) {
 
   // return the user's most recent unfinished game (for page-refresh resumption)
   app.post("/api/activegame", requireAuth, async (req: AuthedRequest, res) => {
-    const game = await db.collection("Games").findOne(
-      { userId: req.user!.userId, finished: false, guesses: { $type: "array" } },
-      { sort: { createdAt: -1 } }
-    );
-    if (!game) return res.status(200).json({ game: null, error: "" });
-    res.status(200).json({
-      game: { gameId: game.gameId, guesses: game.guesses, marks: game.marks },
-      error: "",
-    });
+    try {
+      const game = await db.collection("Games")
+        .find({ userId: req.user!.userId, finished: false })
+        .sort({ createdAt: -1 })
+        .limit(1)
+        .next();
+      if (!game || !Array.isArray(game.guesses)) {
+        return res.status(200).json({ game: null, error: "" });
+      }
+      res.status(200).json({
+        game: { gameId: game.gameId, guesses: game.guesses, marks: game.marks },
+        error: "",
+      });
+    } catch (e) {
+      res.status(200).json({ game: null, error: "" });
+    }
   });
 
   // start a new game -> returns a gameId, answer stays server-side
