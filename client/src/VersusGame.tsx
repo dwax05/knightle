@@ -77,6 +77,28 @@ export function VersusGame({ code, onExit }: {
   const isDone = status === "done";
 
   useEffect(() => {
+    let cancelled = false;
+    authedPost("/api/versus/state", { code }).then((data) => {
+      if (cancelled || data.error) return;
+      if (data.myGuesses?.length) {
+        setGuesses(data.myGuesses);
+        setMarks(data.myMarks ?? []);
+      }
+      if (data.myFinished) {
+        setFinished(true);
+        if (data.myWon) setMessage("You solved it!");
+        else if (data.answer) setMessage(`The word was ${data.answer.toUpperCase()}`);
+      }
+      if (data.opponent) setOpponent(data.opponent);
+      if (data.winner !== undefined) setWinner(data.winner);
+      if (data.status) setStatus(data.status);
+      if (data.round) setRound(data.round);
+      if (data.rematch) { setRematchMe(data.rematch.me); setRematchOpponent(data.rematch.opponent); }
+    });
+    return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.target instanceof HTMLInputElement) return;
       if (isDone) { if (e.key === "Enter" && !rematchMe) handleRematch(); return; }

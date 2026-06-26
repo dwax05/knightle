@@ -317,23 +317,31 @@ export function setApp(app: Express, client: MongoClient) {
     });
   });
 
-  // STATE — for polling the opponent's progress
+  // STATE — for polling the opponent's progress and restoring state on rejoin
   app.post("/api/versus/state", requireAuth, async (req: AuthedRequest, res) => {
     const { code } = req.body;
     const uid = String(req.user!.userId);
     const game = await db.collection("Versus").findOne({ code: code?.toUpperCase() });
     if (!game || !game.players[uid]) return res.status(200).json({ error: "No active game" });
 
+    const player = game.players[uid];
+    const myGuesses: string[] = player.guesses ?? [];
+    const myMarks = myGuesses.map((g: string) => scoreGuess(g, game.answer));
+
     res.status(200).json({
       status: game.status,
       winner: game.winner,
       round: game.round ?? 0,
-      answer: game.status === "done" ? game.answer : undefined,
+      answer: (game.status === "done" || player.finished) ? game.answer : undefined,
       opponent: opponentPublicState(game, uid),
       rematch: {
         me: !!game.rematch?.[uid],
         opponent: opponentRematchRequested(game, uid),
       },
+      myGuesses,
+      myMarks,
+      myFinished: player.finished,
+      myWon: player.won,
       error: "",
     });
   });
