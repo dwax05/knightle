@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type Mark = "correct" | "present" | "absent";
 const ROWS = 6;
@@ -36,8 +36,36 @@ export function Board({
   onKeyPress: (key: string) => void;
   revealingRow: number;
 }) {
-  // tracks which columns in revealingRow have crossed the flip midpoint
   const [revealedCols, setRevealedCols] = useState<Set<number>>(new Set());
+  const [pressedKey, setPressedKey] = useState<string | null>(null);
+  const pressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    function toKeyId(e: KeyboardEvent): string | null {
+      if (e.key === "Enter") return "enter";
+      if (e.key === "Backspace") return "back";
+      if (/^[a-zA-Z]$/.test(e.key)) return e.key.toLowerCase();
+      return null;
+    }
+    function onDown(e: KeyboardEvent) {
+      const id = toKeyId(e);
+      if (!id) return;
+      setPressedKey(id);
+      if (pressTimer.current) clearTimeout(pressTimer.current);
+      pressTimer.current = setTimeout(() => setPressedKey(null), 150);
+    }
+    function onUp(e: KeyboardEvent) {
+      const id = toKeyId(e);
+      if (id) setPressedKey((prev) => (prev === id ? null : prev));
+    }
+    window.addEventListener("keydown", onDown);
+    window.addEventListener("keyup", onUp);
+    return () => {
+      window.removeEventListener("keydown", onDown);
+      window.removeEventListener("keyup", onUp);
+      if (pressTimer.current) clearTimeout(pressTimer.current);
+    };
+  }, []);
 
   useEffect(() => {
     if (revealingRow < 0) {
@@ -89,7 +117,7 @@ export function Board({
               return (
                 <div
                   key={c}
-                  className={`w-15 h-15 sm:w-16 sm:h-16 flex items-center justify-center text-2xl font-bold uppercase rounded border-2 ${colorClass} ${isRevealing ? "animate-flip-tile" : ""}`}
+                  className={`w-14 h-14 sm:w-15 sm:h-15 lg:w-16 lg:h-16 flex items-center justify-center text-2xl font-bold uppercase rounded border-2 ${colorClass} ${isRevealing ? "animate-flip-tile" : ""}`}
                   style={isRevealing ? { animationDelay: `${c * TILE_STAGGER}ms` } : undefined}
                 >
                   {cell.ch}
@@ -100,18 +128,18 @@ export function Board({
         ))}
       </div>
 
-      <div className="flex flex-col gap-1.5 w-full mt-2">
+      <div className="flex flex-col gap-1 sm:gap-1.5 w-full mt-2">
         {KEYS.map((row, i) => (
-          <div key={i} className="flex justify-center gap-1.5">
+          <div key={i} className="flex justify-center gap-1 sm:gap-1.5">
             {row.map((key) => {
               const wide = key === "enter" || key === "back";
               const state = keyState[key];
-              const bg = state ? MARK_CLASSES[state] : "bg-surface text-fg";
+              const bg = state ? MARK_CLASSES[state] : "bg-bg text-fg";
               return (
                 <button
                   key={key}
                   onClick={() => onKeyPress(key)}
-                  className={`${wide ? "px-3 text-xs" : "flex-1 min-w-8"} h-14 rounded font-semibold uppercase ${bg} active:opacity-70`}
+                  className={`${wide ? "px-2 sm:px-3 text-xs" : "flex-1 min-w-8 sm:min-w-8"} h-13 sm:h-14 rounded font-semibold uppercase ${bg} hover:bg-surface hover:brightness-110 active:scale-95 active:brightness-75 transition-all duration-75 ${pressedKey === key ? "scale-95 brightness-75" : ""}`}
                 >
                   {key === "back" ? "⌫" : key}
                 </button>

@@ -26,8 +26,8 @@ export function Leaderboard({ refreshKey }: { refreshKey: number }) {
   const medal = (i: number) => (i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i + 1}`);
 
   return (
-    <div className="w-full max-w-md lg:w-64 flex flex-col gap-3">
-      <h3 className="text-lg font-bold text-fg text-center">Leaderboard</h3>
+    <div className="w-full max-w-md lg:w-64 bg-surface border border-border-app/30 rounded-2xl p-4 flex flex-col gap-3">
+      <h3 className="text-sm font-semibold tracking-widest uppercase text-muted text-center pb-3 border-b border-border-app/40">Leaderboard</h3>
       {entries.length === 0 ? (
         <p className="text-sm text-muted">No wins yet — be the first!</p>
       ) : (
