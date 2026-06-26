@@ -23,7 +23,7 @@ function StatusMsg({ s }: { s: Status }) {
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="flex flex-col gap-3 p-5 rounded-xl bg-surface border border-border-app/40">
+    <div className="flex flex-col gap-3 p-5 rounded-xl bg-surface border border-border-app/40 shadow-lg shadow-black/40">
       <h2 className="text-sm font-semibold text-muted uppercase tracking-wider">{title}</h2>
       {children}
     </div>
