@@ -69,13 +69,7 @@ function Home() {
   const [mobileTab, setMobileTab] = useState<"stats" | "leaderboard">("stats");
   const [versusCode, setVersusCode] = useState<string | null>(null);
   const [lobbyOpen, setLobbyOpen] = useState(false);
-  const [view, setView] = useState<"game" | "theme" | "profile">(
-    () => (localStorage.getItem("view") as "game" | "theme") || "game"
-  );
-
-  useEffect(() => {
-    localStorage.setItem("view", view === "profile" ? "game" : view);
-  }, [view]);
+  const [view, setView] = useState<"game" | "theme" | "profile">("game");
   if (!user) return <AuthForm />;
 
   if (view === "theme") return <ThemeEditor onClose={() => setView("game")} />;
