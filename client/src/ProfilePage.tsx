@@ -100,7 +100,7 @@ export function ProfilePage({ onClose }: { onClose: () => void }) {
         <div className="flex items-center gap-3">
           <button
             onClick={onClose}
-            className="px-3 py-1.5 rounded-lg bg-surface text-fg text-sm border border-border-app/60 hover:opacity-80"
+            className="text-sm text-muted hover:text-fg transition"
           >
             ← Back
           </button>

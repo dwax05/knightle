@@ -58,9 +58,9 @@ export function ThemeEditor({ onClose }: { onClose: () => void }) {
           <h1 className="text-2xl font-bold text-fg">Theme editor</h1>
           <button
             onClick={onClose}
-            className="px-3 py-1.5 rounded-lg bg-bg text-fg text-sm border border-border-app/60 hover:opacity-80 transition"
+            className="text-sm text-muted hover:text-fg transition"
           >
-            ← Back to game
+            ← Back
           </button>
         </div>
 
