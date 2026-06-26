@@ -27,7 +27,18 @@ export function Game({ onGameEnd }: { onGameEnd?: () => void }) {
     setAnswer(""); setMessage(""); setRevealingRow(-1);
   }, [authedPost]);
 
-  useEffect(() => { newGame(); }, []);
+  useEffect(() => {
+    authedPost("/api/activegame", {}).then((data) => {
+      if (!data.error && data.game) {
+        setGameId(data.game.gameId);
+        setGuesses(data.game.guesses);
+        setMarks(data.game.marks);
+        setCurrent(""); setDone(null); setAnswer(""); setMessage(""); setRevealingRow(-1);
+      } else {
+        newGame();
+      }
+    });
+  }, []);
   useEffect(() => () => { if (revealTimer.current) clearTimeout(revealTimer.current); }, []);
 
   const submitGuess = useCallback(async () => {

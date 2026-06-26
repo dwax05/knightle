@@ -80,6 +80,26 @@ export function setApp(app: Express, client: MongoClient) {
     });
   });
 
+  // return the user's most recent unfinished game (for page-refresh resumption)
+  app.post("/api/activegame", requireAuth, async (req: AuthedRequest, res) => {
+    try {
+      const game = await db.collection("Games")
+        .find({ userId: req.user!.userId, finished: false })
+        .sort({ createdAt: -1 })
+        .limit(1)
+        .next();
+      if (!game || !Array.isArray(game.guesses)) {
+        return res.status(200).json({ game: null, error: "" });
+      }
+      res.status(200).json({
+        game: { gameId: game.gameId, guesses: game.guesses, marks: game.marks },
+        error: "",
+      });
+    } catch (e) {
+      res.status(200).json({ game: null, error: "" });
+    }
+  });
+
   // start a new game -> returns a gameId, answer stays server-side
   app.post("/api/newgame", requireAuth, async (req: AuthedRequest, res) => {
     const answer = ANSWERS[Math.floor(Math.random() * ANSWERS.length)];
@@ -88,7 +108,8 @@ export function setApp(app: Express, client: MongoClient) {
       gameId,
       userId: req.user!.userId,
       answer,
-      guesses: 0,
+      guesses: [],
+      marks: [],
       finished: false,
       createdAt: new Date(),
     });
@@ -113,14 +134,17 @@ export function setApp(app: Express, client: MongoClient) {
     }
 
     const marks = scoreGuess(g, game.answer);
-    const guessNum = game.guesses + 1;
+    const guessNum = (Array.isArray(game.guesses) ? game.guesses.length : game.guesses) + 1;
     const won = marks.every((m) => m === "correct");
     const lost = !won && guessNum >= MAX_GUESSES;
     const finished = won || lost;
 
     await db.collection("Games").updateOne(
       { gameId },
-      { $set: { guesses: guessNum, finished } }
+      {
+        $push: { guesses: g, marks: marks } as any,
+        $set: { finished },
+      }
     );
 
     if (finished) {

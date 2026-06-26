@@ -13,7 +13,7 @@ A full-stack Wordle clone with user accounts, stats tracking, a leaderboard, a c
 
 ## Features
 
-- **Solo game** — server-side answer selection, 6 guesses, color-coded tile feedback with flip animations
+- **Solo game** — server-side answer selection, 6 guesses, color-coded tile feedback with flip animations; in-progress games persist across page refreshes and are resumed automatically
 - **Accounts** — register/login with hashed passwords and JWT session tokens
 - **Profile** — change password, log out, clear game data, delete account
 - **Stats** — win rate, current/max streak, guess distribution
@@ -46,7 +46,8 @@ All endpoints are `POST /api/*`. Auth-required routes expect `Authorization: Bea
 |----------|------|-------------|
 | `/api/register` | — | Create account |
 | `/api/login` | — | Returns JWT |
-| `/api/newgame` | ✓ | Start a solo game |
+| `/api/activegame` | ✓ | Resume in-progress solo game (returns `null` if none) |
+| `/api/newgame` | ✓ | Start a new solo game |
 | `/api/guess` | ✓ | Submit a guess |
 | `/api/stats` | ✓ | Fetch personal stats |
 | `/api/leaderboard` | ✓ | Top 10 by wins |
