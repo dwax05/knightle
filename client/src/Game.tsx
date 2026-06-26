@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useAuth } from "./auth";
 import { Board, COLS, FLIP_DURATION, TILE_STAGGER, type Mark } from "./Board";
+import { GameResult } from "./GameResult";
 
 const REVEAL_TOTAL = (COLS - 1) * TILE_STAGGER + FLIP_DURATION + 50;
 
@@ -11,6 +12,7 @@ export function Game({ onGameEnd }: { onGameEnd?: () => void }) {
   const [marks, setMarks] = useState<Mark[][]>([]);
   const [current, setCurrent] = useState("");
   const [done, setDone] = useState<null | "won" | "lost">(null);
+  const [answer, setAnswer] = useState("");
   const [message, setMessage] = useState("");
   const [revealingRow, setRevealingRow] = useState(-1);
   const revealTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -21,7 +23,7 @@ export function Game({ onGameEnd }: { onGameEnd?: () => void }) {
     if (data.error) return setMessage(data.error);
     setGameId(data.gameId);
     setGuesses([]); setMarks([]); setCurrent(""); setDone(null);
-    setMessage(""); setRevealingRow(-1);
+    setAnswer(""); setMessage(""); setRevealingRow(-1);
   }
 
   useEffect(() => { newGame(); }, []);
@@ -41,8 +43,8 @@ export function Game({ onGameEnd }: { onGameEnd?: () => void }) {
 
     revealTimer.current = setTimeout(() => {
       setRevealingRow(-1);
-      if (data.won) { setDone("won"); setMessage("You got it!"); onGameEnd?.(); }
-      else if (data.lost) { setDone("lost"); setMessage(`The word was ${data.answer.toUpperCase()}`); onGameEnd?.(); }
+      if (data.won) { setDone("won"); onGameEnd?.(); }
+      else if (data.lost) { setDone("lost"); setAnswer(data.answer ?? ""); onGameEnd?.(); }
     }, REVEAL_TOTAL);
   }, [current, gameId, done, revealingRow, guesses.length, authedPost, onGameEnd]);
 
@@ -85,9 +87,12 @@ export function Game({ onGameEnd }: { onGameEnd?: () => void }) {
       />
       <div className="min-h-6 font-semibold text-fg">{message}</div>
       {done && (
-        <button onClick={newGame} className="px-4 py-2 rounded-lg bg-accent text-tiletext font-semibold">
-          New game
-        </button>
+        <GameResult
+          outcome={done}
+          guessCount={guesses.length}
+          answer={answer}
+          onNewGame={newGame}
+        />
       )}
     </div>
   );

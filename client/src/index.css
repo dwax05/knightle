@@ -22,6 +22,12 @@
   --color-button-fg: var(--button-fg);
 
   --animate-flip-tile: flip-tile 500ms ease-in-out;
+  --animate-fade-in: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
 }
 
 @keyframes flip-tile {
