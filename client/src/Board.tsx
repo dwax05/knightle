@@ -49,6 +49,7 @@ export function Board({
     }
     function onDown(e: KeyboardEvent) {
       if (e.target instanceof HTMLInputElement) return;
+      if (done) return;
       const id = toKeyId(e);
       if (!id) return;
       setPressedKey(id);
@@ -66,7 +67,7 @@ export function Board({
       window.removeEventListener("keyup", onUp);
       if (pressTimer.current) clearTimeout(pressTimer.current);
     };
-  }, []);
+  }, [done]);
 
   useEffect(() => {
     if (revealingRow < 0) {

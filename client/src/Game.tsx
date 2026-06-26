@@ -17,14 +17,14 @@ export function Game({ onGameEnd }: { onGameEnd?: () => void }) {
   const [revealingRow, setRevealingRow] = useState(-1);
   const revealTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  async function newGame() {
+  const newGame = useCallback(async () => {
     if (revealTimer.current) clearTimeout(revealTimer.current);
     const data = await authedPost("/api/newgame", {});
     if (data.error) return setMessage(data.error);
     setGameId(data.gameId);
     setGuesses([]); setMarks([]); setCurrent(""); setDone(null);
     setAnswer(""); setMessage(""); setRevealingRow(-1);
-  }
+  }, [authedPost]);
 
   useEffect(() => { newGame(); }, []);
   useEffect(() => () => { if (revealTimer.current) clearTimeout(revealTimer.current); }, []);
@@ -43,8 +43,8 @@ export function Game({ onGameEnd }: { onGameEnd?: () => void }) {
 
     revealTimer.current = setTimeout(() => {
       setRevealingRow(-1);
-      if (data.won) { setDone("won"); onGameEnd?.(); }
-      else if (data.lost) { setDone("lost"); setAnswer(data.answer ?? ""); onGameEnd?.(); }
+      if (data.won) { setGuesses([]); setMarks([]); setDone("won"); onGameEnd?.(); }
+      else if (data.lost) { setGuesses([]); setMarks([]); setDone("lost"); setAnswer(data.answer ?? ""); onGameEnd?.(); }
     }, REVEAL_TOTAL);
   }, [current, gameId, done, revealingRow, guesses.length, authedPost, onGameEnd]);
 
@@ -67,14 +67,14 @@ export function Game({ onGameEnd }: { onGameEnd?: () => void }) {
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.target instanceof HTMLInputElement) return;
-      if (done) return;
+      if (done) { if (e.key === "Enter") newGame(); return; }
       if (e.key === "Enter") submitGuess();
       else if (e.key === "Backspace") backspace();
       else if (/^[a-zA-Z]$/.test(e.key)) typeLetter(e.key);
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [done, submitGuess, backspace, typeLetter]);
+  }, [done, newGame, submitGuess, backspace, typeLetter]);
 
   return (
     <div className="flex flex-col items-center gap-4">

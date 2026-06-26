@@ -70,6 +70,7 @@ export function VersusGame({ code, onExit }: {
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.target instanceof HTMLInputElement) return;
+      if (isDone) { if (e.key === "Enter" && !rematchMe) handleRematch(); return; }
       if (finished) return;
       if (e.key === "Enter") submitGuess();
       else if (e.key === "Backspace") backspace();
@@ -77,7 +78,7 @@ export function VersusGame({ code, onExit }: {
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [finished, submitGuess, backspace, typeLetter]);
+  }, [finished, isDone, rematchMe, handleRematch, submitGuess, backspace, typeLetter]);
 
   useEffect(() => {
     pollRef.current = setInterval(async () => {
