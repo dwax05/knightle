@@ -82,6 +82,7 @@ export function Game({ onGameEnd }: { onGameEnd?: () => void }) {
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.target instanceof HTMLInputElement) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
       if (done) { if (e.key === "Enter") newGame(); return; }
       if (e.key === "Enter") submitGuess();
       else if (e.key === "Backspace") backspace();

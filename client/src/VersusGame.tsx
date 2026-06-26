@@ -101,6 +101,7 @@ export function VersusGame({ code, onExit }: {
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.target instanceof HTMLInputElement) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
       if (isDone) { if (e.key === "Enter" && !rematchMe) handleRematch(); return; }
       if (finished) return;
       if (e.key === "Enter") submitGuess();
