@@ -56,7 +56,7 @@ export function AuthForm() {
   return (
     <div className="min-h-screen flex items-center justify-center px-4">
       <div
-        className="w-full max-w-sm flex flex-col gap-4 p-8 rounded-2xl bg-surface border border-border-app/40"
+        className="w-full max-w-sm flex flex-col gap-4 p-8 rounded-2xl bg-surface border border-border-app/40 shadow-lg shadow-black/40"
         onKeyDown={(e) => { if (e.key === "Enter" && !submitting) submit(); }}
       >
         <div className="text-center">
