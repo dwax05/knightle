@@ -98,6 +98,7 @@ export function Board({
   const keyState: Record<string, Mark> = {};
   guesses.forEach((g, r) => {
     g.split("").forEach((ch, i) => {
+      if (r === revealingRow && !revealedCols.has(i)) return;
       const m = marks[r][i];
       const rank = { correct: 3, present: 2, absent: 1 };
       if (!keyState[ch] || rank[m] > rank[keyState[ch]]) keyState[ch] = m;
