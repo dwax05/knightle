@@ -150,6 +150,23 @@ const PRESETS: Preset[] = [
 
 const SWATCH_KEYS = ["--bg", "--accent", "--tile-correct", "--tile-present", "--error"];
 
+const LABELS: Record<string, string> = {
+  "--bg":           "Background",
+  "--fg":           "Text",
+  "--surface":      "Surface",
+  "--border":       "Border",
+  "--muted":        "Muted text",
+  "--tile-correct": "Correct",
+  "--tile-present": "Present",
+  "--tile-absent":  "Absent",
+  "--tile-text":    "Tile text",
+  "--success":      "Success",
+  "--error":        "Error",
+  "--accent":       "Accent",
+  "--button-bg":    "Button",
+  "--button-fg":    "Button text",
+};
+
 function parseCss(css: string): Entry[] {
   const entries: Entry[] = [];
   const re = /(--[\w-]+)\s*:\s*([^;]+);/g;
@@ -206,7 +223,7 @@ function ColorRow({
 
   return (
     <div className="flex items-center gap-3">
-      <span className="w-36 text-sm font-mono text-muted shrink-0 truncate">{entry.key}</span>
+      <span className="w-28 text-sm text-muted shrink-0 truncate">{LABELS[entry.key] ?? entry.key}</span>
       <input
         type="color"
         value={isValidHex(entry.value) ? entry.value : "#000000"}
