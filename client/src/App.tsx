@@ -136,7 +136,7 @@ function Home() {
               <>
                 <div className="w-full flex items-center justify-between pb-3 border-b border-border-app/40 mb-4 px-2 lg:px-0">
                   <span className="text-sm font-semibold tracking-widest uppercase text-muted">Knightle</span>
-                  <button onClick={() => setLobbyOpen(true)} className="flex items-center gap-1.5 px-2 py-0.5 rounded-md border border-border-app/50 text-xs font-semibold tracking-wide text-muted hover:text-fg hover:border-border-app transition-colors duration-150"><IconLightning className="w-3 h-3" /> Versus</button>
+                  <button onClick={() => setLobbyOpen(true)} className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-surface border border-border-app/50 text-xs font-semibold tracking-wide text-fg shadow-[0_2px_0_rgba(0,0,0,0.4)] hover:brightness-110 active:translate-y-[2px] active:shadow-none transition-all duration-100"><IconLightning className="w-3 h-3" /> Versus</button>
                 </div>
                 <Game onGameEnd={() => setRefreshKey((k) => k + 1)} />
               </>

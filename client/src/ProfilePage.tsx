@@ -101,7 +101,7 @@ export function ProfilePage({ onClose }: { onClose: () => void }) {
       <button
         onClick={onClose}
         aria-label="Back"
-        className="lg:hidden fixed top-4 left-4 z-10 w-10 h-10 flex items-center justify-center bg-surface border border-border-app/50 rounded-xl hover:bg-bg/70 transition-colors duration-150 shadow-lg shadow-black/40"
+        className="lg:hidden fixed top-4 left-4 z-10 w-10 h-10 flex items-center justify-center bg-surface border border-border-app/50 rounded-xl shadow-[0_3px_0_rgba(0,0,0,0.4)] hover:brightness-110 active:translate-y-[2px] active:shadow-none transition-all duration-100"
       >
         <IconArrowLeft className="w-5 h-5" />
       </button>
@@ -112,7 +112,7 @@ export function ProfilePage({ onClose }: { onClose: () => void }) {
           <button
             onClick={onClose}
             aria-label="Back"
-            className="hidden lg:flex items-center justify-center w-8 h-8 rounded-lg text-muted hover:text-fg hover:bg-surface transition-colors duration-150"
+            className="hidden lg:flex items-center justify-center w-8 h-8 rounded-lg text-muted bg-surface border border-border-app/40 shadow-[0_2px_0_rgba(0,0,0,0.35)] hover:brightness-110 active:translate-y-[2px] active:shadow-none transition-all duration-100"
           >
             <IconArrowLeft className="w-4 h-4" />
           </button>

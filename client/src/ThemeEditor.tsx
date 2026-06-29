@@ -170,7 +170,7 @@ function PresetButton({ preset, onClick }: { preset: Preset; onClick: () => void
   return (
     <button
       onClick={onClick}
-      className="w-full text-left px-3 py-2.5 rounded-xl border border-border-app/40 hover:border-border-app/80 transition-colors duration-150"
+      className="w-full text-left px-3 py-2.5 rounded-xl border border-border-app/40 shadow-[0_3px_0_rgba(0,0,0,0.4)] hover:brightness-110 active:translate-y-[3px] active:shadow-none transition-all duration-100"
       style={{ background: preset.vars["--bg"] }}
     >
       <div className="flex gap-1 mb-2">
@@ -261,87 +261,89 @@ export function ThemeEditor({ onClose }: { onClose: () => void }) {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
+    <div className="min-h-screen flex items-start justify-center px-4 pt-20 pb-10 lg:py-10">
       {/* Mobile: fixed top-left back button */}
       <button
         onClick={handleClose}
         aria-label="Back"
-        className="lg:hidden fixed top-4 left-4 z-10 w-10 h-10 flex items-center justify-center bg-surface border border-border-app/50 rounded-xl hover:bg-bg/70 transition-colors duration-150 shadow-lg shadow-black/40"
+        className="lg:hidden fixed top-4 left-4 z-10 w-10 h-10 flex items-center justify-center bg-surface border border-border-app/50 rounded-xl shadow-[0_3px_0_rgba(0,0,0,0.4)] hover:brightness-110 active:translate-y-[2px] active:shadow-none transition-all duration-100"
       >
         <IconArrowLeft className="w-5 h-5" />
       </button>
 
-      <div className="flex flex-col gap-5 p-6 sm:p-8 rounded-2xl bg-surface border border-border-app/40 shadow-lg shadow-black/40">
+      <div className="w-full max-w-4xl flex flex-col gap-6">
         {/* header */}
         <div className="flex items-center gap-3">
           <button
             onClick={handleClose}
             aria-label="Back"
-            className="hidden lg:flex items-center justify-center w-8 h-8 rounded-lg text-muted hover:text-fg hover:bg-bg/50 transition-colors duration-150"
+            className="hidden lg:flex items-center justify-center w-8 h-8 rounded-lg text-muted bg-surface border border-border-app/40 shadow-[0_2px_0_rgba(0,0,0,0.35)] hover:brightness-110 active:translate-y-[2px] active:shadow-none transition-all duration-100"
           >
             <IconArrowLeft className="w-4 h-4" />
           </button>
-          <h1 className="text-2xl font-bold text-fg">Theme editor</h1>
-          <div className="ml-auto flex items-center gap-2">
+          <h1 className="text-xl font-bold text-fg">Theme editor</h1>
+        </div>
+
+        <div className="flex flex-col gap-5 p-5 rounded-xl bg-surface border border-border-app/40 shadow-lg shadow-black/40">
+          {/* mobile: horizontal scroll preset strip */}
+          <div className="lg:hidden">
+            <span className="text-xs font-semibold text-muted uppercase tracking-wider">Presets</span>
+            <div className="flex gap-2 overflow-x-auto pt-2 pb-1 scrollbar-none">
+              {PRESETS.map((p) => (
+                <div key={p.name} className="w-28 shrink-0">
+                  <PresetButton preset={p} onClick={() => loadPreset(p)} />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* body: color rows + presets sidebar (desktop) */}
+          <div className="flex gap-6">
+            <div className="flex-1 flex flex-col gap-3 min-w-0">
+              {entries.map((entry) => (
+                <ColorRow key={entry.key} entry={entry} onChange={handleChange} />
+              ))}
+            </div>
+
+            {/* right: presets sidebar (desktop only) */}
+            <div className="hidden lg:flex w-36 shrink-0 flex-col gap-2">
+              <span className="text-xs font-semibold text-muted uppercase tracking-wider px-1">Presets</span>
+              {PRESETS.map((p) => (
+                <PresetButton key={p.name} preset={p} onClick={() => loadPreset(p)} />
+              ))}
+            </div>
+          </div>
+
+          {/* actions */}
+          <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-border-app/30">
             <button
-              onClick={exportToClipboard}
-              className="px-3 py-1.5 rounded-lg bg-bg text-fg text-sm border border-border-app/60 hover:opacity-80 transition"
+              onClick={save}
+              className="px-4 py-2 rounded-lg bg-accent text-tiletext font-semibold shadow-[0_3px_0_rgba(0,0,0,0.35)] hover:brightness-110 active:translate-y-[3px] active:shadow-none transition-all duration-100"
             >
-              Export
+              Save theme
             </button>
             <button
-              onClick={importFromClipboard}
-              className="px-3 py-1.5 rounded-lg bg-bg text-fg text-sm border border-border-app/60 hover:opacity-80 transition"
+              onClick={reset}
+              className="px-4 py-2 rounded-lg bg-bg text-fg border border-border-app/60 shadow-[0_3px_0_rgba(0,0,0,0.35)] hover:brightness-110 active:translate-y-[3px] active:shadow-none transition-all duration-100"
             >
-              Import
+              Reset to default
             </button>
+            {status && <span className="text-sm text-success font-medium">{status}</span>}
+            <div className="ml-auto flex items-center gap-3">
+              <button
+                onClick={exportToClipboard}
+                className="px-4 py-2 rounded-lg bg-bg text-fg border border-border-app/60 shadow-[0_3px_0_rgba(0,0,0,0.35)] hover:brightness-110 active:translate-y-[3px] active:shadow-none transition-all duration-100"
+              >
+                Export
+              </button>
+              <button
+                onClick={importFromClipboard}
+                className="px-4 py-2 rounded-lg bg-bg text-fg border border-border-app/60 shadow-[0_3px_0_rgba(0,0,0,0.35)] hover:brightness-110 active:translate-y-[3px] active:shadow-none transition-all duration-100"
+              >
+                Import
+              </button>
+            </div>
           </div>
-        </div>
-
-        {/* mobile: horizontal scroll preset strip */}
-        <div className="lg:hidden -mx-1">
-          <span className="text-xs font-semibold text-muted uppercase tracking-wider px-1">Presets</span>
-          <div className="flex gap-2 overflow-x-auto pt-2 pb-1 px-1 scrollbar-none">
-            {PRESETS.map((p) => (
-              <div key={p.name} className="w-28 shrink-0">
-                <PresetButton preset={p} onClick={() => loadPreset(p)} />
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* body: color rows + presets sidebar (desktop) */}
-        <div className="flex gap-6">
-          <div className="flex-1 flex flex-col gap-3 min-w-0">
-            {entries.map((entry) => (
-              <ColorRow key={entry.key} entry={entry} onChange={handleChange} />
-            ))}
-          </div>
-
-          {/* right: presets sidebar (desktop only) */}
-          <div className="hidden lg:flex w-36 shrink-0 flex-col gap-2">
-            <span className="text-xs font-semibold text-muted uppercase tracking-wider px-1">Presets</span>
-            {PRESETS.map((p) => (
-              <PresetButton key={p.name} preset={p} onClick={() => loadPreset(p)} />
-            ))}
-          </div>
-        </div>
-
-        {/* actions */}
-        <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-border-app/30">
-          <button
-            onClick={save}
-            className="px-4 py-2 rounded-lg bg-accent text-tiletext font-semibold hover:opacity-90 active:opacity-80 transition"
-          >
-            Save theme
-          </button>
-          <button
-            onClick={reset}
-            className="px-4 py-2 rounded-lg bg-bg text-fg border border-border-app/60 hover:opacity-80 transition"
-          >
-            Reset to default
-          </button>
-          {status && <span className="text-sm text-success font-medium">{status}</span>}
         </div>
       </div>
     </div>
