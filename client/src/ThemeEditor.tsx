@@ -5,20 +5,20 @@ import { IconArrowLeft } from "./icons";
 
 // must stay in sync with theme.css :root defaults
 const TEMPLATE = `:root {
-  --bg: #282828;
-  --fg: #ebdbb2;
-  --surface: #3c3836;
-  --border: #504945;
-  --muted: #928374;
-  --tile-correct: #98971a;
-  --tile-present: #d79921;
-  --tile-absent: #504945;
-  --tile-text: #ebdbb2;
-  --success: #b8bb26;
-  --error: #fb4934;
-  --accent: #83a598;
-  --button-bg: #3c3836;
-  --button-fg: #ebdbb2;
+  --bg: #1e1e2e;
+  --fg: #cdd6f4;
+  --surface: #313244;
+  --border: #45475a;
+  --muted: #a6adc8;
+  --tile-correct: #a6e3a1;
+  --tile-present: #f9e2af;
+  --tile-absent: #45475a;
+  --tile-text: #1e1e2e;
+  --success: #a6e3a1;
+  --error: #f38ba8;
+  --accent: #cba6f7;
+  --button-bg: #313244;
+  --button-fg: #cdd6f4;
 }
 `;
 
@@ -50,10 +50,10 @@ const PRESETS: Preset[] = [
     name: "Catppuccin Mocha",
     vars: {
       "--bg": "#1e1e2e", "--fg": "#cdd6f4", "--surface": "#313244",
-      "--border": "#45475a", "--muted": "#6c7086",
+      "--border": "#45475a", "--muted": "#a6adc8",
       "--tile-correct": "#a6e3a1", "--tile-present": "#f9e2af", "--tile-absent": "#45475a",
       "--tile-text": "#1e1e2e", "--success": "#a6e3a1", "--error": "#f38ba8",
-      "--accent": "#89b4fa", "--button-bg": "#313244", "--button-fg": "#cdd6f4",
+      "--accent": "#cba6f7", "--button-bg": "#313244", "--button-fg": "#cdd6f4",
     },
   },
   {
