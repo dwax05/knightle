@@ -29,7 +29,7 @@ export function GameResult({
 
         <button
           onClick={onNewGame}
-          className="w-full py-2.5 rounded-lg bg-accent text-tiletext font-semibold hover:opacity-90 transition"
+          className="w-full py-2.5 rounded-lg bg-accent text-tiletext font-semibold shadow-[0_3px_0_rgba(0,0,0,0.35)] hover:brightness-110 active:translate-y-[3px] active:shadow-none transition-all duration-100"
         >
           Play again
         </button>

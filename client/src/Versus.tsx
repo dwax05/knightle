@@ -97,7 +97,7 @@ export function VersusLobbyModal({
                   ))}
                 </div>
                 <p className="text-xs text-muted text-center">{activeMeta.desc}</p>
-                <button onClick={createRoom} disabled={busy} className="w-full py-2.5 rounded-lg bg-accent text-tiletext font-semibold hover:opacity-90 disabled:opacity-50 transition">
+                <button onClick={createRoom} disabled={busy} className="w-full py-2.5 rounded-lg bg-accent text-tiletext font-semibold shadow-[0_3px_0_rgba(0,0,0,0.35)] hover:brightness-110 active:translate-y-[3px] active:shadow-none disabled:opacity-50 disabled:shadow-none disabled:translate-y-0 transition-all duration-100">
                   {busy ? "Creating..." : "Create a room"}
                 </button>
               </div>
@@ -118,7 +118,7 @@ export function VersusLobbyModal({
                   maxLength={4}
                   className="flex-1 min-w-0 px-3 py-2.5 rounded-lg bg-bg text-fg border border-border-app/60 focus:border-accent focus:outline-none uppercase tracking-widest text-center font-mono"
                 />
-                <button onClick={joinRoom} disabled={busy || joinCode.length !== 4} className="px-4 py-2.5 rounded-lg bg-bg text-fg border border-border-app hover:opacity-80 disabled:opacity-40 transition font-semibold">
+                <button onClick={joinRoom} disabled={busy || joinCode.length !== 4} className="px-4 py-2.5 rounded-lg bg-bg text-fg border border-border-app font-semibold shadow-[0_3px_0_rgba(0,0,0,0.35)] hover:brightness-110 active:translate-y-[3px] active:shadow-none disabled:opacity-40 disabled:shadow-none disabled:translate-y-0 transition-all duration-100">
                   Join
                 </button>
               </div>

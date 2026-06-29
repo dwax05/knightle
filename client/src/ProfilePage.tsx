@@ -147,7 +147,7 @@ export function ProfilePage({ onClose }: { onClose: () => void }) {
           <button
             onClick={handlePasswordReset}
             disabled={pwBusy}
-            className="w-full py-2 rounded-lg bg-accent text-tiletext font-semibold hover:opacity-90 disabled:opacity-50 transition text-sm"
+            className="w-full py-2 rounded-lg bg-accent text-tiletext font-semibold text-sm shadow-[0_3px_0_rgba(0,0,0,0.35)] hover:brightness-110 active:translate-y-[3px] active:shadow-none disabled:opacity-50 disabled:shadow-none disabled:translate-y-0 transition-all duration-100"
           >
             {pwBusy ? "Saving..." : "Update password"}
           </button>
@@ -157,7 +157,7 @@ export function ProfilePage({ onClose }: { onClose: () => void }) {
         <Section title="Session">
           <button
             onClick={logout}
-            className="w-full py-2 rounded-lg bg-surface text-fg font-semibold border border-border-app hover:opacity-80 transition text-sm"
+            className="w-full py-2 rounded-lg bg-surface text-fg font-semibold border border-border-app text-sm shadow-[0_3px_0_rgba(0,0,0,0.35)] hover:brightness-110 active:translate-y-[3px] active:shadow-none transition-all duration-100"
           >
             Log out
           </button>
@@ -168,7 +168,7 @@ export function ProfilePage({ onClose }: { onClose: () => void }) {
           {!clearConfirm ? (
             <button
               onClick={handleClearData}
-              className="w-full py-2 rounded-lg bg-surface text-fg font-semibold border border-border-app hover:opacity-80 transition text-sm"
+              className="w-full py-2 rounded-lg bg-surface text-fg font-semibold border border-border-app text-sm shadow-[0_3px_0_rgba(0,0,0,0.35)] hover:brightness-110 active:translate-y-[3px] active:shadow-none transition-all duration-100"
             >
               Clear game data
             </button>
@@ -177,13 +177,13 @@ export function ProfilePage({ onClose }: { onClose: () => void }) {
               <button
                 onClick={handleClearData}
                 disabled={clearBusy}
-                className="flex-1 py-2 rounded-lg bg-error text-tiletext font-semibold hover:opacity-90 disabled:opacity-50 transition text-sm"
+                className="flex-1 py-2 rounded-lg bg-error text-tiletext font-semibold text-sm shadow-[0_3px_0_rgba(0,0,0,0.35)] hover:brightness-110 active:translate-y-[3px] active:shadow-none disabled:opacity-50 disabled:shadow-none disabled:translate-y-0 transition-all duration-100"
               >
                 {clearBusy ? "Clearing..." : "Yes, clear it"}
               </button>
               <button
                 onClick={() => setClearConfirm(false)}
-                className="flex-1 py-2 rounded-lg bg-surface text-fg font-semibold border border-border-app hover:opacity-80 transition text-sm"
+                className="flex-1 py-2 rounded-lg bg-surface text-fg font-semibold border border-border-app text-sm shadow-[0_3px_0_rgba(0,0,0,0.35)] hover:brightness-110 active:translate-y-[3px] active:shadow-none transition-all duration-100"
               >
                 Cancel
               </button>
@@ -197,7 +197,7 @@ export function ProfilePage({ onClose }: { onClose: () => void }) {
           {!deleteConfirm ? (
             <button
               onClick={handleDeleteAccount}
-              className="w-full py-2 rounded-lg bg-surface text-error font-semibold border border-error/40 hover:bg-error/10 transition text-sm"
+              className="w-full py-2 rounded-lg bg-surface text-error font-semibold border border-error/40 text-sm shadow-[0_3px_0_rgba(0,0,0,0.35)] hover:brightness-110 active:translate-y-[3px] active:shadow-none transition-all duration-100"
             >
               Delete account
             </button>
@@ -214,13 +214,13 @@ export function ProfilePage({ onClose }: { onClose: () => void }) {
                 <button
                   onClick={handleDeleteAccount}
                   disabled={deleteBusy}
-                  className="flex-1 py-2 rounded-lg bg-error text-tiletext font-semibold hover:opacity-90 disabled:opacity-50 transition text-sm"
+                  className="flex-1 py-2 rounded-lg bg-error text-tiletext font-semibold text-sm shadow-[0_3px_0_rgba(0,0,0,0.35)] hover:brightness-110 active:translate-y-[3px] active:shadow-none disabled:opacity-50 disabled:shadow-none disabled:translate-y-0 transition-all duration-100"
                 >
                   {deleteBusy ? "Deleting..." : "Delete my account"}
                 </button>
                 <button
                   onClick={() => { setDeleteConfirm(false); setDeletePassword(""); setDeleteStatus(null); }}
-                  className="flex-1 py-2 rounded-lg bg-surface text-fg font-semibold border border-border-app hover:opacity-80 transition text-sm"
+                  className="flex-1 py-2 rounded-lg bg-surface text-fg font-semibold border border-border-app text-sm shadow-[0_3px_0_rgba(0,0,0,0.35)] hover:brightness-110 active:translate-y-[3px] active:shadow-none transition-all duration-100"
                 >
                   Cancel
                 </button>

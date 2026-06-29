@@ -80,8 +80,7 @@ export function AuthForm() {
         <button
           onClick={submit}
           disabled={submitting}
-          className="w-full py-2.5 rounded-lg bg-accent text-tiletext font-semibold
-                     hover:opacity-90 active:opacity-80 disabled:opacity-50 transition"
+          className="w-full py-2.5 rounded-lg bg-accent text-tiletext font-semibold shadow-[0_3px_0_rgba(0,0,0,0.35)] hover:brightness-110 active:translate-y-[3px] active:shadow-none disabled:opacity-50 disabled:shadow-none disabled:translate-y-0 transition-all duration-100"
         >
           {submitting ? "Working..." : mode === "login" ? "Log in" : "Sign up"}
         </button>

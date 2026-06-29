@@ -42,14 +42,14 @@ export function VersusResult({
         <div className="flex gap-3 w-full mt-2">
           <button
             onClick={onLeave}
-            className="flex-1 py-2.5 rounded-lg bg-bg text-fg border border-border-app/60 hover:opacity-80 transition"
+            className="flex-1 py-2.5 rounded-lg bg-bg text-fg border border-border-app/60 shadow-[0_3px_0_rgba(0,0,0,0.35)] hover:brightness-110 active:translate-y-[3px] active:shadow-none transition-all duration-100"
           >
             Leave
           </button>
           <button
             onClick={onRematch}
             disabled={rematchMe}
-            className="flex-1 py-2.5 rounded-lg bg-accent text-tiletext font-semibold hover:opacity-90 disabled:opacity-50 transition"
+            className="flex-1 py-2.5 rounded-lg bg-accent text-tiletext font-semibold shadow-[0_3px_0_rgba(0,0,0,0.35)] hover:brightness-110 active:translate-y-[3px] active:shadow-none disabled:opacity-50 disabled:shadow-none disabled:translate-y-0 transition-all duration-100"
           >
             {rematchMe ? "Ready ✓" : rematchOpponent ? "Accept rematch" : "Rematch"}
           </button>

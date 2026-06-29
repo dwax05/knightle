@@ -34,7 +34,7 @@ function HamburgerMenu({ onNavigate, dropUp = false }: { onNavigate: (view: "the
       <button
         onClick={() => setOpen((o) => !o)}
         aria-label="Menu"
-        className="w-10 h-10 flex flex-col items-center justify-center gap-1.5 bg-surface border border-border-app/50 rounded-xl hover:bg-bg/70 transition-colors duration-150 shadow-lg shadow-black/40"
+        className="w-10 h-10 flex flex-col items-center justify-center gap-1.5 bg-surface border border-border-app/50 rounded-xl shadow-[0_3px_0_rgba(0,0,0,0.4)] hover:brightness-110 active:translate-y-[2px] active:shadow-none transition-all duration-100"
       >
         <span className={`w-5 h-0.5 bg-fg rounded-full transition-all duration-200 ${open ? "rotate-45 translate-y-2" : ""}`} />
         <span className={`w-5 h-0.5 bg-fg rounded-full transition-all duration-200 ${open ? "opacity-0 scale-x-0" : ""}`} />
@@ -83,7 +83,7 @@ function StatsSheet({ refreshKey, onClose }: { refreshKey: number; onClose: () =
           <button
             onClick={dismiss}
             aria-label="Close"
-            className="w-8 h-8 flex items-center justify-center rounded-lg text-muted hover:text-fg hover:bg-bg/50 transition-colors duration-150 text-lg"
+            className="w-8 h-8 flex items-center justify-center rounded-lg text-muted bg-surface border border-border-app/40 shadow-[0_2px_0_rgba(0,0,0,0.35)] hover:brightness-110 active:translate-y-[2px] active:shadow-none transition-all duration-100 text-lg"
           >
             ✕
           </button>
@@ -161,7 +161,7 @@ function Home() {
         <button
           onClick={() => setStatsOpen(true)}
           aria-label="Stats & Leaderboard"
-          className="w-10 h-10 flex items-center justify-center bg-surface border border-border-app/50 rounded-xl hover:bg-bg/70 transition-colors duration-150 shadow-lg shadow-black/40"
+          className="w-10 h-10 flex items-center justify-center bg-surface border border-border-app/50 rounded-xl shadow-[0_3px_0_rgba(0,0,0,0.4)] hover:brightness-110 active:translate-y-[2px] active:shadow-none transition-all duration-100"
         >
           <IconBarChart className="w-5 h-5" />
         </button>
