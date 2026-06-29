@@ -18,7 +18,7 @@ A full-stack Wordle clone with user accounts, stats tracking, a leaderboard, a c
 - **Profile** — change password, log out, clear game data, delete account
 - **Stats** — win rate, current/max streak, guess distribution
 - **Leaderboard** — top 10 players by wins
-- **Versus mode** — create a room, share a 4-letter code, race a friend on the same word; rematch support
+- **Versus mode** — create a room, share a 4-letter code, race a friend on the same word; two modes: **Speed** (first to solve wins) and **Precision** (fewest guesses wins); rematch support
 - **Theme editor** — inject custom CSS to restyle the board per-user (Gruvbox dark default)
 
 ## Ports
