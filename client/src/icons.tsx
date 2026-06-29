@@ -95,6 +95,16 @@ export function IconScale({ className }: IconProps) {
   );
 }
 
+export function IconTarget({ className }: IconProps) {
+  return (
+    <Svg className={className}>
+      <circle cx="12" cy="12" r="10" />
+      <circle cx="12" cy="12" r="6" />
+      <circle cx="12" cy="12" r="2" fill="currentColor" stroke="none" />
+    </Svg>
+  );
+}
+
 export function IconArrowLeft({ className }: IconProps) {
   return (
     <Svg className={className}>

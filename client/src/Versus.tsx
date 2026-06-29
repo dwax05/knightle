@@ -1,11 +1,25 @@
 import { useEffect, useState, useRef } from "react";
 import { useAuth } from "./auth";
+import { IconLightning, IconTarget } from "./icons";
 
 type Phase = "lobby" | "waiting";
+export type VersusMode = "speed" | "precision";
 
-export function VersusLobbyModal({ onStart, onClose }: { onStart: (code: string) => void; onClose: () => void }) {
+const MODES: { value: VersusMode; label: string; desc: string; icon: React.ReactNode }[] = [
+  { value: "speed",     label: "Speed",     desc: "First to solve wins",  icon: <IconLightning className="w-3.5 h-3.5" /> },
+  { value: "precision", label: "Precision", desc: "Fewest guesses wins",  icon: <IconTarget className="w-3.5 h-3.5" /> },
+];
+
+export function VersusLobbyModal({
+  onStart,
+  onClose,
+}: {
+  onStart: (code: string, mode: VersusMode) => void;
+  onClose: () => void;
+}) {
   const { authedPost } = useAuth();
   const [phase, setPhase] = useState<Phase>("lobby");
+  const [mode, setMode] = useState<VersusMode>("speed");
   const [code, setCode] = useState("");
   const [joinCode, setJoinCode] = useState("");
   const [error, setError] = useState("");
@@ -25,9 +39,10 @@ export function VersusLobbyModal({ onStart, onClose }: { onStart: (code: string)
 
   async function createRoom() {
     setError(""); setBusy(true);
-    const data = await authedPost("/api/versus/create", {});
+    const data = await authedPost("/api/versus/create", { mode });
     setBusy(false);
     if (data.error) return setError(data.error);
+    if (data.mode) setMode(data.mode); // sync to what server actually stored
     setCode(data.code);
     setPhase("waiting");
   }
@@ -37,7 +52,7 @@ export function VersusLobbyModal({ onStart, onClose }: { onStart: (code: string)
     const data = await authedPost("/api/versus/join", { code: joinCode.toUpperCase() });
     setBusy(false);
     if (data.error) return setError(data.error);
-    onStart(data.code);
+    onStart(data.code, data.mode ?? "speed");
   }
 
   useEffect(() => {
@@ -46,11 +61,13 @@ export function VersusLobbyModal({ onStart, onClose }: { onStart: (code: string)
       const data = await authedPost("/api/versus/state", { code });
       if (data.status === "active") {
         if (pollRef.current) clearInterval(pollRef.current);
-        onStart(code);
+        onStart(code, (data.mode as VersusMode) ?? mode);
       }
     }, 1500);
     return () => { if (pollRef.current) clearInterval(pollRef.current); };
   }, [phase, code, authedPost, onStart]);
+
+  const activeMeta = MODES.find((m) => m.value === mode)!;
 
   return (
     <>
@@ -63,14 +80,34 @@ export function VersusLobbyModal({ onStart, onClose }: { onStart: (code: string)
                 <h2 className="text-2xl font-bold text-fg">Versus</h2>
                 <p className="text-sm text-muted">Race a friend to the same word</p>
               </div>
-              <button onClick={createRoom} disabled={busy} className="w-full py-2.5 rounded-lg bg-accent text-tiletext font-semibold hover:opacity-90 disabled:opacity-50 transition">
-                {busy ? "Creating..." : "Create a room"}
-              </button>
+
+              {/* Create section */}
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-1 p-1 bg-bg rounded-xl">
+                  {MODES.map(({ value, label, icon }) => (
+                    <button
+                      key={value}
+                      onClick={() => setMode(value)}
+                      className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-colors duration-150 ${
+                        mode === value ? "bg-surface text-fg shadow-sm" : "text-muted hover:text-fg"
+                      }`}
+                    >
+                      {icon}{label}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-xs text-muted text-center">{activeMeta.desc}</p>
+                <button onClick={createRoom} disabled={busy} className="w-full py-2.5 rounded-lg bg-accent text-tiletext font-semibold hover:opacity-90 disabled:opacity-50 transition">
+                  {busy ? "Creating..." : "Create a room"}
+                </button>
+              </div>
+
               <div className="flex items-center gap-3 text-muted text-sm">
                 <div className="flex-1 h-px bg-border-app/40" />
-                or
+                or join one
                 <div className="flex-1 h-px bg-border-app/40" />
               </div>
+
               <div className="flex gap-2">
                 <input
                   ref={joinInputRef}
@@ -79,7 +116,7 @@ export function VersusLobbyModal({ onStart, onClose }: { onStart: (code: string)
                   onKeyDown={(e) => { if (e.key === "Enter" && joinCode.length === 4 && !busy) joinRoom(); }}
                   placeholder="ENTER CODE"
                   maxLength={4}
-                  className="flex-1 px-3 py-2.5 rounded-lg bg-bg text-fg border border-border-app/60 focus:border-accent focus:outline-none uppercase tracking-widest text-center font-mono"
+                  className="flex-1 min-w-0 px-3 py-2.5 rounded-lg bg-bg text-fg border border-border-app/60 focus:border-accent focus:outline-none uppercase tracking-widest text-center font-mono"
                 />
                 <button onClick={joinRoom} disabled={busy || joinCode.length !== 4} className="px-4 py-2.5 rounded-lg bg-bg text-fg border border-border-app hover:opacity-80 disabled:opacity-40 transition font-semibold">
                   Join
@@ -95,6 +132,10 @@ export function VersusLobbyModal({ onStart, onClose }: { onStart: (code: string)
               <h2 className="text-2xl font-bold text-fg">Room created</h2>
               <p className="text-sm text-muted">Share this code with your opponent</p>
               <div className="text-5xl font-bold tracking-[0.3em] text-accent font-mono py-4">{code}</div>
+              <div className="flex items-center justify-center gap-1.5 text-xs text-muted">
+                {activeMeta.icon}
+                <span>{activeMeta.label} · {activeMeta.desc}</span>
+              </div>
               <p className="text-sm text-muted animate-pulse">Waiting for opponent to join...</p>
               <button onClick={onClose} className="text-sm text-muted hover:text-fg transition">Cancel</button>
             </div>
