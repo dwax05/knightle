@@ -24,6 +24,9 @@
   --animate-flip-tile: flip-tile 500ms ease-in-out;
   --animate-fade-in: fadeIn 0.2s ease;
   --animate-slide-down: slideDown 0.2s ease;
+  --animate-slide-up: slideUp 0.3s ease;
+  --animate-sheet-down: sheetDown 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+  --animate-sheet-close: sheetClose 0.25s ease-in forwards;
 }
 
 @keyframes fadeIn {
@@ -36,12 +39,38 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+@keyframes sheetDown {
+  from { opacity: 0; transform: translateY(-100%); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes sheetClose {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(100%); }
+}
+
 @keyframes flip-tile {
   0%, 100% { transform: perspective(400px) rotateX(0deg); }
   50%       { transform: perspective(400px) rotateX(-90deg); }
 }
 
-html, body {
+html {
+  --s: 15px;
+  --hc: #0000, var(--bg) .5deg 119.5deg, #0000 120deg;
+  --g1: conic-gradient(from  60deg at 56.25% calc(425%/6), var(--hc));
+  --g2: conic-gradient(from 180deg at 43.75% calc(425%/6), var(--hc));
+  --g3: conic-gradient(from -60deg at 50%   calc(175%/12), var(--hc));
+  background:
+    var(--g1), var(--g1) var(--s) calc(1.73*var(--s)),
+    var(--g2), var(--g2) var(--s) calc(1.73*var(--s)),
+    var(--g3) var(--s) 0, var(--g3) 0 calc(1.73*var(--s))
+    color-mix(in srgb, var(--bg), white 2%);
+  background-size: calc(2*var(--s)) calc(3.46*var(--s));
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
@@ -52,7 +81,7 @@ body::-webkit-scrollbar {
 }
 
 body {
-  background: var(--bg);
+  background: transparent;
   color: var(--fg);
   margin: 0;
 }

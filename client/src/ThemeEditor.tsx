@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "./auth";
 import { applyTheme } from "./theme-apply";
+import { IconArrowLeft } from "./icons";
 
 // must stay in sync with theme.css :root defaults
 const TEMPLATE = `:root {
@@ -52,16 +53,27 @@ export function ThemeEditor({ onClose }: { onClose: () => void }) {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
+      {/* Mobile: fixed top-left back button */}
+      <button
+        onClick={onClose}
+        aria-label="Back"
+        className="lg:hidden fixed top-4 left-4 z-10 w-10 h-10 flex items-center justify-center bg-surface border border-border-app/50 rounded-xl hover:bg-bg/70 transition-colors duration-150 shadow-lg shadow-black/40"
+      >
+        <IconArrowLeft className="w-5 h-5" />
+      </button>
+
       <div className="flex flex-col gap-5 p-6 sm:p-8 rounded-2xl bg-surface border border-border-app/40 shadow-lg shadow-black/40">
         {/* header */}
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-fg">Theme editor</h1>
+        <div className="flex items-center gap-3">
+          {/* Desktop: inline back button */}
           <button
             onClick={onClose}
-            className="text-sm text-muted hover:text-fg transition"
+            aria-label="Back"
+            className="hidden lg:flex items-center justify-center w-8 h-8 rounded-lg text-muted hover:text-fg hover:bg-bg/50 transition-colors duration-150"
           >
-            ← Back
+            <IconArrowLeft className="w-4 h-4" />
           </button>
+          <h1 className="text-2xl font-bold text-fg">Theme editor</h1>
         </div>
 
         {/* editor */}

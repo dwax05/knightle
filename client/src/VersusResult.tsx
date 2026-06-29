@@ -1,3 +1,5 @@
+import { IconTrophy, IconSkull, IconScale } from "./icons";
+
 export function VersusResult({
   result, rematchMe, rematchOpponent, onRematch, onLeave,
 }: {
@@ -10,8 +12,8 @@ export function VersusResult({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-[fadeIn_0.2s_ease]">
       <div className="w-full max-w-sm mx-4 rounded-2xl bg-surface border border-border-app/40 p-8 flex flex-col items-center gap-5 text-center shadow-2xl">
-        <div className="text-5xl">
-          {result.isDraw ? "🤝" : result.youWon ? "🏆" : "💀"}
+        <div>
+          {result.isDraw ? <IconScale className="w-12 h-12" /> : result.youWon ? <IconTrophy className="w-12 h-12" /> : <IconSkull className="w-12 h-12" />}
         </div>
 
         <div>
