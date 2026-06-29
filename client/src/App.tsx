@@ -44,7 +44,7 @@ function HamburgerMenu({ onNavigate }: { onNavigate: (view: "theme" | "profile")
         <div className="fixed inset-0 z-10 bg-black/30" onClick={() => setOpen(false)} />
       )}
       {open && (
-        <div className="absolute top-full right-0 mt-2 min-w-36 bg-surface border border-border-app/50 rounded-xl overflow-hidden animate-slide-down z-20 shadow-xl shadow-black/60">
+        <div className="absolute bottom-full right-0 mb-2 min-w-36 bg-surface border border-border-app/50 rounded-xl overflow-hidden animate-slide-down z-20 shadow-xl shadow-black/60">
           {NAV_ITEMS.map((item, i) => (
             <div key={item.view}>
               <button
@@ -63,9 +63,40 @@ function HamburgerMenu({ onNavigate }: { onNavigate: (view: "theme" | "profile")
   );
 }
 
+function StatsSheet({ refreshKey, onClose }: { refreshKey: number; onClose: () => void }) {
+  const [closing, setClosing] = useState(false);
+
+  function dismiss() {
+    setClosing(true);
+  }
+
+  return (
+    <div className="fixed inset-0 z-30 flex flex-col justify-end">
+      <div className={`absolute inset-0 bg-black/50 transition-opacity duration-[250ms] ${closing ? "opacity-0" : "opacity-100"}`} onClick={dismiss} />
+      <div
+        className={`relative bg-surface border-t border-border-app/40 rounded-t-2xl max-h-[80vh] overflow-y-auto flex flex-col gap-6 p-4 pb-8 shadow-2xl shadow-black/60 ${closing ? "animate-sheet-close" : "animate-slide-up"}`}
+        onAnimationEnd={() => { if (closing) onClose(); }}
+      >
+        <div className="flex items-center justify-between mb-1">
+          <span className="text-sm font-semibold tracking-widest uppercase text-muted">Stats & Leaderboard</span>
+          <button
+            onClick={dismiss}
+            aria-label="Close"
+            className="w-8 h-8 flex items-center justify-center rounded-lg text-muted hover:text-fg hover:bg-bg/50 transition-colors duration-150 text-lg"
+          >
+            ✕
+          </button>
+        </div>
+        <StatsPanel refreshKey={refreshKey} />
+        <Leaderboard refreshKey={refreshKey} />
+      </div>
+    </div>
+  );
+}
+
 function Home() {
   const [refreshKey, setRefreshKey] = useState(0);
-  const [mobileTab, setMobileTab] = useState<"stats" | "leaderboard">("stats");
+  const [statsOpen, setStatsOpen] = useState(false);
   const [versusCode, setVersusCode] = useState<string | null>(null);
   const [lobbyOpen, setLobbyOpen] = useState(false);
   const [view, setView] = useState<"game" | "theme" | "profile">("game");
@@ -74,9 +105,6 @@ function Home() {
   if (view === "profile") return <ProfilePage onClose={() => setView("game")} />;
   return (
     <div className="max-w-4xl mx-auto px-4 py-6 relative">
-      <div className="absolute top-4 right-4 z-10">
-        <HamburgerMenu onNavigate={setView} />
-      </div>
       {lobbyOpen && (
         <VersusLobbyModal
           onStart={(code) => { setVersusCode(code); setLobbyOpen(false); }}
@@ -84,8 +112,14 @@ function Home() {
         />
       )}
 
-      <div className="flex flex-col lg:flex-row gap-4 lg:gap-18 items-center lg:items-start justify-center mt-14">
-        {/* Mobile: game + tabs share a constrained column */}
+      {statsOpen && (
+        <div className="lg:hidden">
+          <StatsSheet refreshKey={refreshKey} onClose={() => setStatsOpen(false)} />
+        </div>
+      )}
+
+      <div className="flex flex-col lg:flex-row gap-4 lg:gap-18 items-center lg:items-start justify-center">
+        {/* Mobile: game only; desktop: game + side panels */}
         <div className="lg:contents w-full max-w-md flex flex-col gap-4">
           <div className="flex flex-col items-center w-full lg:w-auto bg-surface border border-border-app/30 rounded-2xl px-1 py-4 lg:p-4 shadow-lg shadow-black/40">
             {versusCode ? (
@@ -106,38 +140,25 @@ function Home() {
               </>
             )}
           </div>
-          {/* Desktop: stacked panels */}
+
+          {/* Desktop side panels */}
           <div className="hidden lg:flex flex-col gap-6 w-auto items-stretch">
             <StatsPanel refreshKey={refreshKey} />
             <Leaderboard refreshKey={refreshKey} />
           </div>
+        </div>
+      </div>
 
-          {/* Mobile: tabbed panels */}
-          <div className="lg:hidden w-full flex flex-col">
-            <div className="flex bg-surface border border-border-app/30 rounded-xl overflow-hidden mb-3 shadow-lg shadow-black/40">
-              {(["stats", "leaderboard"] as const).map((tab, i) => (
-                <div key={tab} className="contents">
-                  <button
-                    onClick={() => setMobileTab(tab)}
-                    className={`flex-1 py-2 text-sm font-semibold tracking-widest uppercase transition-colors duration-150 ${mobileTab === tab ? "text-fg bg-bg/40" : "text-muted hover:text-fg"
-                      }`}
-                  >
-                    {tab === "stats" ? "Statistics" : "Leaderboard"}
-                  </button>
-                  {i === 0 && <div className="w-px bg-border-app/40 self-stretch" />}
-                </div>
-              ))}
-            </div>
-            <div className="grid">
-              <div className={`col-start-1 row-start-1 ${mobileTab !== "stats" ? "invisible pointer-events-none" : ""}`}>
-                <StatsPanel refreshKey={refreshKey} />
-              </div>
-              <div className={`col-start-1 row-start-1 ${mobileTab !== "leaderboard" ? "invisible pointer-events-none" : ""}`}>
-                <Leaderboard refreshKey={refreshKey} />
-              </div>
-            </div>
-          </div>
-        </div>{/* end mobile wrapper */}
+      {/* Mobile FAB cluster — fixed bottom-right */}
+      <div className="lg:hidden fixed bottom-8 right-4 flex gap-2 z-20">
+        <button
+          onClick={() => setStatsOpen(true)}
+          aria-label="Stats & Leaderboard"
+          className="w-10 h-10 flex items-center justify-center bg-surface border border-border-app/50 rounded-xl hover:bg-bg/70 transition-colors duration-150 shadow-lg shadow-black/40 text-lg"
+        >
+          📊
+        </button>
+        <HamburgerMenu onNavigate={setView} />
       </div>
     </div>
   );
@@ -155,4 +176,3 @@ export default function App() {
     </AuthProvider>
   );
 }
-
