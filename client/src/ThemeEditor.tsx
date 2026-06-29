@@ -150,6 +150,13 @@ const PRESETS: Preset[] = [
 
 const SWATCH_KEYS = ["--bg", "--accent", "--tile-correct", "--tile-present", "--error"];
 
+const GROUPS: { label: string; keys: string[] }[] = [
+  { label: "Page",    keys: ["--bg", "--fg", "--surface", "--border", "--muted"] },
+  { label: "Tiles",   keys: ["--tile-correct", "--tile-present", "--tile-absent", "--tile-text"] },
+  { label: "Accents", keys: ["--success", "--error", "--accent"] },
+  { label: "Buttons", keys: ["--button-bg", "--button-fg"] },
+];
+
 const LABELS: Record<string, string> = {
   "--bg":           "Background",
   "--fg":           "Text",
@@ -376,10 +383,21 @@ export function ThemeEditor({ onClose }: { onClose: () => void }) {
 
           {/* body: color rows + presets sidebar (desktop) */}
           <div className="flex gap-6">
-            <div className="flex-1 flex flex-col gap-3 min-w-0">
-              {entries.map((entry) => (
-                <ColorRow key={entry.key} entry={entry} onChange={handleChange} />
-              ))}
+            <div className="flex-1 flex flex-col gap-5 min-w-0">
+              {GROUPS.map((group) => {
+                const groupEntries = group.keys
+                  .map((k) => entries.find((e) => e.key === k))
+                  .filter(Boolean) as Entry[];
+                if (!groupEntries.length) return null;
+                return (
+                  <div key={group.label} className="flex flex-col gap-2">
+                    <span className="text-xs font-semibold text-muted uppercase tracking-wider">{group.label}</span>
+                    {groupEntries.map((entry) => (
+                      <ColorRow key={entry.key} entry={entry} onChange={handleChange} />
+                    ))}
+                  </div>
+                );
+              })}
             </div>
 
             {/* right: presets sidebar (desktop only) */}
@@ -394,18 +412,18 @@ export function ThemeEditor({ onClose }: { onClose: () => void }) {
           </div>
 
           {/* actions */}
-          <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-border-app/30">
+          <div className="flex items-center gap-3 pt-2 border-t border-border-app/30">
             <button
               onClick={save}
               className="px-4 py-2 rounded-lg bg-accent text-tiletext font-semibold shadow-[0_3px_0_rgba(0,0,0,0.35)] hover:brightness-110 active:translate-y-[3px] active:shadow-none transition-all duration-100"
             >
-              Save theme
+              Save
             </button>
             <button
               onClick={reset}
               className="px-4 py-2 rounded-lg bg-bg text-fg border border-border-app/60 shadow-[0_3px_0_rgba(0,0,0,0.35)] hover:brightness-110 active:translate-y-[3px] active:shadow-none transition-all duration-100"
             >
-              Reset to default
+              Reset
             </button>
             {status && <span className="text-sm text-success font-medium">{status}</span>}
             <div className="ml-auto flex items-center gap-3">
