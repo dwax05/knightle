@@ -15,6 +15,7 @@ export function Game({ onGameEnd }: { onGameEnd?: () => void }) {
   const [finalGuessCount, setFinalGuessCount] = useState(0);
   const [answer, setAnswer] = useState("");
   const [message, setMessage] = useState("");
+  const [shakingRow, setShakingRow] = useState(false);
   const [revealingRow, setRevealingRow] = useState(-1);
   const revealTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -47,7 +48,11 @@ export function Game({ onGameEnd }: { onGameEnd?: () => void }) {
   const submitGuess = useCallback(async () => {
     if (current.length !== COLS || !gameId || done || revealingRow >= 0) return;
     const data = await authedPost("/api/guess", { gameId, guess: current });
-    if (data.error) { setMessage(data.error); return; }
+    if (data.error) {
+      if (data.error === "Not a valid word") { setShakingRow(true); return; }
+      setMessage(data.error);
+      return;
+    }
 
     const rowIdx = guesses.length;
     setMessage("");
@@ -101,6 +106,8 @@ export function Game({ onGameEnd }: { onGameEnd?: () => void }) {
         done={!!done}
         onKeyPress={onKeyPress}
         revealingRow={revealingRow}
+        shakingRow={shakingRow}
+        onShakeEnd={() => setShakingRow(false)}
       />
       <div className="min-h-6 font-semibold text-fg">{message}</div>
       {done && (

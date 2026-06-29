@@ -27,6 +27,7 @@ export function VersusGame({ code, mode: initialMode, onExit }: {
   const [round, setRound] = useState(0);
   const [rematchMe, setRematchMe] = useState(false);
   const [rematchOpponent, setRematchOpponent] = useState(false);
+  const [shakingRow, setShakingRow] = useState(false);
   const [revealingRow, setRevealingRow] = useState(-1);
   const [mode, setMode] = useState<VersusMode>(initialMode);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -35,7 +36,11 @@ export function VersusGame({ code, mode: initialMode, onExit }: {
   const submitGuess = useCallback(async () => {
     if (current.length !== COLS || finished || status === "done" || revealingRow >= 0) return;
     const data = await authedPost("/api/versus/guess", { code, guess: current });
-    if (data.error) { setMessage(data.error); return; }
+    if (data.error) {
+      if (data.error === "Not a valid word") { setShakingRow(true); return; }
+      setMessage(data.error);
+      return;
+    }
     setMessage("");
     const rowIdx = guesses.length;
     setGuesses((g) => [...g, current]);
@@ -191,7 +196,7 @@ export function VersusGame({ code, mode: initialMode, onExit }: {
         </span>
       </div>
 
-      <Board guesses={guesses} marks={marks} current={current} done={finished || isDone} onKeyPress={onKeyPress} revealingRow={revealingRow} />
+      <Board guesses={guesses} marks={marks} current={current} done={finished || isDone} onKeyPress={onKeyPress} revealingRow={revealingRow} shakingRow={shakingRow} onShakeEnd={() => setShakingRow(false)} />
 
       <div className="min-h-6 font-semibold text-fg">{message}</div>
 

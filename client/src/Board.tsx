@@ -29,6 +29,8 @@ export function Board({
   done,
   onKeyPress,
   revealingRow,
+  shakingRow,
+  onShakeEnd,
 }: {
   guesses: string[];
   marks: Mark[][];
@@ -36,6 +38,8 @@ export function Board({
   done: boolean;
   onKeyPress: (key: string) => void;
   revealingRow: number;
+  shakingRow?: boolean;
+  onShakeEnd?: () => void;
 }) {
   const [revealedCols, setRevealedCols] = useState<Set<number>>(new Set());
   const [pressedKey, setPressedKey] = useState<string | null>(null);
@@ -109,7 +113,11 @@ export function Board({
     <div className="flex flex-col items-center gap-4 w-full max-w-md">
       <div className="grid gap-1.5">
         {Array.from({ length: ROWS }, (_, r) => (
-          <div key={r} className="flex gap-1.5">
+          <div
+            key={r}
+            className={`flex gap-1.5 ${r === guesses.length && shakingRow ? "animate-shake" : ""}`}
+            onAnimationEnd={r === guesses.length ? onShakeEnd : undefined}
+          >
             {rowLetters(r).map((cell, c) => {
               const isRevealing = r === revealingRow;
               // show the mark color only once the tile has passed its flip midpoint
