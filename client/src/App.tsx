@@ -32,7 +32,7 @@ function HamburgerMenu({ onNavigate, dropUp = false }: { onNavigate: (view: "the
   return (
     <div className="relative">
       <button
-        onClick={() => setOpen((o) => !o)}
+        onClick={(e) => { setOpen((o) => !o); (e.currentTarget as HTMLButtonElement).blur(); }}
         aria-label="Menu"
         className="w-10 h-10 flex flex-col items-center justify-center gap-1.5 bg-surface border border-border-app/50 rounded-xl shadow-[0_3px_0_rgba(0,0,0,0.4)] hover:brightness-110 active:translate-y-[2px] active:shadow-none transition-all duration-100"
       >
