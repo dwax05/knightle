@@ -23,7 +23,11 @@ export function Leaderboard({ refreshKey }: { refreshKey: number }) {
     return () => { cancelled = true; };
   }, [refreshKey, authedPost]);
 
-  const medal = (i: number) => (i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i + 1}`);
+  const MEDAL_COLORS = ["#FFD700", "#C0C0C0", "#CD7F32"];
+  const medal = (i: number) =>
+    i < 3
+      ? <span style={{ color: MEDAL_COLORS[i] }} className="font-bold">{i + 1}</span>
+      : `${i + 1}`;
 
   return (
     <div className="w-full max-w-md lg:w-64 bg-surface border border-border-app/30 rounded-2xl p-4 flex flex-col gap-3 shadow-lg shadow-black/40">

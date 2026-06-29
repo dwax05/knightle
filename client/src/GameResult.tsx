@@ -1,3 +1,5 @@
+import { IconTrophy, IconSkull } from "./icons";
+
 export function GameResult({
   outcome,
   guessCount,
@@ -14,7 +16,7 @@ export function GameResult({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in">
       <div className="w-full max-w-sm mx-4 rounded-2xl bg-surface border border-border-app/40 p-8 flex flex-col items-center gap-5 text-center shadow-2xl">
-        <div className="text-5xl">{won ? "🏆" : "💀"}</div>
+        <div>{won ? <IconTrophy className="w-12 h-12" /> : <IconSkull className="w-12 h-12" />}</div>
 
         <div>
           <h2 className="text-2xl font-bold text-fg">{won ? "You got it!" : "Better luck next time"}</h2>

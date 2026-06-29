@@ -8,10 +8,11 @@ import { Leaderboard } from "./Leaderboard";
 import { VersusLobbyModal } from "./Versus";
 import { VersusGame } from "./VersusGame";
 import { ProfilePage } from "./ProfilePage";
+import { IconUser, IconPalette, IconBarChart, IconLightning } from "./icons";
 
 const NAV_ITEMS = [
-  { view: "profile" as const, emoji: "👤", label: "Profile" },
-  { view: "theme" as const, emoji: "🎨", label: "Theme" },
+  { view: "profile" as const, icon: <IconUser className="w-4 h-4" />, label: "Profile" },
+  { view: "theme" as const, icon: <IconPalette className="w-4 h-4" />, label: "Theme" },
 ];
 
 function HamburgerMenu({ onNavigate }: { onNavigate: (view: "theme" | "profile") => void }) {
@@ -51,7 +52,7 @@ function HamburgerMenu({ onNavigate }: { onNavigate: (view: "theme" | "profile")
                 onClick={() => navigate(item.view)}
                 className="flex items-center gap-3 w-full px-4 py-3 text-sm font-medium text-muted hover:text-fg hover:bg-bg/50 transition-colors duration-150"
               >
-                <span>{item.emoji}</span>
+                {item.icon}
                 <span className="tracking-wide">{item.label}</span>
               </button>
               {i < NAV_ITEMS.length - 1 && <div className="h-px bg-border-app/40 mx-3" />}
@@ -134,7 +135,7 @@ function Home() {
               <>
                 <div className="w-full flex items-center justify-between pb-3 border-b border-border-app/40 mb-4 px-2 lg:px-0">
                   <span className="text-sm font-semibold tracking-widest uppercase text-muted">Knightle</span>
-                  <button onClick={() => setLobbyOpen(true)} className="flex items-center gap-1.5 px-2 py-0.5 rounded-md border border-border-app/50 text-xs font-semibold tracking-wide text-muted hover:text-fg hover:border-border-app transition-colors duration-150">⚔️ Versus</button>
+                  <button onClick={() => setLobbyOpen(true)} className="flex items-center gap-1.5 px-2 py-0.5 rounded-md border border-border-app/50 text-xs font-semibold tracking-wide text-muted hover:text-fg hover:border-border-app transition-colors duration-150"><IconLightning className="w-3 h-3" /> Versus</button>
                 </div>
                 <Game onGameEnd={() => setRefreshKey((k) => k + 1)} />
               </>
@@ -156,7 +157,7 @@ function Home() {
           aria-label="Stats & Leaderboard"
           className="w-10 h-10 flex items-center justify-center bg-surface border border-border-app/50 rounded-xl hover:bg-bg/70 transition-colors duration-150 shadow-lg shadow-black/40 text-lg"
         >
-          📊
+          <IconBarChart className="w-5 h-5" />
         </button>
         <HamburgerMenu onNavigate={setView} />
       </div>

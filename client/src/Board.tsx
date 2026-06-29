@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { IconBackspace } from "./icons";
 
 type Mark = "correct" | "present" | "absent";
 const ROWS = 6;
@@ -143,7 +144,7 @@ export function Board({
                   onClick={() => onKeyPress(key)}
                   className={`${wide ? "px-2 sm:px-3 text-xs" : "flex-1 min-w-8"} h-13 sm:h-14 rounded font-semibold uppercase ${bg} hover:bg-surface hover:brightness-110 active:scale-95 active:brightness-75 transition-all duration-75 ${pressedKey === key ? "scale-95 brightness-75" : ""}`}
                 >
-                  {key === "back" ? "⌫" : key}
+                  {key === "back" ? <IconBackspace className="w-5 h-5 mx-auto" /> : key}
                 </button>
               );
             })}
