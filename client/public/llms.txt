@@ -1,0 +1,7 @@
+# Knightle
+
+Knightle is a Wordle-style word guessing game built for UCF students.
+
+## Links
+
+- [Play](https://knightle.xyz)
