@@ -2,13 +2,16 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { useAuth } from "./auth";
 import { Board, COLS, FLIP_DURATION, TILE_STAGGER, type Mark } from "./Board";
 import { VersusResult } from "./VersusResult";
+import { type VersusMode } from "./Versus";
+import { IconLightning, IconTarget } from "./icons";
 
 const REVEAL_TOTAL = (COLS - 1) * TILE_STAGGER + FLIP_DURATION + 50;
 
 type Opponent = { login: string; guessCount: number; finished: boolean; won: boolean } | null;
 
-export function VersusGame({ code, onExit }: {
+export function VersusGame({ code, mode: initialMode, onExit }: {
   code: string;
+  mode: VersusMode;
   onExit: () => void;
 }) {
   const { authedPost, user } = useAuth();
@@ -16,6 +19,7 @@ export function VersusGame({ code, onExit }: {
   const [marks, setMarks] = useState<Mark[][]>([]);
   const [current, setCurrent] = useState("");
   const [finished, setFinished] = useState(false);
+  const [won, setWon] = useState(false);
   const [message, setMessage] = useState("");
   const [opponent, setOpponent] = useState<Opponent>(null);
   const [winner, setWinner] = useState<number | null>(null);
@@ -24,6 +28,7 @@ export function VersusGame({ code, onExit }: {
   const [rematchMe, setRematchMe] = useState(false);
   const [rematchOpponent, setRematchOpponent] = useState(false);
   const [revealingRow, setRevealingRow] = useState(-1);
+  const [mode, setMode] = useState<VersusMode>(initialMode);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const revealTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -39,11 +44,13 @@ export function VersusGame({ code, onExit }: {
     setRevealingRow(rowIdx);
     revealTimer.current = setTimeout(() => {
       setRevealingRow(-1);
+      if (data.mode) setMode(data.mode);
       if (data.opponent) setOpponent(data.opponent);
       if (data.winner) setWinner(data.winner);
       if (data.status) setStatus(data.status);
       if (data.finished) {
         setFinished(true);
+        if (data.won) setWon(true);
         setMessage(data.won ? "You solved it!" : `The word was ${data.answer?.toUpperCase()}`);
       }
     }, REVEAL_TOTAL);
@@ -70,6 +77,7 @@ export function VersusGame({ code, onExit }: {
     setMarks([]);
     setCurrent("");
     setFinished(false);
+    setWon(false);
     setMessage("");
     setWinner(null);
     setStatus("active");
@@ -83,7 +91,21 @@ export function VersusGame({ code, onExit }: {
   }, [code, authedPost]);
 
   const myId = user?.id;
-  const isDone = status === "done";
+
+  const bothFinished = finished && (opponent?.finished ?? false);
+  const isDone = mode === "precision" ? bothFinished : status === "done";
+
+  const precisionYouWon =
+    bothFinished && won && (!opponent?.won || guesses.length < (opponent?.guessCount ?? Infinity));
+  const precisionIsDraw =
+    bothFinished &&
+    ((!won && !(opponent?.won ?? false)) ||
+      (won && (opponent?.won ?? false) && guesses.length === (opponent?.guessCount ?? 0)));
+
+  const youWon = mode === "precision"
+    ? precisionYouWon
+    : winner != null && String(winner) === String(myId);
+  const isDraw = mode === "precision" ? precisionIsDraw : winner == null;
 
   useEffect(() => {
     let cancelled = false;
@@ -95,13 +117,14 @@ export function VersusGame({ code, onExit }: {
       }
       if (data.myFinished) {
         setFinished(true);
-        if (data.myWon) setMessage("You solved it!");
+        if (data.myWon) { setWon(true); setMessage("You solved it!"); }
         else if (data.answer) setMessage(`The word was ${data.answer.toUpperCase()}`);
       }
       if (data.opponent) setOpponent(data.opponent);
       if (data.winner !== undefined) setWinner(data.winner);
       if (data.status) setStatus(data.status);
       if (data.round) setRound(data.round);
+      if (data.mode) setMode(data.mode);
       if (data.rematch) { setRematchMe(data.rematch.me); setRematchOpponent(data.rematch.opponent); }
     });
     return () => { cancelled = true; };
@@ -132,8 +155,9 @@ export function VersusGame({ code, onExit }: {
         setRematchOpponent(false);
         return;
       }
+      if (data.mode) setMode(data.mode);
       if (data.opponent) setOpponent(data.opponent);
-      if (data.winner) setWinner(data.winner);
+      if (data.winner !== undefined) setWinner(data.winner);
       if (data.status) setStatus(data.status);
       if (data.rematch) {
         setRematchMe(data.rematch.me);
@@ -142,9 +166,7 @@ export function VersusGame({ code, onExit }: {
     }, 1500);
     return () => { if (pollRef.current) clearInterval(pollRef.current); };
   }, [code, authedPost, round, resetForNewRound]);
-  const youWon = winner != null && String(winner) === String(myId);
 
-  // winner's guess count: if you won, your count; else opponent's
   const winnerGuesses = youWon ? guesses.length : (opponent?.guessCount ?? 0);
   const winnerName = youWon ? "You" : (opponent?.login ?? "Opponent");
 
@@ -156,21 +178,30 @@ export function VersusGame({ code, onExit }: {
           <>
             <span className="flex-1 text-sm font-semibold text-fg truncate">{opponent.login}</span>
             {opponent.finished
-              ? <span className={`text-xs font-semibold ${opponent.won ? "text-correct" : "text-muted"}`}>{opponent.won ? "solved" : "failed"}</span>
+              ? <span className={`text-xs font-semibold ${opponent.won ? "text-correct" : "text-muted"}`}>{opponent.won ? `solved · ${opponent.guessCount}/6` : "failed"}</span>
               : <span className="text-xs text-muted">{opponent.guessCount}/6</span>}
           </>
         ) : (
           <span className="text-sm text-muted animate-pulse">waiting...</span>
         )}
+        <span className="flex items-center gap-1 text-xs text-muted/60 ml-auto shrink-0">
+          {mode === "speed" ? <IconLightning className="w-3 h-3" /> : <IconTarget className="w-3 h-3" />}
+          {mode === "speed" ? "speed" : "precision"}
+        </span>
       </div>
 
       <Board guesses={guesses} marks={marks} current={current} done={finished || isDone} onKeyPress={onKeyPress} revealingRow={revealingRow} />
 
       <div className="min-h-6 font-semibold text-fg">{message}</div>
 
+      {finished && !isDone && (
+        <p className="text-sm text-muted animate-pulse">Waiting for opponent to finish...</p>
+      )}
+
       {isDone && (
         <VersusResult
-          result={{ youWon, winnerName, winnerGuesses, isDraw: winner == null }}
+          mode={mode}
+          result={{ youWon, winnerName, winnerGuesses, isDraw }}
           rematchMe={rematchMe}
           rematchOpponent={rematchOpponent}
           onRematch={handleRematch}

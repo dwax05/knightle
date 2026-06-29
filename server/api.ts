@@ -219,19 +219,21 @@ export function setApp(app: Express, client: MongoClient) {
     const code = await makeRoomCode(db);
     const answer = ANSWERS[Math.floor(Math.random() * ANSWERS.length)];
     const uid = String(req.user!.userId);
+    const mode = req.body.mode === "precision" ? "precision" : "speed";
 
     await db.collection("Versus").insertOne({
       code,
       answer,
       players: {
-        [uid]: { login: req.user!.login, guesses: [], finished: false, won: false },
+        [uid]: makePlayer(req.user!.login),
       },
       winner: null,
       status: "waiting",
+      mode,
       createdAt: new Date(),
     });
 
-    res.status(200).json({ code, error: "" });
+    res.status(200).json({ code, mode, error: "" });
   });
 
   // player 2 enters the code
@@ -246,19 +248,19 @@ export function setApp(app: Express, client: MongoClient) {
     if (game.status !== "waiting" && !game.players[uid])
       return res.status(200).json({ error: "Room is full or already started" });
     if (game.players[uid])
-      return res.status(200).json({ error: "", code: game.code }); // rejoining own room
+      return res.status(200).json({ error: "", code: game.code, mode: game.mode ?? "speed" }); // rejoining own room
 
     await db.collection("Versus").updateOne(
       { code: game.code },
       {
         $set: {
-          [`players.${uid}`]: { login: req.user!.login, guesses: [], finished: false, won: false },
+          [`players.${uid}`]: makePlayer(req.user!.login),
           status: "active",
         },
       }
     );
 
-    res.status(200).json({ code: game.code, error: "" });
+    res.status(200).json({ code: game.code, mode: game.mode ?? "speed", error: "" });
   });
 
   // GUESS — score against the shared answer, record in this player's slot
@@ -283,6 +285,7 @@ export function setApp(app: Express, client: MongoClient) {
     const player = game.players[uid];
     const newGuessCount = player.guesses.length + 1;
     const finished = won || newGuessCount >= MAX_GUESSES;
+    const mode = game.mode ?? "speed";
 
     const update: any = {
       $push: { [`players.${uid}.guesses`]: g },
@@ -292,14 +295,39 @@ export function setApp(app: Express, client: MongoClient) {
       },
     };
 
-    if (won) {
-      await db.collection("Versus").updateOne(
-        { code: game.code, winner: null },
-        { $set: { winner: req.user!.userId, status: "done" } }
-      );
+    if (mode === "speed") {
+      if (won) {
+        await db.collection("Versus").updateOne(
+          { code: game.code, winner: null },
+          { $set: { winner: req.user!.userId, status: "done" } }
+        );
+      }
+      await db.collection("Versus").updateOne({ code: game.code }, update);
+    } else {
+      await db.collection("Versus").updateOne({ code: game.code }, update);
+      if (finished) {
+        const afterUpdate = await db.collection("Versus").findOne({ code: game.code });
+        const playerEntries = Object.entries(afterUpdate!.players);
+        const allFinished = playerEntries.every(([, p]: any) => p.finished);
+        if (allFinished && afterUpdate!.status !== "done") {
+          const solvers = playerEntries.filter(([, p]: any) => (p as any).won);
+          let roomWinner: number | null = null;
+          if (solvers.length === 1 && solvers[0]) {
+            roomWinner = Number(solvers[0][0]);
+          } else if (solvers.length === 2) {
+            const [id1, p1] = solvers[0] as [string, any];
+            const [id2, p2] = solvers[1] as [string, any];
+            if (p1.guesses.length < p2.guesses.length) roomWinner = Number(id1);
+            else if (p2.guesses.length < p1.guesses.length) roomWinner = Number(id2);
+            // equal guess count = draw (null)
+          }
+          await db.collection("Versus").updateOne(
+            { code: game.code },
+            { $set: { winner: roomWinner, status: "done" } }
+          );
+        }
+      }
     }
-
-    await db.collection("Versus").updateOne({ code: game.code }, update); // ← no $set wrapper
 
     // return this player's marks + opponent's public state
     const updated = await db.collection("Versus").findOne({ code: game.code });
@@ -308,7 +336,8 @@ export function setApp(app: Express, client: MongoClient) {
       won,
       finished,
       guessNum: newGuessCount,
-      round: updated!.round ?? 0,        // ← add
+      round: updated!.round ?? 0,
+      mode: updated!.mode ?? "speed",
       answer: finished ? game.answer : undefined,
       opponent: opponentPublicState(updated, uid),
       winner: updated!.winner,
@@ -332,6 +361,7 @@ export function setApp(app: Express, client: MongoClient) {
       status: game.status,
       winner: game.winner,
       round: game.round ?? 0,
+      mode: game.mode ?? "speed",
       answer: (game.status === "done" || player.finished) ? game.answer : undefined,
       opponent: opponentPublicState(game, uid),
       rematch: {
@@ -370,7 +400,7 @@ export function setApp(app: Express, client: MongoClient) {
       const newAnswer = ANSWERS[Math.floor(Math.random() * ANSWERS.length)];
       const resetPlayers: any = {};
       for (const [id, p] of Object.entries(updated!.players)) {
-        resetPlayers[id] = { login: (p as any).login, guesses: [], finished: false, won: false };
+        resetPlayers[id] = makePlayer((p as any).login);
       }
       await db.collection("Versus").updateOne(
         { code },
@@ -380,9 +410,10 @@ export function setApp(app: Express, client: MongoClient) {
             players: resetPlayers,
             winner: null,
             status: "active",
+            mode: updated!.mode ?? "speed",
             createdAt: new Date(),
           },
-          $unset: { rematch: "" },     // clear the requests for the new round
+          $unset: { rematch: "" },
           $inc: { round: 1 },
         }
       );
@@ -476,6 +507,10 @@ export function setApp(app: Express, client: MongoClient) {
       if (!existing) return code;
     }
     throw new Error("Could not generate unique code");
+  }
+
+  function makePlayer(login: string) {
+    return { login, guesses: [] as string[], finished: false, won: false };
   }
 
   function opponentPublicState(game: any, myUid: string) {

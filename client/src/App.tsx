@@ -5,7 +5,7 @@ import { Game } from "./Game";
 import { StatsPanel } from "./StatsPanel";
 import { ThemeEditor } from "./ThemeEditor";
 import { Leaderboard } from "./Leaderboard";
-import { VersusLobbyModal } from "./Versus";
+import { VersusLobbyModal, type VersusMode } from "./Versus";
 import { VersusGame } from "./VersusGame";
 import { ProfilePage } from "./ProfilePage";
 import { IconUser, IconPalette, IconBarChart, IconLightning } from "./icons";
@@ -99,6 +99,7 @@ function Home() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [statsOpen, setStatsOpen] = useState(false);
   const [versusCode, setVersusCode] = useState<string | null>(null);
+  const [versusMode, setVersusMode] = useState<VersusMode>("speed");
   const [lobbyOpen, setLobbyOpen] = useState(false);
   const [view, setView] = useState<"game" | "theme" | "profile">("game");
 
@@ -108,7 +109,7 @@ function Home() {
     <div className="max-w-4xl mx-auto px-4 py-6 relative">
       {lobbyOpen && (
         <VersusLobbyModal
-          onStart={(code) => { setVersusCode(code); setLobbyOpen(false); }}
+          onStart={(code, mode) => { setVersusCode(code); setVersusMode(mode); setLobbyOpen(false); }}
           onClose={() => setLobbyOpen(false)}
         />
       )}
@@ -129,7 +130,7 @@ function Home() {
                   <span className="text-sm font-semibold tracking-widest uppercase text-muted">Room {versusCode}</span>
                   <button onClick={() => { setVersusCode(null); (document.activeElement as HTMLElement)?.blur(); }} className="text-sm text-muted hover:text-fg transition">Leave</button>
                 </div>
-                <VersusGame code={versusCode} onExit={() => { setVersusCode(null); (document.activeElement as HTMLElement)?.blur(); }} />
+                <VersusGame code={versusCode} mode={versusMode} onExit={() => { setVersusCode(null); (document.activeElement as HTMLElement)?.blur(); }} />
               </>
             ) : (
               <>
@@ -160,7 +161,7 @@ function Home() {
         <button
           onClick={() => setStatsOpen(true)}
           aria-label="Stats & Leaderboard"
-          className="w-10 h-10 flex items-center justify-center bg-surface border border-border-app/50 rounded-xl hover:bg-bg/70 transition-colors duration-150 shadow-lg shadow-black/40 text-lg"
+          className="w-10 h-10 flex items-center justify-center bg-surface border border-border-app/50 rounded-xl hover:bg-bg/70 transition-colors duration-150 shadow-lg shadow-black/40"
         >
           <IconBarChart className="w-5 h-5" />
         </button>

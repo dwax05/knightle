@@ -1,14 +1,20 @@
 import { IconTrophy, IconSkull, IconScale } from "./icons";
+import { type VersusMode } from "./Versus";
 
 export function VersusResult({
-  result, rematchMe, rematchOpponent, onRematch, onLeave,
+  mode = "speed", result, rematchMe, rematchOpponent, onRematch, onLeave,
 }: {
+  mode?: VersusMode;
   result: { youWon: boolean; winnerName: string; winnerGuesses: number; isDraw?: boolean };
   rematchMe: boolean;
   rematchOpponent: boolean;
   onRematch: () => void;
   onLeave: () => void;
 }) {
+  const subtitle = result.isDraw
+    ? mode === "precision" ? `Both solved it in ${result.winnerGuesses} ${result.winnerGuesses === 1 ? "guess" : "guesses"}` : undefined
+    : `${result.winnerName} solved it in ${result.winnerGuesses} ${result.winnerGuesses === 1 ? "guess" : "guesses"}${mode === "speed" ? " first" : " (fewest)"}`;
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-[fadeIn_0.2s_ease]">
       <div className="w-full max-w-sm mx-4 rounded-2xl bg-surface border border-border-app/40 p-8 flex flex-col items-center gap-5 text-center shadow-2xl">
@@ -20,11 +26,8 @@ export function VersusResult({
           <h2 className="text-2xl font-bold text-fg">
             {result.isDraw ? "It's a draw!" : result.youWon ? "You win!" : "You lost"}
           </h2>
-          {!result.isDraw && (
-            <p className="text-sm text-muted mt-1">
-              {result.winnerName} solved it in {result.winnerGuesses}{" "}
-              {result.winnerGuesses === 1 ? "guess" : "guesses"}
-            </p>
+          {subtitle && (
+            <p className="text-sm text-muted mt-1">{subtitle}</p>
           )}
         </div>
 
