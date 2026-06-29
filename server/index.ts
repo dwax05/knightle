@@ -7,7 +7,8 @@ import { MongoClient } from "mongodb";
 import { setApp } from "./api";
 
 const app = express();
-app.use(cors({ origin: "http://localhost:5173", credentials: true }));
+const ALLOWED_ORIGINS = ["http://localhost:5173", "https://knightle.xyz"];
+app.use(cors({ origin: ALLOWED_ORIGINS, credentials: true }));
 app.use(express.json({ limit: "10kb" }));
 app.use(helmet());
 app.use(cookieParser());
