@@ -50,6 +50,8 @@ export function Board({
     }
     function onDown(e: KeyboardEvent) {
       if (e.target instanceof HTMLInputElement) return;
+      if ((e.metaKey || e.ctrlKey) && e.key === "a") { e.preventDefault(); return; }
+      if (e.metaKey || e.altKey || e.ctrlKey) return;
       if (done) return;
       const id = toKeyId(e);
       if (!id) return;
@@ -142,7 +144,7 @@ export function Board({
                 <button
                   key={key}
                   onClick={() => onKeyPress(key)}
-                  className={`${wide ? "px-2 sm:px-3 text-xs" : "flex-1 min-w-8"} h-13 sm:h-14 rounded font-semibold uppercase ${bg} hover:bg-surface hover:brightness-110 active:scale-95 active:brightness-75 transition-all duration-75 ${pressedKey === key ? "scale-95 brightness-75" : ""}`}
+                  className={`${wide ? "px-2 sm:px-3 text-xs" : "flex-1 min-w-8"} h-13 sm:h-14 rounded font-semibold uppercase ${bg} shadow-[0_3px_0_rgba(0,0,0,0.4)] hover:brightness-110 active:translate-y-[3px] active:shadow-none transition-all duration-75 ${pressedKey === key ? "translate-y-[3px] shadow-none" : ""}`}
                 >
                   {key === "back" ? <IconBackspace className="w-5 h-5 mx-auto" /> : key}
                 </button>
