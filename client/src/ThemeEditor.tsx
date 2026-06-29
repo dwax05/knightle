@@ -47,13 +47,23 @@ const PRESETS: Preset[] = [
     },
   },
   {
-    name: "Catppuccin",
+    name: "Catppuccin Mocha",
     vars: {
       "--bg": "#1e1e2e", "--fg": "#cdd6f4", "--surface": "#313244",
       "--border": "#45475a", "--muted": "#6c7086",
       "--tile-correct": "#a6e3a1", "--tile-present": "#f9e2af", "--tile-absent": "#45475a",
       "--tile-text": "#1e1e2e", "--success": "#a6e3a1", "--error": "#f38ba8",
       "--accent": "#89b4fa", "--button-bg": "#313244", "--button-fg": "#cdd6f4",
+    },
+  },
+  {
+    name: "Catppuccin Latte",
+    vars: {
+      "--bg": "#eff1f5", "--fg": "#4c4f69", "--surface": "#e6e9ef",
+      "--border": "#ccd0da", "--muted": "#9ca0b0",
+      "--tile-correct": "#40a02b", "--tile-present": "#df8e1d", "--tile-absent": "#ccd0da",
+      "--tile-text": "#eff1f5", "--success": "#40a02b", "--error": "#d20f39",
+      "--accent": "#1e66f5", "--button-bg": "#e6e9ef", "--button-fg": "#4c4f69",
     },
   },
   {
@@ -74,6 +84,56 @@ const PRESETS: Preset[] = [
       "--tile-correct": "#50fa7b", "--tile-present": "#f1fa8c", "--tile-absent": "#44475a",
       "--tile-text": "#282a36", "--success": "#50fa7b", "--error": "#ff5555",
       "--accent": "#bd93f9", "--button-bg": "#44475a", "--button-fg": "#f8f8f2",
+    },
+  },
+  {
+    name: "Nord",
+    vars: {
+      "--bg": "#2e3440", "--fg": "#d8dee9", "--surface": "#3b4252",
+      "--border": "#434c5e", "--muted": "#4c566a",
+      "--tile-correct": "#a3be8c", "--tile-present": "#ebcb8b", "--tile-absent": "#434c5e",
+      "--tile-text": "#2e3440", "--success": "#a3be8c", "--error": "#bf616a",
+      "--accent": "#88c0d0", "--button-bg": "#3b4252", "--button-fg": "#d8dee9",
+    },
+  },
+  {
+    name: "One Dark",
+    vars: {
+      "--bg": "#282c34", "--fg": "#abb2bf", "--surface": "#3e4451",
+      "--border": "#4b5263", "--muted": "#5c6370",
+      "--tile-correct": "#98c379", "--tile-present": "#e5c07b", "--tile-absent": "#4b5263",
+      "--tile-text": "#282c34", "--success": "#98c379", "--error": "#e06c75",
+      "--accent": "#61afef", "--button-bg": "#3e4451", "--button-fg": "#abb2bf",
+    },
+  },
+  {
+    name: "Solarized Dark",
+    vars: {
+      "--bg": "#002b36", "--fg": "#839496", "--surface": "#073642",
+      "--border": "#586e75", "--muted": "#657b83",
+      "--tile-correct": "#859900", "--tile-present": "#b58900", "--tile-absent": "#073642",
+      "--tile-text": "#fdf6e3", "--success": "#859900", "--error": "#dc322f",
+      "--accent": "#268bd2", "--button-bg": "#073642", "--button-fg": "#839496",
+    },
+  },
+  {
+    name: "Solarized Light",
+    vars: {
+      "--bg": "#fdf6e3", "--fg": "#657b83", "--surface": "#eee8d5",
+      "--border": "#93a1a1", "--muted": "#93a1a1",
+      "--tile-correct": "#859900", "--tile-present": "#b58900", "--tile-absent": "#eee8d5",
+      "--tile-text": "#fdf6e3", "--success": "#859900", "--error": "#dc322f",
+      "--accent": "#268bd2", "--button-bg": "#eee8d5", "--button-fg": "#657b83",
+    },
+  },
+  {
+    name: "Everforest",
+    vars: {
+      "--bg": "#2d353b", "--fg": "#d3c6aa", "--surface": "#343f44",
+      "--border": "#475258", "--muted": "#859289",
+      "--tile-correct": "#a7c080", "--tile-present": "#dbbc7f", "--tile-absent": "#475258",
+      "--tile-text": "#2d353b", "--success": "#a7c080", "--error": "#e67e80",
+      "--accent": "#7fbbb3", "--button-bg": "#343f44", "--button-fg": "#d3c6aa",
     },
   },
   {
@@ -151,7 +211,7 @@ function ColorRow({
         type="color"
         value={isValidHex(entry.value) ? entry.value : "#000000"}
         onChange={(e) => handlePicker(e.target.value)}
-        className="w-8 h-8 rounded-lg cursor-pointer border border-border-app/40 p-0.5 bg-transparent shrink-0"
+        className="w-8 h-8 rounded-lg cursor-pointer border-0 p-0.5 bg-transparent shrink-0 outline-none"
       />
       <input
         type="text"
@@ -306,11 +366,13 @@ export function ThemeEditor({ onClose }: { onClose: () => void }) {
             </div>
 
             {/* right: presets sidebar (desktop only) */}
-            <div className="hidden lg:flex w-36 shrink-0 flex-col gap-2">
-              <span className="text-xs font-semibold text-muted uppercase tracking-wider px-1">Presets</span>
-              {PRESETS.map((p) => (
-                <PresetButton key={p.name} preset={p} onClick={() => loadPreset(p)} />
-              ))}
+            <div className="hidden lg:block shrink-0">
+              <span className="text-xs font-semibold text-muted uppercase tracking-wider px-1 block mb-2">Presets</span>
+              <div className="grid grid-cols-2 gap-2">
+                {PRESETS.map((p) => (
+                  <PresetButton key={p.name} preset={p} onClick={() => loadPreset(p)} />
+                ))}
+              </div>
             </div>
           </div>
 
