@@ -150,15 +150,18 @@ export function VersusGame({ code, onExit }: {
 
   return (
     <div className="w-full flex flex-col items-center gap-4">
-      <div className="w-full flex items-center justify-between pb-3 border-b border-border-app/40 text-sm px-2 lg:px-0">
-        <span className="text-sm font-semibold tracking-widest uppercase text-muted">Opponent</span>
-        <span className="text-fg font-semibold">
-          {opponent
-            ? opponent.finished
-              ? opponent.won ? `${opponent.login} solved it` : `${opponent.login} failed`
-              : `${opponent.login} — guess ${opponent.guessCount}/6`
-            : "Waiting..."}
-        </span>
+      <div className="w-full flex items-center gap-2 pb-3 border-b border-border-app/40 px-2 lg:px-0">
+        <span className="text-xs font-bold tracking-widest uppercase text-muted">vs</span>
+        {opponent ? (
+          <>
+            <span className="flex-1 text-sm font-semibold text-fg truncate">{opponent.login}</span>
+            {opponent.finished
+              ? <span className={`text-xs font-semibold ${opponent.won ? "text-correct" : "text-muted"}`}>{opponent.won ? "solved" : "failed"}</span>
+              : <span className="text-xs text-muted">{opponent.guessCount}/6</span>}
+          </>
+        ) : (
+          <span className="text-sm text-muted animate-pulse">waiting...</span>
+        )}
       </div>
 
       <Board guesses={guesses} marks={marks} current={current} done={finished || isDone} onKeyPress={onKeyPress} revealingRow={revealingRow} />

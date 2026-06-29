@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "./auth";
+import { IconArrowLeft } from "./icons";
 
 type Status = { type: "error" | "success"; message: string } | null;
 
@@ -95,14 +96,25 @@ export function ProfilePage({ onClose }: { onClose: () => void }) {
   }
 
   return (
-    <div className="min-h-screen flex items-start justify-center px-4 py-10">
+    <div className="min-h-screen flex items-start justify-center px-4 pt-20 pb-10 lg:py-10">
+      {/* Mobile: fixed top-left back button */}
+      <button
+        onClick={onClose}
+        aria-label="Back"
+        className="lg:hidden fixed top-4 left-4 z-10 w-10 h-10 flex items-center justify-center bg-surface border border-border-app/50 rounded-xl hover:bg-bg/70 transition-colors duration-150 shadow-lg shadow-black/40"
+      >
+        <IconArrowLeft className="w-5 h-5" />
+      </button>
+
       <div className="w-full max-w-sm flex flex-col gap-6">
         <div className="flex items-center gap-3">
+          {/* Desktop: inline back button */}
           <button
             onClick={onClose}
-            className="text-sm text-muted hover:text-fg transition"
+            aria-label="Back"
+            className="hidden lg:flex items-center justify-center w-8 h-8 rounded-lg text-muted hover:text-fg hover:bg-surface transition-colors duration-150"
           >
-            ← Back
+            <IconArrowLeft className="w-4 h-4" />
           </button>
           <div>
             <h1 className="text-xl font-bold text-fg">Profile</h1>
