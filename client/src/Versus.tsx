@@ -11,6 +11,11 @@ export function VersusLobbyModal({ onStart, onClose }: { onStart: (code: string)
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const joinInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (window.matchMedia("(pointer: fine)").matches) joinInputRef.current?.focus();
+  }, []);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) { if (e.key === "Escape") onClose(); }
@@ -68,8 +73,10 @@ export function VersusLobbyModal({ onStart, onClose }: { onStart: (code: string)
               </div>
               <div className="flex gap-2">
                 <input
+                  ref={joinInputRef}
                   value={joinCode}
                   onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
+                  onKeyDown={(e) => { if (e.key === "Enter" && joinCode.length === 4 && !busy) joinRoom(); }}
                   placeholder="ENTER CODE"
                   maxLength={4}
                   className="flex-1 px-3 py-2.5 rounded-lg bg-bg text-fg border border-border-app/60 focus:border-accent focus:outline-none uppercase tracking-widest text-center font-mono"

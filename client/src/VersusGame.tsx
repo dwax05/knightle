@@ -1,7 +1,9 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useAuth } from "./auth";
-import { Board, COLS, type Mark } from "./Board";
+import { Board, COLS, FLIP_DURATION, TILE_STAGGER, type Mark } from "./Board";
 import { VersusResult } from "./VersusResult";
+
+const REVEAL_TOTAL = (COLS - 1) * TILE_STAGGER + FLIP_DURATION + 50;
 
 type Opponent = { login: string; guessCount: number; finished: boolean; won: boolean } | null;
 
@@ -21,24 +23,31 @@ export function VersusGame({ code, onExit }: {
   const [round, setRound] = useState(0);
   const [rematchMe, setRematchMe] = useState(false);
   const [rematchOpponent, setRematchOpponent] = useState(false);
+  const [revealingRow, setRevealingRow] = useState(-1);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const revealTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const submitGuess = useCallback(async () => {
-    if (current.length !== COLS || finished || status === "done") return;
+    if (current.length !== COLS || finished || status === "done" || revealingRow >= 0) return;
     const data = await authedPost("/api/versus/guess", { code, guess: current });
     if (data.error) { setMessage(data.error); return; }
     setMessage("");
+    const rowIdx = guesses.length;
     setGuesses((g) => [...g, current]);
     setMarks((m) => [...m, data.marks]);
     setCurrent("");
-    if (data.opponent) setOpponent(data.opponent);
-    if (data.winner) setWinner(data.winner);
-    if (data.status) setStatus(data.status);
-    if (data.finished) {
-      setFinished(true);
-      setMessage(data.won ? "You solved it!" : `The word was ${data.answer?.toUpperCase()}`);
-    }
-  }, [current, finished, status, code, authedPost]);
+    setRevealingRow(rowIdx);
+    revealTimer.current = setTimeout(() => {
+      setRevealingRow(-1);
+      if (data.opponent) setOpponent(data.opponent);
+      if (data.winner) setWinner(data.winner);
+      if (data.status) setStatus(data.status);
+      if (data.finished) {
+        setFinished(true);
+        setMessage(data.won ? "You solved it!" : `The word was ${data.answer?.toUpperCase()}`);
+      }
+    }, REVEAL_TOTAL);
+  }, [current, finished, status, revealingRow, guesses.length, code, authedPost]);
 
   const typeLetter = useCallback((ch: string) => {
     if (finished) return;
@@ -112,6 +121,8 @@ export function VersusGame({ code, onExit }: {
     return () => window.removeEventListener("keydown", onKey);
   }, [finished, isDone, rematchMe, handleRematch, submitGuess, backspace, typeLetter]);
 
+  useEffect(() => () => { if (revealTimer.current) clearTimeout(revealTimer.current); }, []);
+
   useEffect(() => {
     pollRef.current = setInterval(async () => {
       const data = await authedPost("/api/versus/state", { code });
@@ -150,7 +161,7 @@ export function VersusGame({ code, onExit }: {
         </span>
       </div>
 
-      <Board guesses={guesses} marks={marks} current={current} done={finished || isDone} onKeyPress={onKeyPress} revealingRow={-1} />
+      <Board guesses={guesses} marks={marks} current={current} done={finished || isDone} onKeyPress={onKeyPress} revealingRow={revealingRow} />
 
       <div className="min-h-6 font-semibold text-fg">{message}</div>
 

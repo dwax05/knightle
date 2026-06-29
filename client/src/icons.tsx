@@ -21,8 +21,8 @@ export function IconPalette({ className }: IconProps) {
   return (
     <Svg className={className}>
       <path d="M12 2a10 10 0 1 0 4 19.1 2 2 0 0 1 2-3.1H16a2 2 0 0 0 2-2 9.97 9.97 0 0 0-6-9z" />
-      <circle cx="8"  cy="10" r="1.5" fill="currentColor" stroke="none" />
-      <circle cx="12" cy="7"  r="1.5" fill="currentColor" stroke="none" />
+      <circle cx="8" cy="10" r="1.5" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="7" r="1.5" fill="currentColor" stroke="none" />
       <circle cx="16" cy="11" r="1.5" fill="currentColor" stroke="none" />
       <circle cx="10" cy="15" r="1.5" fill="currentColor" stroke="none" />
     </Svg>
@@ -32,9 +32,9 @@ export function IconPalette({ className }: IconProps) {
 export function IconBarChart({ className }: IconProps) {
   return (
     <Svg className={className}>
-      <rect x="4"  y="10" width="4" height="10" rx="1" fill="currentColor" stroke="none" />
-      <rect x="10" y="5"  width="4" height="15" rx="1" fill="currentColor" stroke="none" />
-      <rect x="16" y="13" width="4" height="7"  rx="1" fill="currentColor" stroke="none" />
+      <rect x="4" y="10" width="4" height="10" rx="1" fill="currentColor" stroke="none" />
+      <rect x="10" y="5" width="4" height="15" rx="1" fill="currentColor" stroke="none" />
+      <rect x="16" y="13" width="4" height="7" rx="1" fill="currentColor" stroke="none" />
     </Svg>
   );
 }
@@ -76,7 +76,7 @@ export function IconSkull({ className }: IconProps) {
       <path d="M9 21h6" />
       <path d="M10 21v-3" />
       <path d="M14 21v-3" />
-      <circle cx="9.5"  cy="10" r="1.5" fill="currentColor" stroke="none" />
+      <circle cx="9.5" cy="10" r="1.5" fill="currentColor" stroke="none" />
       <circle cx="14.5" cy="10" r="1.5" fill="currentColor" stroke="none" />
     </Svg>
   );

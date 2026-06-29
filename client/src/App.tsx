@@ -15,7 +15,7 @@ const NAV_ITEMS = [
   { view: "theme" as const, icon: <IconPalette className="w-4 h-4" />, label: "Theme" },
 ];
 
-function HamburgerMenu({ onNavigate }: { onNavigate: (view: "theme" | "profile") => void }) {
+function HamburgerMenu({ onNavigate, dropUp = false }: { onNavigate: (view: "theme" | "profile") => void; dropUp?: boolean }) {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -45,7 +45,7 @@ function HamburgerMenu({ onNavigate }: { onNavigate: (view: "theme" | "profile")
         <div className="fixed inset-0 z-10 bg-black/30" onClick={() => setOpen(false)} />
       )}
       {open && (
-        <div className="absolute bottom-full right-0 mb-2 min-w-36 bg-surface border border-border-app/50 rounded-xl overflow-hidden animate-slide-down z-20 shadow-xl shadow-black/60">
+        <div className={`absolute ${dropUp ? "bottom-full mb-2" : "top-full mt-2"} right-0 min-w-36 bg-surface border border-border-app/50 rounded-xl overflow-hidden animate-slide-down z-20 shadow-xl shadow-black/60`}>
           {NAV_ITEMS.map((item, i) => (
             <div key={item.view}>
               <button
@@ -127,9 +127,9 @@ function Home() {
               <>
                 <div className="w-full flex items-center justify-between pb-3 border-b border-border-app/40 mb-4 px-2 lg:px-0">
                   <span className="text-sm font-semibold tracking-widest uppercase text-muted">Room {versusCode}</span>
-                  <button onClick={() => setVersusCode(null)} className="text-sm text-muted hover:text-fg transition">Leave</button>
+                  <button onClick={() => { setVersusCode(null); (document.activeElement as HTMLElement)?.blur(); }} className="text-sm text-muted hover:text-fg transition">Leave</button>
                 </div>
-                <VersusGame code={versusCode} onExit={() => setVersusCode(null)} />
+                <VersusGame code={versusCode} onExit={() => { setVersusCode(null); (document.activeElement as HTMLElement)?.blur(); }} />
               </>
             ) : (
               <>
@@ -150,6 +150,11 @@ function Home() {
         </div>
       </div>
 
+      {/* Desktop hamburger — top-right */}
+      <div className="hidden lg:block absolute top-4 right-4 z-10">
+        <HamburgerMenu onNavigate={setView} />
+      </div>
+
       {/* Mobile FAB cluster — fixed bottom-right */}
       <div className="lg:hidden fixed bottom-8 right-4 flex gap-2 z-20">
         <button
@@ -159,7 +164,7 @@ function Home() {
         >
           <IconBarChart className="w-5 h-5" />
         </button>
-        <HamburgerMenu onNavigate={setView} />
+        <HamburgerMenu onNavigate={setView} dropUp />
       </div>
     </div>
   );
