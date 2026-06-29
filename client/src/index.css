@@ -69,6 +69,15 @@
   50%       { transform: perspective(400px) rotateX(-90deg); }
 }
 
+#root > * {
+  animation: appFadeIn 0.15s ease;
+}
+
+@keyframes appFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
 html {
   --s: 15px;
   --hc: #0000, var(--bg) .5deg 119.5deg, #0000 120deg;
