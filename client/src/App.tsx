@@ -172,7 +172,8 @@ function Home() {
 }
 
 function AuthGate() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+  if (loading) return null;
   return user ? <Home /> : <AuthForm />;
 }
 

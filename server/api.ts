@@ -4,13 +4,25 @@ import { randomUUID } from "crypto";
 import bcrypt from "bcrypt";
 import rateLimit from "express-rate-limit";
 
-import { createToken } from "./createJWT";
+import { createToken, createRefreshToken, verifyRefreshToken } from "./createJWT";
 import { requireAuth, type AuthedRequest } from "./auth";
 import { ANSWERS, VALID_GUESSES } from "./words";
 import { scoreGuess } from "./wordle";
 
 const SALT_ROUNDS = 10;
 const MAX_GUESSES = 6;
+const REFRESH_COOKIE = "refresh_token";
+const IS_PROD = process.env.NODE_ENV === "production";
+
+function setRefreshCookie(res: any, token: string, rememberMe: boolean) {
+  res.cookie(REFRESH_COOKIE, token, {
+    httpOnly: true,
+    secure: IS_PROD,
+    sameSite: IS_PROD ? "strict" : "lax",
+    ...(rememberMe ? { maxAge: 30 * 24 * 60 * 60 * 1000 } : {}),
+    path: "/api/auth",
+  });
+}
 
 export function setApp(app: Express, client: MongoClient) {
   const db = client.db();
@@ -46,11 +58,9 @@ export function setApp(app: Express, client: MongoClient) {
     await db.collection("Users").insertOne(user);
 
     const token = createToken(user.Login, user.UserID);
-    res.status(200).json({
-      id: user.UserID,
-      login: user.Login,
-      ...token,
-    });
+    const refreshToken = createRefreshToken(user.Login, user.UserID);
+    setRefreshCookie(res, refreshToken, false);
+    res.status(200).json({ id: user.UserID, login: user.Login, ...token });
   });
 
   const loginLimiter = rateLimit({
@@ -60,7 +70,7 @@ export function setApp(app: Express, client: MongoClient) {
   });
 
   app.post("/api/login", loginLimiter, async (req, res) => {
-    const { login, password } = req.body;
+    const { login, password, rememberMe } = req.body;
 
     const user = await db.collection("Users").findOne({ Login: login });
     if (!user) {
@@ -73,11 +83,36 @@ export function setApp(app: Express, client: MongoClient) {
     }
 
     const token = createToken(user.Login, user.UserID);
-    res.status(200).json({
-      id: user.UserID,
-      login: user.Login,
-      ...token,
-    });
+    const refreshToken = createRefreshToken(user.Login, user.UserID);
+    setRefreshCookie(res, refreshToken, !!rememberMe);
+    res.status(200).json({ id: user.UserID, login: user.Login, ...token });
+  });
+
+  app.post("/api/auth/refresh", (req, res) => {
+    const token = req.cookies?.[REFRESH_COOKIE];
+    if (!token) return res.status(401).json({ error: "No refresh token" });
+
+    const payload = verifyRefreshToken(token);
+    if (!payload) {
+      res.clearCookie(REFRESH_COOKIE, { path: "/api/auth" });
+      return res.status(401).json({ error: "Invalid or expired refresh token" });
+    }
+
+    const { accessToken } = createToken(payload.login, payload.userId);
+    // re-issue refresh cookie preserving its type (session vs persistent)
+    const hasMaxAge = !!req.cookies[REFRESH_COOKIE];
+    const newRefresh = createRefreshToken(payload.login, payload.userId);
+    // check if original cookie was persistent by seeing if it will outlive a session
+    // we can't read maxAge from the cookie itself, so we re-issue without maxAge (session cookie)
+    // unless the client tells us rememberMe via a header
+    const rememberMe = req.headers["x-remember-me"] === "1";
+    setRefreshCookie(res, newRefresh, rememberMe);
+    res.status(200).json({ accessToken, id: payload.userId, login: payload.login });
+  });
+
+  app.post("/api/auth/logout", (req, res) => {
+    res.clearCookie(REFRESH_COOKIE, { path: "/api/auth" });
+    res.status(200).json({ error: "" });
   });
 
   // return the user's most recent unfinished game (for page-refresh resumption)

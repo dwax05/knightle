@@ -10,6 +10,7 @@ export function AuthForm() {
     login: "", password: "", confirm: "", email: "",
   });
   const [status, setStatus] = useState<Status>(null);
+  const [rememberMe, setRememberMe] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement>) =>
@@ -34,7 +35,7 @@ export function AuthForm() {
 
     setSubmitting(true);
     const err = mode === "login"
-      ? await login(form.login, form.password)
+      ? await login(form.login, form.password, rememberMe)
       : await register(form);
     setSubmitting(false);
 
@@ -75,6 +76,18 @@ export function AuthForm() {
 
         {mode === "register" && (
           <input className={inputClass} type="password" placeholder="Confirm password" value={form.confirm} onChange={set("confirm")} />
+        )}
+
+        {mode === "login" && (
+          <label className="flex items-center gap-2 cursor-pointer select-none text-sm text-muted">
+            <input
+              type="checkbox"
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
+              className="w-4 h-4 rounded accent-[var(--color-accent)] cursor-pointer"
+            />
+            Remember me
+          </label>
         )}
 
         <button
