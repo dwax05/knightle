@@ -180,7 +180,9 @@ function AuthGate() {
 export default function App() {
   return (
     <AuthProvider>
-      <AuthGate />
+      <main>
+        <AuthGate />
+      </main>
     </AuthProvider>
   );
 }
