@@ -79,14 +79,21 @@ export function AuthForm() {
         )}
 
         {mode === "login" && (
-          <label className="flex items-center gap-2 cursor-pointer select-none text-sm text-muted">
+          <label className="flex items-center justify-center gap-1 cursor-pointer select-none text-sm text-muted hover:text-fg transition-colors">
             <input
               type="checkbox"
               checked={rememberMe}
               onChange={(e) => setRememberMe(e.target.checked)}
-              className="w-4 h-4 rounded accent-[var(--color-accent)] cursor-pointer"
+              className="sr-only"
             />
-            Remember me
+            <span className={`w-4 h-4 rounded flex items-center justify-center border transition-all duration-150 ${rememberMe ? "bg-accent border-accent" : "bg-bg border-border-app/60"}`}>
+              {rememberMe && (
+                <svg className="w-2.5 h-2.5 text-tiletext" viewBox="0 0 10 10" fill="none">
+                  <path d="M1.5 5l2.5 2.5 4.5-4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              )}
+            </span>
+            <span className="-translate-y-px">Remember me</span>
           </label>
         )}
 
