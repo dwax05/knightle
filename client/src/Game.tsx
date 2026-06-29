@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from "react";
+import { flushSync } from "react-dom";
 import { useAuth } from "./auth";
 import { Board, COLS, FLIP_DURATION, TILE_STAGGER, type Mark } from "./Board";
 import { GameResult } from "./GameResult";
@@ -16,6 +17,13 @@ export function Game({ onGameEnd }: { onGameEnd?: () => void }) {
   const [answer, setAnswer] = useState("");
   const [message, setMessage] = useState("");
   const [shakingRow, setShakingRow] = useState(false);
+  const shakingRowRef = useRef(false);
+  const pendingShake = useRef(false);
+
+  function setShaking(val: boolean) {
+    shakingRowRef.current = val;
+    setShakingRow(val);
+  }
   const [revealingRow, setRevealingRow] = useState(-1);
   const revealTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -49,7 +57,14 @@ export function Game({ onGameEnd }: { onGameEnd?: () => void }) {
     if (current.length !== COLS || !gameId || done || revealingRow >= 0) return;
     const data = await authedPost("/api/guess", { gameId, guess: current });
     if (data.error) {
-      if (data.error === "Not a valid word") { setShakingRow(true); return; }
+      if (data.error === "Not a valid word") {
+        if (shakingRowRef.current) {
+          pendingShake.current = true;
+        } else {
+          setShaking(true);
+        }
+        return;
+      }
       setMessage(data.error);
       return;
     }
@@ -107,7 +122,15 @@ export function Game({ onGameEnd }: { onGameEnd?: () => void }) {
         onKeyPress={onKeyPress}
         revealingRow={revealingRow}
         shakingRow={shakingRow}
-        onShakeEnd={() => setShakingRow(false)}
+        onShakeEnd={() => {
+          if (pendingShake.current) {
+            pendingShake.current = false;
+            flushSync(() => setShaking(false));
+            setShaking(true);
+          } else {
+            setShaking(false);
+          }
+        }}
       />
       <div className="min-h-6 font-semibold text-fg">{message}</div>
       {done && (

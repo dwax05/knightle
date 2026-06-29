@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from "react";
+import { flushSync } from "react-dom";
 import { useAuth } from "./auth";
 import { Board, COLS, FLIP_DURATION, TILE_STAGGER, type Mark } from "./Board";
 import { VersusResult } from "./VersusResult";
@@ -28,6 +29,13 @@ export function VersusGame({ code, mode: initialMode, onExit }: {
   const [rematchMe, setRematchMe] = useState(false);
   const [rematchOpponent, setRematchOpponent] = useState(false);
   const [shakingRow, setShakingRow] = useState(false);
+  const shakingRowRef = useRef(false);
+  const pendingShake = useRef(false);
+
+  function setShaking(val: boolean) {
+    shakingRowRef.current = val;
+    setShakingRow(val);
+  }
   const [revealingRow, setRevealingRow] = useState(-1);
   const [mode, setMode] = useState<VersusMode>(initialMode);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -37,7 +45,14 @@ export function VersusGame({ code, mode: initialMode, onExit }: {
     if (current.length !== COLS || finished || status === "done" || revealingRow >= 0) return;
     const data = await authedPost("/api/versus/guess", { code, guess: current });
     if (data.error) {
-      if (data.error === "Not a valid word") { setShakingRow(true); return; }
+      if (data.error === "Not a valid word") {
+        if (shakingRowRef.current) {
+          pendingShake.current = true;
+        } else {
+          setShaking(true);
+        }
+        return;
+      }
       setMessage(data.error);
       return;
     }
@@ -196,7 +211,15 @@ export function VersusGame({ code, mode: initialMode, onExit }: {
         </span>
       </div>
 
-      <Board guesses={guesses} marks={marks} current={current} done={finished || isDone} onKeyPress={onKeyPress} revealingRow={revealingRow} shakingRow={shakingRow} onShakeEnd={() => setShakingRow(false)} />
+      <Board guesses={guesses} marks={marks} current={current} done={finished || isDone} onKeyPress={onKeyPress} revealingRow={revealingRow} shakingRow={shakingRow} onShakeEnd={() => {
+          if (pendingShake.current) {
+            pendingShake.current = false;
+            flushSync(() => setShaking(false));
+            setShaking(true);
+          } else {
+            setShaking(false);
+          }
+        }} />
 
       <div className="min-h-6 font-semibold text-fg">{message}</div>
 

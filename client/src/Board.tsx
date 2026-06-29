@@ -116,7 +116,7 @@ export function Board({
           <div
             key={r}
             className={`flex gap-1.5 ${r === guesses.length && shakingRow ? "animate-shake" : ""}`}
-            onAnimationEnd={r === guesses.length ? onShakeEnd : undefined}
+            onAnimationEnd={r === guesses.length ? (e) => { if (e.animationName === "shake") onShakeEnd?.(); } : undefined}
           >
             {rowLetters(r).map((cell, c) => {
               const isRevealing = r === revealingRow;
