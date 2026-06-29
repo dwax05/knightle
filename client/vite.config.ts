@@ -8,4 +8,14 @@ export default defineConfig({
     host: true,
     proxy: { "/api": "http://localhost:3500" },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: (id) =>
+          id.includes("node_modules/react") || id.includes("node_modules/react-dom")
+            ? "vendor"
+            : undefined,
+      },
+    },
+  },
 });
