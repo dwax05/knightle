@@ -113,3 +113,19 @@ export function IconArrowLeft({ className }: IconProps) {
     </Svg>
   );
 }
+
+export function IconExpand({ className }: IconProps) {
+  return (
+    <Svg className={className}>
+      <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+    </Svg>
+  );
+}
+
+export function IconCompress({ className }: IconProps) {
+  return (
+    <Svg className={className}>
+      <path d="M9 9V3M9 9H3M9 9 3 3M15 9h6M15 9V3M15 9l6-6M9 15H3M9 15v6M9 15l-6 6M15 15h6M15 15v6M15 15l6 6" />
+    </Svg>
+  );
+}

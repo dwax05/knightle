@@ -31,6 +31,7 @@ export function Board({
   revealingRow,
   shakingRow,
   onShakeEnd,
+  fullscreen,
 }: {
   guesses: string[];
   marks: Mark[][];
@@ -40,6 +41,7 @@ export function Board({
   revealingRow: number;
   shakingRow?: boolean;
   onShakeEnd?: () => void;
+  fullscreen?: boolean;
 }) {
   const [revealedCols, setRevealedCols] = useState<Set<number>>(new Set());
   const [pressedKey, setPressedKey] = useState<string | null>(null);
@@ -110,8 +112,8 @@ export function Board({
   });
 
   return (
-    <div className="flex flex-col items-center gap-4 w-full max-w-md">
-      <div className="grid gap-1.5">
+    <div className={`flex flex-col items-center w-full max-w-md ${fullscreen ? "flex-1 justify-between gap-2 py-2" : "gap-4"}`}>
+      <div className={`grid ${fullscreen ? "gap-1" : "gap-1.5"}`}>
         {Array.from({ length: ROWS }, (_, r) => (
           <div
             key={r}
@@ -128,11 +130,12 @@ export function Board({
                   ? "border-border-app text-fg"
                   : "border-border-app/40 text-fg";
 
+              const tileSize = fullscreen ? "calc((100vw - 2.5rem) / 5)" : undefined;
               return (
                 <div
                   key={c}
-                  className={`w-14 h-14 sm:w-15 sm:h-15 lg:w-16 lg:h-16 flex items-center justify-center text-2xl font-bold uppercase rounded border-2 ${colorClass} ${isRevealing ? "animate-flip-tile" : ""}`}
-                  style={isRevealing ? { animationDelay: `${c * TILE_STAGGER}ms` } : undefined}
+                  className={`${fullscreen ? "" : "w-14 h-14 sm:w-15 sm:h-15 lg:w-16 lg:h-16"} flex items-center justify-center text-2xl font-bold uppercase rounded border-2 ${colorClass} ${isRevealing ? "animate-flip-tile" : ""}`}
+                  style={{ ...(isRevealing ? { animationDelay: `${c * TILE_STAGGER}ms` } : {}), ...(tileSize ? { width: tileSize, height: tileSize } : {}) }}
                 >
                   {cell.ch}
                 </div>
@@ -142,9 +145,9 @@ export function Board({
         ))}
       </div>
 
-      <div className="flex flex-col gap-1 sm:gap-1.5 w-full mt-2">
+      <div className={`flex flex-col w-full ${fullscreen ? "gap-2" : "gap-1 sm:gap-1.5 mt-2"}`}>
         {KEYS.map((row, i) => (
-          <div key={i} className="flex justify-center gap-1 sm:gap-1.5">
+          <div key={i} className={`flex justify-center ${fullscreen ? "gap-1.5" : "gap-1 sm:gap-1.5"}`}>
             {row.map((key) => {
               const wide = key === "enter" || key === "back";
               const state = keyState[key];
@@ -153,7 +156,7 @@ export function Board({
                 <button
                   key={key}
                   onClick={() => onKeyPress(key)}
-                  className={`${wide ? "px-2 sm:px-3 text-xs" : "flex-1 min-w-8"} h-13 sm:h-14 rounded font-semibold uppercase ${bg} shadow-[0_3px_0_rgba(0,0,0,0.4)] hover:brightness-110 active:translate-y-[3px] active:shadow-none transition-all duration-75 ${pressedKey === key ? "translate-y-[3px] shadow-none" : ""}`}
+                  className={`${wide ? "px-2 sm:px-3 text-xs" : "flex-1 min-w-8"} ${fullscreen ? "h-16 text-base" : "h-13 sm:h-14"} rounded font-semibold uppercase ${bg} shadow-[0_3px_0_rgba(0,0,0,0.4)] hover:brightness-110 active:translate-y-[3px] active:shadow-none transition-all duration-75 ${pressedKey === key ? "translate-y-[3px] shadow-none" : ""}`}
                 >
                   {key === "back" ? <IconBackspace className="w-5 h-5 mx-auto" /> : key}
                 </button>
