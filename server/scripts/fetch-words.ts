@@ -5,6 +5,8 @@ const GUESSES_URL =
   "https://raw.githubusercontent.com/tabatkins/wordle-list/main/words";
 const FREQUENCY_URL =
   "https://raw.githubusercontent.com/hermitdave/FrequencyWords/master/content/2018/en/en_50k.txt";
+const NAMES_URL =
+  "https://raw.githubusercontent.com/smashew/NameDatabases/master/NamesDatabases/first%20names/us.txt";
 
 const ANSWER_COUNT = 2500;
 
@@ -27,6 +29,18 @@ async function fetchFrequencies(url: string): Promise<Map<string, number>> {
   return map;
 }
 
+async function fetchNames(url: string): Promise<Set<string>> {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Failed to fetch ${url}: ${res.status}`);
+  const text = await res.text();
+  const names = new Set<string>();
+  for (const line of text.trim().split("\n")) {
+    const name = line.trim().toLowerCase();
+    if (name.length === 5) names.add(name);
+  }
+  return names;
+}
+
 async function main() {
   console.log("Fetching valid guesses...");
   const guesses = await fetchWords(GUESSES_URL);
@@ -36,8 +50,12 @@ async function main() {
   const frequencies = await fetchFrequencies(FREQUENCY_URL);
   console.log(`  ${frequencies.size} words in frequency list`);
 
+  console.log("Fetching names list...");
+  const names = await fetchNames(NAMES_URL);
+  console.log(`  ${names.size} 5-letter names to exclude from answers`);
+
   const answers = guesses
-    .filter((w) => frequencies.has(w))
+    .filter((w) => frequencies.has(w) && !names.has(w))
     .sort((a, b) => (frequencies.get(b) ?? 0) - (frequencies.get(a) ?? 0))
     .slice(0, ANSWER_COUNT);
   console.log(`  ${answers.length} answers (top ${ANSWER_COUNT} by frequency)`);
