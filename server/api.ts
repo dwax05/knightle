@@ -197,7 +197,32 @@ export function setApp(app: Express, client: MongoClient) {
   });
 
   app.post("/api/leaderboard", requireAuth, async (req: AuthedRequest, res) => {
-    const sortField = req.body.sort === "streak" ? "maxStreak" : "wins";
+    const sort = req.body.sort;
+
+    if (sort === "today") {
+      const startOfDay = new Date();
+      startOfDay.setUTCHours(0, 0, 0, 0);
+
+      const top = await db.collection("GameHistory").aggregate([
+        { $match: { won: true, playedAt: { $gte: startOfDay } } },
+        { $group: { _id: "$userId", wins: { $sum: 1 } } },
+        { $sort: { wins: -1 } },
+        { $limit: 5 },
+        { $lookup: { from: "Users", localField: "_id", foreignField: "UserID", as: "user" } },
+      ]).toArray();
+
+      const result = top.map((s) => ({
+        name: s.user?.[0]?.Login ?? "Unknown",
+        wins: s.wins,
+        played: 0,
+        maxStreak: 0,
+        isMe: s._id === req.user!.userId,
+      }));
+
+      return res.status(200).json({ leaderboard: result, error: "" });
+    }
+
+    const sortField = sort === "streak" ? "maxStreak" : "wins";
     const top = await db
       .collection("Stats")
       .aggregate([
@@ -540,11 +565,10 @@ export function setApp(app: Express, client: MongoClient) {
     } else {
       stats.currentStreak = 0;
     }
-    await db.collection("Stats").updateOne(
-      { userId },
-      { $set: stats },
-      { upsert: true }
-    );
+    await Promise.all([
+      db.collection("Stats").updateOne({ userId }, { $set: stats }, { upsert: true }),
+      db.collection("GameHistory").insertOne({ userId, won, guessNum, playedAt: new Date() }),
+    ]);
   }
 
   function opponentRematchRequested(game: any, myUid: string): boolean {
