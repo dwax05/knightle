@@ -31,3 +31,26 @@ export function applyTheme(raw: string) {
   }
   tag.textContent = clean;
 }
+
+// Same as applyTheme but briefly enables CSS transitions on all elements so
+// computed color values animate when the CSS variables change.
+export function applyThemeAnimated(raw: string, duration = 300) {
+  let transTag = document.getElementById("theme-transition") as HTMLStyleElement | null;
+  if (!transTag) {
+    transTag = document.createElement("style");
+    transTag.id = "theme-transition";
+    document.head.appendChild(transTag);
+  }
+  transTag.textContent = `*, *::before, *::after {
+    transition:
+      background-color ${duration}ms ease,
+      color ${duration}ms ease,
+      border-color ${duration}ms ease,
+      fill ${duration}ms ease,
+      stroke ${duration}ms ease !important;
+  }`;
+
+  applyTheme(raw);
+
+  setTimeout(() => { transTag!.textContent = ""; }, duration + 50);
+}

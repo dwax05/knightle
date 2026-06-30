@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "./auth";
-import { applyTheme } from "./theme-apply";
+import { applyTheme, applyThemeAnimated } from "./theme-apply";
 import { IconArrowLeft } from "./icons";
 import { AnimatedHorizontalList } from "./AnimatedHorizontalList";
 
@@ -341,6 +341,7 @@ export function ThemeEditor({ onClose }: { onClose: () => void }) {
   const [savedCss, setSavedCss] = useState("");
   const [status, setStatus] = useState("");
   const actionsRef = useRef<HTMLDivElement>(null);
+  const animateNextApply = useRef(false);
   const [actionsVisible, setActionsVisible] = useState(true);
   const [saveFlash, setSaveFlash] = useState(false);
 
@@ -370,6 +371,7 @@ export function ThemeEditor({ onClose }: { onClose: () => void }) {
   function handleLoadSlot(i: number) {
     const slot = slots[i];
     if (!slot) return;
+    animateNextApply.current = true;
     setEntries((prev) => prev.map((e) => slot[e.key] ? { ...e, value: slot[e.key] } : e));
   }
 
@@ -390,7 +392,13 @@ export function ThemeEditor({ onClose }: { onClose: () => void }) {
   }, [authedPost]);
 
   useEffect(() => {
-    if (entries.length) applyTheme(serializeCss(entries));
+    if (!entries.length) return;
+    if (animateNextApply.current) {
+      animateNextApply.current = false;
+      applyThemeAnimated(serializeCss(entries));
+    } else {
+      applyTheme(serializeCss(entries));
+    }
   }, [entries]);
 
   function handleChange(key: string, value: string) {
@@ -398,6 +406,7 @@ export function ThemeEditor({ onClose }: { onClose: () => void }) {
   }
 
   function loadPreset(preset: Preset) {
+    animateNextApply.current = true;
     setEntries((prev) =>
       prev.map((e) => (preset.vars[e.key] ? { ...e, value: preset.vars[e.key] } : e))
     );
