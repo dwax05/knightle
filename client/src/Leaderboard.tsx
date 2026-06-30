@@ -89,9 +89,9 @@ export function Leaderboard({ refreshKey }: { refreshKey: number }) {
             key={tab}
             custom={direction}
             variants={{
-              enter: (d: number) => ({ x: `${d * 100}%`, opacity: 0 }),
+              enter: (d: number) => ({ x: `${d * 30}%`, opacity: 0 }),
               center: { x: 0, opacity: 1 },
-              exit: (d: number) => ({ x: `${d * -100}%`, opacity: 0 }),
+              exit: (d: number) => ({ x: `${d * -30}%`, opacity: 0 }),
             }}
             initial="enter"
             animate="center"
