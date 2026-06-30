@@ -186,7 +186,8 @@ function parseCss(css: string): Entry[] {
   const re = /(--[\w-]+)\s*:\s*([^;]+);/g;
   let m;
   while ((m = re.exec(css)) !== null) {
-    entries.push({ key: m[1].trim(), value: m[2].trim() });
+    const value = m[2].trim().replace(/\s*!important\s*$/, "");
+    entries.push({ key: m[1].trim(), value });
   }
   return entries;
 }
@@ -338,9 +339,14 @@ function SlotButton({
 export function ThemeEditor({ onClose }: { onClose: () => void }) {
   const { authedPost } = useAuth();
   const [entries, setEntries] = useState<Entry[]>(() => {
-    const tag = document.getElementById("user-theme") as HTMLStyleElement | null;
-    const parsed = parseCss(tag?.textContent ?? "");
-    return parsed.length ? parsed : parseCss(TEMPLATE);
+    try {
+      const cached = localStorage.getItem("cache:theme:v2");
+      if (cached) {
+        const parsed = parseCss(cached);
+        if (parsed.length) return parsed;
+      }
+    } catch { /* storage unavailable */ }
+    return parseCss(TEMPLATE);
   });
   const [savedCss, setSavedCss] = useState("");
   const [status, setStatus] = useState("");
