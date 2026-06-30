@@ -72,12 +72,10 @@ export function Leaderboard({ refreshKey }: { refreshKey: number }) {
           </button>
         ))}
       </div>
-      <div className="min-h-[196px]">
-      {entries.length === 0 ? (
-        <p className="text-sm text-muted">{tab === "today" ? "No wins today yet — be the first!" : "No wins yet — be the first!"}</p>
-      ) : (
-        <div className="flex flex-col gap-1">
-          {entries.map((e, i) => (
+      <div className="flex flex-col gap-1">
+        {Array.from({ length: 5 }, (_, i) => {
+          const e = entries[i];
+          return e ? (
             <div
               key={i}
               className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm ${e.isMe ? "bg-accent/15 border border-accent/40" : "bg-surface"}`}
@@ -86,9 +84,14 @@ export function Leaderboard({ refreshKey }: { refreshKey: number }) {
               <span className="flex-1 truncate text-fg">{e.name}</span>
               <span className="font-bold text-fg">{tab === "streak" ? e.maxStreak : e.wins}</span>
             </div>
-          ))}
-        </div>
-      )}
+          ) : (
+            <div key={i} className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm opacity-20">
+              <span className="w-6 text-center font-semibold text-muted">{i + 1}</span>
+              <div className="flex-1 h-3 rounded bg-muted/50" />
+              <div className="w-4 h-3 rounded bg-muted/50" />
+            </div>
+          );
+        })}
       </div>
     </div>
   );
