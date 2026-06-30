@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useAuth } from "./auth";
 import { applyTheme } from "./theme-apply";
 import { IconArrowLeft } from "./icons";
+import { AnimatedHorizontalList } from "./AnimatedHorizontalList";
 
 // must stay in sync with theme.css :root defaults
 const TEMPLATE = `:root {
@@ -476,19 +477,31 @@ export function ThemeEditor({ onClose }: { onClose: () => void }) {
           {/* mobile: horizontal scroll preset strip */}
           <div className="lg:hidden">
             <span className="text-xs font-semibold text-muted uppercase tracking-wider">Presets</span>
-            <div className="flex gap-2 overflow-x-auto pt-2 pb-1 scrollbar-none">
-              {PRESETS.map((p) => (
-                <div key={p.name} className="w-28 shrink-0">
-                  <PresetButton preset={p} onClick={() => loadPreset(p)} />
-                </div>
-              ))}
-            </div>
+            <AnimatedHorizontalList
+              items={PRESETS}
+              renderItem={(p) => <PresetButton preset={p} onClick={() => loadPreset(p)} />}
+              onItemSelect={(p) => loadPreset(p)}
+              itemWidth={112}
+              gap={8}
+              className="pt-2 pb-1"
+            />
             <span className="text-xs font-semibold text-muted uppercase tracking-wider mt-3 block">Saved</span>
-            <div className="flex gap-2 overflow-x-auto pt-2 pb-1 scrollbar-none">
-              {renderSlots().map((el, i) => (
-                <div key={i} className="w-28 shrink-0">{el}</div>
-              ))}
-            </div>
+            <AnimatedHorizontalList
+              items={slots}
+              renderItem={(slot, i) => (
+                <SlotButton
+                  index={i}
+                  slot={slot}
+                  onSave={() => handleSaveSlot(i)}
+                  onLoad={() => handleLoadSlot(i)}
+                  onClear={() => handleClearSlot(i)}
+                />
+              )}
+              itemWidth={112}
+              gap={8}
+              className="pt-2 pb-1"
+              enableArrowNavigation={false}
+            />
           </div>
 
           {/* body: color rows + presets sidebar (desktop) */}
@@ -511,17 +524,33 @@ export function ThemeEditor({ onClose }: { onClose: () => void }) {
             </div>
 
             {/* right: presets + slots sidebar (desktop only) */}
-            <div className="hidden lg:block shrink-0">
+            <div className="hidden lg:block shrink-0 w-64">
               <span className="text-xs font-semibold text-muted uppercase tracking-wider px-1 block mb-2">Presets</span>
-              <div className="grid grid-cols-2 gap-2">
-                {PRESETS.map((p) => (
-                  <PresetButton key={p.name} preset={p} onClick={() => loadPreset(p)} />
-                ))}
-              </div>
+              <AnimatedHorizontalList
+                items={PRESETS}
+                renderItem={(p) => <PresetButton preset={p} onClick={() => loadPreset(p)} />}
+                onItemSelect={(p) => loadPreset(p)}
+                itemWidth={112}
+                gap={8}
+                className="pb-1"
+              />
               <span className="text-xs font-semibold text-muted uppercase tracking-wider px-1 block mt-4 mb-2">Saved</span>
-              <div className="grid grid-cols-2 gap-2">
-                {renderSlots()}
-              </div>
+              <AnimatedHorizontalList
+                items={slots}
+                renderItem={(slot, i) => (
+                  <SlotButton
+                    index={i}
+                    slot={slot}
+                    onSave={() => handleSaveSlot(i)}
+                    onLoad={() => handleLoadSlot(i)}
+                    onClear={() => handleClearSlot(i)}
+                  />
+                )}
+                itemWidth={112}
+                gap={8}
+                className="pb-1"
+                enableArrowNavigation={false}
+              />
             </div>
           </div>
 
