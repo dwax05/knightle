@@ -6,7 +6,7 @@ import { GameResult } from "./GameResult";
 
 const REVEAL_TOTAL = (COLS - 1) * TILE_STAGGER + FLIP_DURATION + 50;
 
-export function Game({ onGameEnd }: { onGameEnd?: () => void }) {
+export function Game({ onGameEnd, fullscreen }: { onGameEnd?: () => void; fullscreen?: boolean }) {
   const { authedPost } = useAuth();
   const [gameId, setGameId] = useState<string | null>(null);
   const [guesses, setGuesses] = useState<string[]>([]);
@@ -114,7 +114,7 @@ export function Game({ onGameEnd }: { onGameEnd?: () => void }) {
   }, [done, newGame, submitGuess, backspace, typeLetter]);
 
   return (
-    <div className="flex flex-col items-center gap-4">
+    <div className={`flex flex-col items-center w-full ${fullscreen ? "flex-1 gap-1" : "gap-4"}`}>
       <Board
         guesses={guesses}
         marks={marks}
@@ -123,6 +123,7 @@ export function Game({ onGameEnd }: { onGameEnd?: () => void }) {
         onKeyPress={onKeyPress}
         revealingRow={revealingRow}
         shakingRow={shakingRow}
+        fullscreen={fullscreen}
         onShakeEnd={() => {
           if (pendingShake.current) {
             pendingShake.current = false;

@@ -10,10 +10,11 @@ const REVEAL_TOTAL = (COLS - 1) * TILE_STAGGER + FLIP_DURATION + 50;
 
 type Opponent = { login: string; guessCount: number; finished: boolean; won: boolean } | null;
 
-export function VersusGame({ code, mode: initialMode, onExit }: {
+export function VersusGame({ code, mode: initialMode, onExit, fullscreen }: {
   code: string;
   mode: VersusMode;
   onExit: () => void;
+  fullscreen?: boolean;
 }) {
   const { authedPost, user } = useAuth();
   const [guesses, setGuesses] = useState<string[]>([]);
@@ -191,27 +192,31 @@ export function VersusGame({ code, mode: initialMode, onExit }: {
   const winnerGuesses = youWon ? guesses.length : (opponent?.guessCount ?? 0);
   const winnerName = youWon ? "You" : (opponent?.login ?? "Opponent");
 
-  return (
-    <div className="w-full flex flex-col items-center gap-4">
-      <div className="w-full flex items-center gap-2 pb-3 border-b border-border-app/40 px-2 lg:px-0">
-        <span className="text-xs font-bold tracking-widest uppercase text-muted">vs</span>
-        {opponent ? (
-          <>
-            <span className="flex-1 text-sm font-semibold text-fg truncate">{opponent.login}</span>
-            {opponent.finished
-              ? <span className={`text-xs font-semibold ${opponent.won ? "text-correct" : "text-muted"}`}>{opponent.won ? `solved · ${opponent.guessCount}/6` : "failed"}</span>
-              : <span className="text-xs text-muted">{opponent.guessCount}/6</span>}
-          </>
-        ) : (
-          <span className="text-sm text-muted animate-pulse">waiting...</span>
-        )}
-        <span className="flex items-center gap-1 text-xs text-muted/60 ml-auto shrink-0">
-          {mode === "speed" ? <IconLightning className="w-3 h-3" /> : <IconTarget className="w-3 h-3" />}
-          {mode === "speed" ? "speed" : "precision"}
-        </span>
-      </div>
+  const opponentBar = (
+    <div className={`w-full flex items-center gap-2 px-2 lg:px-0 ${fullscreen ? "pt-1.5 border-t border-border-app/40" : "pb-3 border-b border-border-app/40"}`}>
+      <span className="text-xs font-bold tracking-widest uppercase text-muted">vs</span>
+      {opponent ? (
+        <>
+          <span className="flex-1 text-sm font-semibold text-fg truncate">{opponent.login}</span>
+          {opponent.finished
+            ? <span className={`text-xs font-semibold ${opponent.won ? "text-correct" : "text-muted"}`}>{opponent.won ? `solved · ${opponent.guessCount}/6` : "failed"}</span>
+            : <span className="text-xs text-muted">{opponent.guessCount}/6</span>}
+        </>
+      ) : (
+        <span className="text-sm text-muted animate-pulse">waiting...</span>
+      )}
+      <span className="flex items-center gap-1 text-xs text-muted/60 ml-auto shrink-0">
+        {mode === "speed" ? <IconLightning className="w-3 h-3" /> : <IconTarget className="w-3 h-3" />}
+        {mode === "speed" ? "speed" : "precision"}
+      </span>
+    </div>
+  );
 
-      <Board guesses={guesses} marks={marks} current={current} done={finished || isDone} onKeyPress={onKeyPress} revealingRow={revealingRow} shakingRow={shakingRow} onShakeEnd={() => {
+  return (
+    <div className={`w-full flex flex-col items-center ${fullscreen ? "flex-1 gap-1" : "gap-4"}`}>
+      {!fullscreen && opponentBar}
+
+      <Board guesses={guesses} marks={marks} current={current} done={finished || isDone} onKeyPress={onKeyPress} revealingRow={revealingRow} shakingRow={shakingRow} fullscreen={fullscreen} onShakeEnd={() => {
           if (pendingShake.current) {
             pendingShake.current = false;
             flushSync(() => setShaking(false));
@@ -221,7 +226,7 @@ export function VersusGame({ code, mode: initialMode, onExit }: {
           }
         }} />
 
-      <div className="min-h-6 font-semibold text-fg">{message}</div>
+      <div className={`font-semibold text-fg ${fullscreen && !message ? "hidden" : "min-h-6"}`}>{message}</div>
 
       {finished && !isDone && (
         <p className="text-sm text-muted animate-pulse">Waiting for opponent to finish...</p>
@@ -237,6 +242,8 @@ export function VersusGame({ code, mode: initialMode, onExit }: {
           onLeave={onExit}
         />
       )}
+
+      {fullscreen && opponentBar}
     </div>
   );
 }

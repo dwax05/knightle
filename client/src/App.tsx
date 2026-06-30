@@ -8,7 +8,7 @@ import { Leaderboard } from "./Leaderboard";
 import { VersusLobbyModal, type VersusMode } from "./Versus";
 import { VersusGame } from "./VersusGame";
 import { ProfilePage } from "./ProfilePage";
-import { IconUser, IconPalette, IconBarChart, IconLightning } from "./icons";
+import { IconUser, IconPalette, IconBarChart, IconLightning, IconExpand, IconCompress } from "./icons";
 
 const NAV_ITEMS = [
   { view: "profile" as const, icon: <IconUser className="w-4 h-4" />, label: "Profile" },
@@ -103,6 +103,7 @@ function Home() {
   const [versusMode, setVersusMode] = useState<VersusMode>("speed");
   const [lobbyOpen, setLobbyOpen] = useState(false);
   const [view, setView] = useState<"game" | "theme" | "profile">("game");
+  const [fullscreen, setFullscreen] = useState(false);
   const mounted = useRef(false);
 
   useEffect(() => {
@@ -130,22 +131,43 @@ function Home() {
       <div className="flex flex-col lg:flex-row gap-4 lg:gap-18 items-center lg:items-start justify-center">
         {/* Mobile: game only; desktop: game + side panels */}
         <div className="lg:contents w-full max-w-md flex flex-col gap-4">
-          <div className="flex flex-col items-center w-full lg:w-auto bg-surface border border-border-app/30 rounded-2xl px-1 py-4 lg:p-4 shadow-lg shadow-black/40">
+          <div className={fullscreen
+            ? "fixed inset-0 z-40 flex flex-col bg-surface px-2 pt-3 pb-6 lg:static lg:rounded-2xl lg:border lg:border-border-app/30 lg:px-1 lg:py-4 lg:shadow-lg lg:shadow-black/40"
+            : "flex flex-col items-center w-full lg:w-auto bg-surface border border-border-app/30 rounded-2xl px-1 py-4 lg:p-4 shadow-lg shadow-black/40"
+          }>
             {versusCode ? (
               <>
-                <div className="w-full flex items-center justify-between pb-3 border-b border-border-app/40 mb-4 px-2 lg:px-0">
+                <div className={`w-full flex items-center justify-between pb-3 border-b border-border-app/40 px-2 lg:px-0 ${fullscreen ? "mb-1" : "mb-4"}`}>
                   <span className="text-sm font-semibold tracking-widest uppercase text-muted">Room {versusCode}</span>
-                  <button onClick={() => { setVersusCode(null); (document.activeElement as HTMLElement)?.blur(); }} className="text-sm text-muted hover:text-fg transition">Leave</button>
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => { setVersusCode(null); (document.activeElement as HTMLElement)?.blur(); }} className="text-sm text-muted hover:text-fg transition">Leave</button>
+                    <button
+                      onClick={() => setFullscreen((f) => !f)}
+                      aria-label={fullscreen ? "Exit fullscreen" : "Fullscreen"}
+                      className="lg:hidden w-7 h-7 flex items-center justify-center rounded-md text-muted hover:text-fg transition"
+                    >
+                      {fullscreen ? <IconCompress className="w-4 h-4" /> : <IconExpand className="w-4 h-4" />}
+                    </button>
+                  </div>
                 </div>
-                <VersusGame code={versusCode} mode={versusMode} onExit={() => { setVersusCode(null); (document.activeElement as HTMLElement)?.blur(); }} />
+                <VersusGame code={versusCode} mode={versusMode} fullscreen={fullscreen} onExit={() => { setVersusCode(null); (document.activeElement as HTMLElement)?.blur(); }} />
               </>
             ) : (
               <>
-                <div className="w-full flex items-center justify-between pb-3 border-b border-border-app/40 mb-4 px-2 lg:px-0">
+                <div className="w-full flex items-center justify-between pb-3 border-b border-border-app/40 mb-2 px-2 lg:px-0 lg:mb-4">
                   <span className="text-sm font-semibold tracking-widest uppercase text-muted">Knightle</span>
-                  <button onClick={() => setLobbyOpen(true)} className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-surface border border-border-app/50 text-xs font-semibold tracking-wide text-fg shadow-[0_2px_0_rgba(0,0,0,0.4)] hover:brightness-110 active:translate-y-[2px] active:shadow-none transition-all duration-100"><IconLightning className="w-3 h-3" /> Versus</button>
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => setLobbyOpen(true)} className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-surface border border-border-app/50 text-xs font-semibold tracking-wide text-fg shadow-[0_2px_0_rgba(0,0,0,0.4)] hover:brightness-110 active:translate-y-[2px] active:shadow-none transition-all duration-100"><IconLightning className="w-3 h-3" /> Versus</button>
+                    <button
+                      onClick={() => setFullscreen((f) => !f)}
+                      aria-label={fullscreen ? "Exit fullscreen" : "Fullscreen"}
+                      className="lg:hidden w-7 h-7 flex items-center justify-center rounded-md text-muted hover:text-fg transition"
+                    >
+                      {fullscreen ? <IconCompress className="w-4 h-4" /> : <IconExpand className="w-4 h-4" />}
+                    </button>
+                  </div>
                 </div>
-                <Game onGameEnd={() => setRefreshKey((k) => k + 1)} />
+                <Game fullscreen={fullscreen} onGameEnd={() => setRefreshKey((k) => k + 1)} />
               </>
             )}
           </div>
@@ -164,7 +186,7 @@ function Home() {
       </div>
 
       {/* Mobile FAB cluster — fixed bottom-right */}
-      <div className="lg:hidden fixed bottom-8 right-4 flex gap-2 z-20">
+      <div className={`lg:hidden fixed bottom-8 right-4 flex gap-2 z-20 ${fullscreen ? "hidden" : ""}`}>
         <button
           onClick={() => setStatsOpen(true)}
           aria-label="Stats & Leaderboard"
