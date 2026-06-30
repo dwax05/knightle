@@ -115,7 +115,7 @@ export function AnimatedHorizontalList<T>({
     <div className={`relative ${className}`}>
       <div
         ref={listRef}
-        className="flex overflow-x-auto touch-pan-x [scrollbar-width:none] [&::-webkit-scrollbar]:hidden py-1"
+        className="flex overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden py-1"
         style={{ gap }}
         onScroll={handleScroll}
       >
