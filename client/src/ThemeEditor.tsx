@@ -149,22 +149,8 @@ const PRESETS: Preset[] = [
 ];
 
 const SWATCH_KEYS = ["--bg", "--accent", "--tile-correct", "--tile-present", "--error"];
-const SLOTS_KEY = "knightle_theme_slots";
 const SLOT_COUNT = 4;
-
-function loadSlots(): (Record<string, string> | null)[] {
-  try {
-    const raw = localStorage.getItem(SLOTS_KEY);
-    if (!raw) return Array(SLOT_COUNT).fill(null);
-    const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed) && parsed.length === SLOT_COUNT) return parsed;
-  } catch {}
-  return Array(SLOT_COUNT).fill(null);
-}
-
-function saveSlots(slots: (Record<string, string> | null)[]) {
-  localStorage.setItem(SLOTS_KEY, JSON.stringify(slots));
-}
+const EMPTY_SLOTS: (Record<string, string> | null)[] = Array(SLOT_COUNT).fill(null);
 
 const GROUPS: { label: string; keys: string[] }[] = [
   { label: "Page",    keys: ["--bg", "--fg", "--surface", "--border", "--muted"] },
@@ -189,6 +175,10 @@ const LABELS: Record<string, string> = {
   "--button-bg":    "Button",
   "--button-fg":    "Button text",
 };
+
+function entriesToVars(entries: Entry[]): Record<string, string> {
+  return Object.fromEntries(entries.map((e) => [e.key, e.value]));
+}
 
 function parseCss(css: string): Entry[] {
   const entries: Entry[] = [];
@@ -231,7 +221,7 @@ function ColorRow({
 
   useEffect(() => { setDraft(entry.value); }, [entry.value]);
 
-  const resolvedBg = isValidHex(draft) ? draft : (isValidHex(entry.value) ? entry.value : "#3c3836");
+  const resolvedBg = isValidHex(draft) ? draft : (isValidHex(entry.value) ? entry.value : "#313244");
   const textColor = contrastColor(resolvedBg);
 
   function handleText(v: string) {
@@ -350,16 +340,20 @@ export function ThemeEditor({ onClose }: { onClose: () => void }) {
   const [entries, setEntries] = useState<Entry[]>([]);
   const [savedCss, setSavedCss] = useState("");
   const [status, setStatus] = useState("");
-  const [slots, setSlots] = useState<(Record<string, string> | null)[]>(loadSlots);
+  const [slots, setSlots] = useState<(Record<string, string> | null)[]>(EMPTY_SLOTS);
 
-  function entriesToVars(e: Entry[]): Record<string, string> {
-    return Object.fromEntries(e.map((x) => [x.key, x.value]));
+  function flash(msg: string) {
+    setStatus(msg);
+    setTimeout(() => setStatus(""), 2000);
+  }
+
+  async function persistSlots(updated: (Record<string, string> | null)[]) {
+    setSlots(updated);
+    await authedPost("/api/theme/slots", { slots: updated });
   }
 
   function handleSaveSlot(i: number) {
-    const updated = slots.map((s, idx) => idx === i ? entriesToVars(entries) : s);
-    setSlots(updated);
-    saveSlots(updated);
+    persistSlots(slots.map((s, idx) => idx === i ? entriesToVars(entries) : s));
   }
 
   function handleLoadSlot(i: number) {
@@ -369,9 +363,20 @@ export function ThemeEditor({ onClose }: { onClose: () => void }) {
   }
 
   function handleClearSlot(i: number) {
-    const updated = slots.map((s, idx) => idx === i ? null : s);
-    setSlots(updated);
-    saveSlots(updated);
+    persistSlots(slots.map((s, idx) => idx === i ? null : s));
+  }
+
+  function renderSlots() {
+    return slots.map((slot, i) => (
+      <SlotButton
+        key={i}
+        index={i}
+        slot={slot}
+        onSave={() => handleSaveSlot(i)}
+        onLoad={() => handleLoadSlot(i)}
+        onClear={() => handleClearSlot(i)}
+      />
+    ));
   }
 
   useEffect(() => {
@@ -380,6 +385,9 @@ export function ThemeEditor({ onClose }: { onClose: () => void }) {
       const css = data.css || TEMPLATE;
       setSavedCss(css);
       setEntries(parseCss(css));
+      if (Array.isArray(data.slots) && data.slots.length === SLOT_COUNT) {
+        setSlots(data.slots);
+      }
     })();
   }, [authedPost]);
 
@@ -406,34 +414,26 @@ export function ThemeEditor({ onClose }: { onClose: () => void }) {
     const css = serializeCss(entries);
     const data = await authedPost("/api/theme/save", { css });
     if (!data.error) setSavedCss(css);
-    setStatus(data.error ? data.error : "Saved!");
-    setTimeout(() => setStatus(""), 2000);
+    flash(data.error || "Saved!");
   }
 
   function reset() {
     setEntries(parseCss(TEMPLATE));
     applyTheme("");
-    setStatus("Reset to default");
-    setTimeout(() => setStatus(""), 2000);
+    flash("Reset to default");
   }
 
   async function exportToClipboard() {
     await navigator.clipboard.writeText(serializeCss(entries));
-    setStatus("Copied to clipboard!");
-    setTimeout(() => setStatus(""), 2000);
+    flash("Copied to clipboard!");
   }
 
   async function importFromClipboard() {
     const text = await navigator.clipboard.readText();
     const parsed = parseCss(text);
-    if (!parsed.length) {
-      setStatus("Nothing to import");
-      setTimeout(() => setStatus(""), 2000);
-      return;
-    }
+    if (!parsed.length) { flash("Nothing to import"); return; }
     setEntries(parsed);
-    setStatus("Imported!");
-    setTimeout(() => setStatus(""), 2000);
+    flash("Imported!");
   }
 
   return (
@@ -473,16 +473,8 @@ export function ThemeEditor({ onClose }: { onClose: () => void }) {
             </div>
             <span className="text-xs font-semibold text-muted uppercase tracking-wider mt-3 block">Saved</span>
             <div className="flex gap-2 overflow-x-auto pt-2 pb-1 scrollbar-none">
-              {slots.map((slot, i) => (
-                <div key={i} className="w-28 shrink-0">
-                  <SlotButton
-                    index={i}
-                    slot={slot}
-                    onSave={() => handleSaveSlot(i)}
-                    onLoad={() => handleLoadSlot(i)}
-                    onClear={() => handleClearSlot(i)}
-                  />
-                </div>
+              {renderSlots().map((el, i) => (
+                <div key={i} className="w-28 shrink-0">{el}</div>
               ))}
             </div>
           </div>
@@ -516,16 +508,7 @@ export function ThemeEditor({ onClose }: { onClose: () => void }) {
               </div>
               <span className="text-xs font-semibold text-muted uppercase tracking-wider px-1 block mt-4 mb-2">Saved</span>
               <div className="grid grid-cols-2 gap-2">
-                {slots.map((slot, i) => (
-                  <SlotButton
-                    key={i}
-                    index={i}
-                    slot={slot}
-                    onSave={() => handleSaveSlot(i)}
-                    onLoad={() => handleLoadSlot(i)}
-                    onClear={() => handleClearSlot(i)}
-                  />
-                ))}
+                {renderSlots()}
               </div>
             </div>
           </div>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { AuthProvider, useAuth } from "./auth";
 import { AuthForm } from "./AuthForm";
 import { Game } from "./Game";
@@ -96,12 +96,19 @@ function StatsSheet({ refreshKey, onClose }: { refreshKey: number; onClose: () =
 }
 
 function Home() {
+  const { reloadTheme } = useAuth();
   const [refreshKey, setRefreshKey] = useState(0);
   const [statsOpen, setStatsOpen] = useState(false);
   const [versusCode, setVersusCode] = useState<string | null>(null);
   const [versusMode, setVersusMode] = useState<VersusMode>("speed");
   const [lobbyOpen, setLobbyOpen] = useState(false);
   const [view, setView] = useState<"game" | "theme" | "profile">("game");
+  const mounted = useRef(false);
+
+  useEffect(() => {
+    if (!mounted.current) { mounted.current = true; return; }
+    reloadTheme();
+  }, [view]);
 
   if (view === "theme") return <ThemeEditor onClose={() => setView("game")} />;
   if (view === "profile") return <ProfilePage onClose={() => setView("game")} />;

@@ -234,10 +234,12 @@ export function setApp(app: Express, client: MongoClient) {
   });
 
   app.post("/api/theme/get", requireAuth, async (req: AuthedRequest, res) => {
-    const doc = await db
-      .collection("Themes")
-      .findOne({ userId: req.user!.userId });
-    res.status(200).json({ css: doc?.css ?? "", error: "" });
+    const doc = await db.collection("Themes").findOne({ userId: req.user!.userId });
+    res.status(200).json({
+      css: doc?.css ?? "",
+      slots: doc?.slots ?? [null, null, null, null],
+      error: "",
+    });
   });
 
   app.post("/api/theme/save", requireAuth, async (req: AuthedRequest, res) => {
@@ -248,6 +250,19 @@ export function setApp(app: Express, client: MongoClient) {
     await db.collection("Themes").updateOne(
       { userId: req.user!.userId },
       { $set: { userId: req.user!.userId, css, updatedAt: new Date() } },
+      { upsert: true }
+    );
+    res.status(200).json({ error: "" });
+  });
+
+  app.post("/api/theme/slots", requireAuth, async (req: AuthedRequest, res) => {
+    const { slots } = req.body;
+    if (!Array.isArray(slots) || slots.length !== 4) {
+      return res.status(200).json({ error: "Invalid slots" });
+    }
+    await db.collection("Themes").updateOne(
+      { userId: req.user!.userId },
+      { $set: { userId: req.user!.userId, slots, updatedAt: new Date() } },
       { upsert: true }
     );
     res.status(200).json({ error: "" });
