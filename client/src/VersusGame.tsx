@@ -17,8 +17,12 @@ export function VersusGame({ code, mode: initialMode, onExit, fullscreen }: {
   fullscreen?: boolean;
 }) {
   const { authedPost, user } = useAuth();
-  const [guesses, setGuesses] = useState<string[]>([]);
-  const [marks, setMarks] = useState<Mark[][]>([]);
+  const [guesses, setGuesses] = useState<string[]>(() => {
+    try { return JSON.parse(sessionStorage.getItem("versusGuesses") ?? "[]"); } catch { return []; }
+  });
+  const [marks, setMarks] = useState<Mark[][]>(() => {
+    try { return JSON.parse(sessionStorage.getItem("versusMarks") ?? "[]"); } catch { return []; }
+  });
   const [current, setCurrent] = useState("");
   const [finished, setFinished] = useState(false);
   const [won, setWon] = useState(false);
@@ -40,6 +44,11 @@ export function VersusGame({ code, mode: initialMode, onExit, fullscreen }: {
   const [revealingRow, setRevealingRow] = useState(-1);
   const [mode, setMode] = useState<VersusMode>(initialMode);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    sessionStorage.setItem("versusGuesses", JSON.stringify(guesses));
+    sessionStorage.setItem("versusMarks", JSON.stringify(marks));
+  }, [guesses, marks]);
   const revealTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const submitGuess = useCallback(async () => {
@@ -94,6 +103,8 @@ export function VersusGame({ code, mode: initialMode, onExit, fullscreen }: {
   }, [submitGuess, backspace, typeLetter]);
 
   const resetForNewRound = useCallback((newRound: number) => {
+    sessionStorage.removeItem("versusGuesses");
+    sessionStorage.removeItem("versusMarks");
     setGuesses([]);
     setMarks([]);
     setCurrent("");

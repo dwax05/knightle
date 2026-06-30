@@ -99,8 +99,8 @@ function Home() {
   const { reloadTheme } = useAuth();
   const [refreshKey, setRefreshKey] = useState(0);
   const [statsOpen, setStatsOpen] = useState(false);
-  const [versusCode, setVersusCode] = useState<string | null>(null);
-  const [versusMode, setVersusMode] = useState<VersusMode>("speed");
+  const [versusCode, setVersusCode] = useState<string | null>(() => sessionStorage.getItem("versusCode"));
+  const [versusMode, setVersusMode] = useState<VersusMode>(() => (sessionStorage.getItem("versusMode") as VersusMode) ?? "speed");
   const [lobbyOpen, setLobbyOpen] = useState(false);
   const [view, setView] = useState<"game" | "theme" | "profile">("game");
   const [fullscreen, setFullscreen] = useState(false);
@@ -117,7 +117,7 @@ function Home() {
     <div className="max-w-4xl mx-auto px-4 py-6 relative">
       {lobbyOpen && (
         <VersusLobbyModal
-          onStart={(code, mode) => { setVersusCode(code); setVersusMode(mode); setLobbyOpen(false); }}
+          onStart={(code, mode) => { sessionStorage.setItem("versusCode", code); sessionStorage.setItem("versusMode", mode); setVersusCode(code); setVersusMode(mode); setLobbyOpen(false); }}
           onClose={() => setLobbyOpen(false)}
         />
       )}
@@ -140,7 +140,7 @@ function Home() {
                 <div className={`w-full flex items-center justify-between pb-3 border-b border-border-app/40 px-2 lg:px-0 ${fullscreen ? "mb-1" : "mb-4"}`}>
                   <span className="text-sm font-semibold tracking-widest uppercase text-muted">Room {versusCode}</span>
                   <div className="flex items-center gap-2">
-                    <button onClick={() => { setVersusCode(null); (document.activeElement as HTMLElement)?.blur(); }} className="text-sm text-muted hover:text-fg transition">Leave</button>
+                    <button onClick={() => { sessionStorage.removeItem("versusCode"); sessionStorage.removeItem("versusMode"); sessionStorage.removeItem("versusGuesses"); sessionStorage.removeItem("versusMarks"); setVersusCode(null); (document.activeElement as HTMLElement)?.blur(); }} className="text-sm text-muted hover:text-fg transition">Leave</button>
                     <button
                       onClick={() => setFullscreen((f) => !f)}
                       aria-label={fullscreen ? "Exit fullscreen" : "Fullscreen"}
@@ -150,7 +150,7 @@ function Home() {
                     </button>
                   </div>
                 </div>
-                <VersusGame code={versusCode} mode={versusMode} fullscreen={fullscreen} onExit={() => { setVersusCode(null); (document.activeElement as HTMLElement)?.blur(); }} />
+                <VersusGame code={versusCode} mode={versusMode} fullscreen={fullscreen} onExit={() => { sessionStorage.removeItem("versusCode"); sessionStorage.removeItem("versusMode"); sessionStorage.removeItem("versusGuesses"); sessionStorage.removeItem("versusMarks"); setVersusCode(null); (document.activeElement as HTMLElement)?.blur(); }} />
               </>
             ) : (
               <>
