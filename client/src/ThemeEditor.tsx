@@ -413,7 +413,7 @@ export function ThemeEditor({ onClose }: { onClose: () => void }) {
   }
 
   function handleClose() {
-    applyTheme(savedCss);
+    applyThemeAnimated(savedCss);
     onClose();
   }
 
