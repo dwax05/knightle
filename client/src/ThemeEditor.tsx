@@ -521,31 +521,24 @@ export function ThemeEditor({ onClose }: { onClose: () => void }) {
             {/* right: presets + slots sidebar (desktop only) */}
             <div className="hidden lg:block shrink-0 w-64">
               <span className="text-xs font-semibold text-muted uppercase tracking-wider px-1 block mb-2">Presets</span>
-              <AnimatedHorizontalList
-                items={PRESETS}
-                renderItem={(p) => <PresetButton preset={p} onClick={() => loadPreset(p)} />}
-                onItemSelect={(p) => loadPreset(p)}
-                itemWidth={112}
-                gap={8}
-                className="pb-1"
-              />
+              <div className="grid grid-cols-2 gap-2">
+                {PRESETS.map((p, i) => (
+                  <PresetButton key={i} preset={p} onClick={() => loadPreset(p)} />
+                ))}
+              </div>
               <span className="text-xs font-semibold text-muted uppercase tracking-wider px-1 block mt-4 mb-2">Saved</span>
-              <AnimatedHorizontalList
-                items={slots}
-                renderItem={(slot, i) => (
+              <div className="grid grid-cols-2 gap-2">
+                {slots.map((slot, i) => (
                   <SlotButton
+                    key={i}
                     index={i}
                     slot={slot}
                     onSave={() => handleSaveSlot(i)}
                     onLoad={() => handleLoadSlot(i)}
                     onClear={() => handleClearSlot(i)}
                   />
-                )}
-                itemWidth={112}
-                gap={8}
-                className="pb-1"
-                enableArrowNavigation={false}
-              />
+                ))}
+              </div>
             </div>
           </div>
 
