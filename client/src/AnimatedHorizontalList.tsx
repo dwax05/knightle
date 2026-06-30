@@ -53,37 +53,34 @@ export function AnimatedHorizontalList<T>({
   const [rightOpacity, setRightOpacity] = useState(1);
   const [visibleItems, setVisibleItems] = useState<Set<number>>(new Set());
 
-  // Set up IntersectionObserver in the parent where the container ref is guaranteed
-  // to be populated by useEffect time — avoids the ref-timing bug where child
-  // useInView calls run before containerRef.current is set (breaks in prod).
-  useEffect(() => {
+  // Compute which items overlap ≥50% with the container's visible rect.
+  // Uses getBoundingClientRect (viewport-relative) so there are no offsetParent
+  // or IntersectionObserver-root timing quirks that differ between dev and prod.
+  const updateVisibility = useCallback(() => {
     const container = listRef.current;
     if (!container) return;
+    const cr = container.getBoundingClientRect();
+    const next = new Set<number>();
+    container.querySelectorAll<HTMLElement>('[data-index]').forEach(el => {
+      const er = el.getBoundingClientRect();
+      const overlap = Math.min(er.right, cr.right) - Math.max(er.left, cr.left);
+      if (er.width > 0 && overlap / er.width >= 0.5) next.add(Number(el.dataset.index));
+    });
+    setVisibleItems(next);
+  }, []);
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        setVisibleItems(prev => {
-          const next = new Set(prev);
-          entries.forEach(entry => {
-            const index = Number((entry.target as HTMLElement).dataset.index);
-            if (entry.isIntersecting) next.add(index);
-            else next.delete(index);
-          });
-          return next;
-        });
-      },
-      { root: container, threshold: 0.5 }
-    );
-
-    container.querySelectorAll<HTMLElement>('[data-index]').forEach(el => observer.observe(el));
-    return () => observer.disconnect();
-  }, [items]);
+  // Delay one frame after mount/item-change so the browser finishes layout before measuring.
+  useEffect(() => {
+    const raf = requestAnimationFrame(updateVisibility);
+    return () => cancelAnimationFrame(raf);
+  }, [items, updateVisibility]);
 
   const handleScroll = (e: UIEvent<HTMLDivElement>) => {
     const { scrollLeft, scrollWidth, clientWidth } = e.target as HTMLDivElement;
     setLeftOpacity(Math.min(scrollLeft / 50, 1));
     const rightDistance = scrollWidth - (scrollLeft + clientWidth);
     setRightOpacity(scrollWidth <= clientWidth ? 0 : Math.min(rightDistance / 50, 1));
+    updateVisibility();
   };
 
   const handleItemClick = useCallback((item: T, index: number) => {
