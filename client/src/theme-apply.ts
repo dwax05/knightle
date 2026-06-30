@@ -30,6 +30,10 @@ export function applyTheme(raw: string) {
     document.head.appendChild(tag);
   }
   tag.textContent = clean;
+  try {
+    if (clean) localStorage.setItem("cache:theme", clean);
+    else localStorage.removeItem("cache:theme");
+  } catch { /* storage unavailable */ }
 }
 
 // Same as applyTheme but briefly enables CSS transitions on all elements so

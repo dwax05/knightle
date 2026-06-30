@@ -5,6 +5,17 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>knightle</title>
+    <script>
+      try {
+        var css = localStorage.getItem("cache:theme");
+        if (css) {
+          var s = document.createElement("style");
+          s.id = "user-theme";
+          s.textContent = css;
+          document.head.appendChild(s);
+        }
+      } catch(e) {}
+    </script>
   </head>
   <body>
     <div id="root">
