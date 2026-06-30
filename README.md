@@ -19,7 +19,7 @@ A full-stack Wordle clone with user accounts, stats tracking, a leaderboard, a c
 - **Remember me** — optional persistent login via 30-day refresh cookie; silent token refresh on page load
 - **Profile** — change password, log out, clear game data, delete account
 - **Stats** — win rate, current/max streak, guess distribution
-- **Leaderboard** — top 10 players by wins
+- **Leaderboard** — top 5 players across three tabs: total wins, best streak, and wins today
 - **Versus mode** — create a room, share a 4-letter code, race a friend on the same word; two modes: **Speed** (first to solve wins) and **Precision** (fewest guesses wins); rematch support
 - **Theme editor** — inject custom CSS to restyle the board per-user (Gruvbox dark default)
 
@@ -80,7 +80,7 @@ All endpoints are `POST /api/*`. Auth-required routes expect `Authorization: Bea
 | `/api/newgame` | ✓ | Start a new solo game |
 | `/api/guess` | ✓ | Submit a guess |
 | `/api/stats` | ✓ | Fetch personal stats |
-| `/api/leaderboard` | ✓ | Top 10 by wins |
+| `/api/leaderboard` | ✓ | Top 5 by `sort`: `"wins"` (default), `"streak"`, or `"today"` |
 | `/api/theme/get` | ✓ | Load saved CSS theme |
 | `/api/theme/save` | ✓ | Save CSS theme |
 | `/api/password-reset` | ✓ | Change password (requires current password) |
