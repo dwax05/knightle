@@ -33,6 +33,10 @@ export function setApp(app: Express, client: MongoClient) {
       return res.status(200).json({ error: "Username, email, and password required" });
     }
 
+    if (!/^[a-zA-Z0-9_-]{3,20}$/.test(login)) {
+      return res.status(200).json({ error: "Username must be 3–20 characters: letters, numbers, _ or -" });
+    }
+
     // basic email shape check
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return res.status(200).json({ error: "Invalid email address" });

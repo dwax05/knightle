@@ -18,6 +18,8 @@ export function AuthForm() {
 
   function validate(): string | null {
     if (!form.login.trim()) return "Username is required";
+    if (!/^[a-zA-Z0-9_-]{3,20}$/.test(form.login))
+      return "Username must be 3–20 characters: letters, numbers, _ or -";
     if (!form.password) return "Password is required";
     if (mode === "register") {
       if (!form.email.trim()) return "Email is required";
