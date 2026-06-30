@@ -197,11 +197,12 @@ export function setApp(app: Express, client: MongoClient) {
   });
 
   app.post("/api/leaderboard", requireAuth, async (req: AuthedRequest, res) => {
+    const sortField = req.body.sort === "streak" ? "maxStreak" : "wins";
     const top = await db
       .collection("Stats")
       .aggregate([
-        { $match: { wins: { $gt: 0 } } },
-        { $sort: { wins: -1 } },
+        { $match: { [sortField]: { $gt: 0 } } },
+        { $sort: { [sortField]: -1 } },
         { $limit: 5 },
         {
           $lookup: {

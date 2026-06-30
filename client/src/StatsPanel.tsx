@@ -11,14 +11,22 @@ type Stats = {
 
 export function StatsPanel({ refreshKey }: { refreshKey: number }) {
   const { authedPost } = useAuth();
-  const [stats, setStats] = useState<Stats | null>(null);
+  const [stats, setStats] = useState<Stats | null>(() => {
+    try {
+      const cached = localStorage.getItem("cache:stats");
+      return cached ? JSON.parse(cached) : null;
+    } catch { return null; }
+  });
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       const s = await authedPost("/api/stats", {});
       if (cancelled) return;
-      if (s.stats) setStats(s.stats);
+      if (s.stats) {
+        setStats(s.stats);
+        localStorage.setItem("cache:stats", JSON.stringify(s.stats));
+      }
     })();
     return () => { cancelled = true; };
   }, [refreshKey, authedPost]);
