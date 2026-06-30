@@ -69,6 +69,7 @@ export function Game({ onGameEnd }: { onGameEnd?: () => void }) {
       return;
     }
 
+    setShaking(false);
     const rowIdx = guesses.length;
     setMessage("");
     setGuesses((g) => [...g, current]);
