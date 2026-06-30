@@ -145,7 +145,7 @@ export function Board({
         ))}
       </div>
 
-      <div className={`flex flex-col w-full ${fullscreen ? "gap-2" : "gap-1 sm:gap-1.5 mt-2"}`}>
+      <div className={`flex flex-col w-full ${fullscreen ? "gap-2" : "gap-1.5 sm:gap-2"}`}>
         {KEYS.map((row, i) => (
           <div key={i} className={`flex justify-center ${fullscreen ? "gap-1.5" : "gap-1 sm:gap-1.5"}`}>
             {row.map((key) => {
