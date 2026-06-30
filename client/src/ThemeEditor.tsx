@@ -149,6 +149,8 @@ const PRESETS: Preset[] = [
 ];
 
 const SWATCH_KEYS = ["--bg", "--accent", "--tile-correct", "--tile-present", "--error"];
+const SLOT_COUNT = 4;
+const EMPTY_SLOTS: (Record<string, string> | null)[] = Array(SLOT_COUNT).fill(null);
 
 const GROUPS: { label: string; keys: string[] }[] = [
   { label: "Page",    keys: ["--bg", "--fg", "--surface", "--border", "--muted"] },
@@ -173,6 +175,10 @@ const LABELS: Record<string, string> = {
   "--button-bg":    "Button",
   "--button-fg":    "Button text",
 };
+
+function entriesToVars(entries: Entry[]): Record<string, string> {
+  return Object.fromEntries(entries.map((e) => [e.key, e.value]));
+}
 
 function parseCss(css: string): Entry[] {
   const entries: Entry[] = [];
@@ -215,7 +221,7 @@ function ColorRow({
 
   useEffect(() => { setDraft(entry.value); }, [entry.value]);
 
-  const resolvedBg = isValidHex(draft) ? draft : (isValidHex(entry.value) ? entry.value : "#3c3836");
+  const resolvedBg = isValidHex(draft) ? draft : (isValidHex(entry.value) ? entry.value : "#313244");
   const textColor = contrastColor(resolvedBg);
 
   function handleText(v: string) {
@@ -276,11 +282,102 @@ function PresetButton({ preset, onClick }: { preset: Preset; onClick: () => void
   );
 }
 
+function SlotButton({
+  index,
+  slot,
+  onSave,
+  onLoad,
+  onClear,
+}: {
+  index: number;
+  slot: Record<string, string> | null;
+  onSave: () => void;
+  onLoad: () => void;
+  onClear: () => void;
+}) {
+  return (
+    <div className="relative">
+      <button
+        onClick={slot ? onLoad : onSave}
+        className="w-full text-left px-3 py-2.5 rounded-xl border border-border-app/40 shadow-[0_3px_0_rgba(0,0,0,0.4)] hover:brightness-110 active:translate-y-[3px] active:shadow-none transition-all duration-100"
+        style={{ background: slot?.["--bg"] ?? undefined }}
+      >
+        <div className={`flex gap-1 mb-2 ${!slot ? "invisible" : ""}`}>
+          {SWATCH_KEYS.map((k) => (
+            <div key={k} className="h-2.5 flex-1 rounded-full" style={{ background: slot?.[k] }} />
+          ))}
+        </div>
+        <span className="text-xs font-medium" style={slot ? { color: slot["--fg"] } : undefined}>
+          {slot ? `Slot ${index + 1}` : <span className="text-muted">Slot {index + 1}</span>}
+        </span>
+      </button>
+
+      {slot && (
+        <button
+          onClick={(e) => { e.stopPropagation(); onClear(); }}
+          className="absolute top-1.5 left-1.5 w-5 h-5 flex items-center justify-center rounded text-xs font-bold leading-none hover:brightness-110 transition"
+          style={{ color: slot["--muted"] }}
+          aria-label="Clear slot"
+        >
+          ×
+        </button>
+      )}
+      <button
+        onClick={(e) => { e.stopPropagation(); onSave(); }}
+        className="absolute bottom-1.5 right-1.5 w-5 h-5 flex items-center justify-center rounded text-xs leading-none hover:brightness-110 transition"
+        style={slot ? { color: slot["--muted"] } : undefined}
+        aria-label="Save to slot"
+        title="Save current theme here"
+      >
+        ↓
+      </button>
+    </div>
+  );
+}
+
 export function ThemeEditor({ onClose }: { onClose: () => void }) {
   const { authedPost } = useAuth();
   const [entries, setEntries] = useState<Entry[]>([]);
   const [savedCss, setSavedCss] = useState("");
   const [status, setStatus] = useState("");
+  const [slots, setSlots] = useState<(Record<string, string> | null)[]>(EMPTY_SLOTS);
+
+  function flash(msg: string) {
+    setStatus(msg);
+    setTimeout(() => setStatus(""), 2000);
+  }
+
+  async function persistSlots(updated: (Record<string, string> | null)[]) {
+    setSlots(updated);
+    await authedPost("/api/theme/slots", { slots: updated });
+  }
+
+  function handleSaveSlot(i: number) {
+    persistSlots(slots.map((s, idx) => idx === i ? entriesToVars(entries) : s));
+  }
+
+  function handleLoadSlot(i: number) {
+    const slot = slots[i];
+    if (!slot) return;
+    setEntries((prev) => prev.map((e) => slot[e.key] ? { ...e, value: slot[e.key] } : e));
+  }
+
+  function handleClearSlot(i: number) {
+    persistSlots(slots.map((s, idx) => idx === i ? null : s));
+  }
+
+  function renderSlots() {
+    return slots.map((slot, i) => (
+      <SlotButton
+        key={i}
+        index={i}
+        slot={slot}
+        onSave={() => handleSaveSlot(i)}
+        onLoad={() => handleLoadSlot(i)}
+        onClear={() => handleClearSlot(i)}
+      />
+    ));
+  }
 
   useEffect(() => {
     (async () => {
@@ -288,6 +385,9 @@ export function ThemeEditor({ onClose }: { onClose: () => void }) {
       const css = data.css || TEMPLATE;
       setSavedCss(css);
       setEntries(parseCss(css));
+      if (Array.isArray(data.slots) && data.slots.length === SLOT_COUNT) {
+        setSlots(data.slots);
+      }
     })();
   }, [authedPost]);
 
@@ -314,34 +414,26 @@ export function ThemeEditor({ onClose }: { onClose: () => void }) {
     const css = serializeCss(entries);
     const data = await authedPost("/api/theme/save", { css });
     if (!data.error) setSavedCss(css);
-    setStatus(data.error ? data.error : "Saved!");
-    setTimeout(() => setStatus(""), 2000);
+    flash(data.error || "Saved!");
   }
 
   function reset() {
     setEntries(parseCss(TEMPLATE));
     applyTheme("");
-    setStatus("Reset to default");
-    setTimeout(() => setStatus(""), 2000);
+    flash("Reset to default");
   }
 
   async function exportToClipboard() {
     await navigator.clipboard.writeText(serializeCss(entries));
-    setStatus("Copied to clipboard!");
-    setTimeout(() => setStatus(""), 2000);
+    flash("Copied to clipboard!");
   }
 
   async function importFromClipboard() {
     const text = await navigator.clipboard.readText();
     const parsed = parseCss(text);
-    if (!parsed.length) {
-      setStatus("Nothing to import");
-      setTimeout(() => setStatus(""), 2000);
-      return;
-    }
+    if (!parsed.length) { flash("Nothing to import"); return; }
     setEntries(parsed);
-    setStatus("Imported!");
-    setTimeout(() => setStatus(""), 2000);
+    flash("Imported!");
   }
 
   return (
@@ -379,6 +471,12 @@ export function ThemeEditor({ onClose }: { onClose: () => void }) {
                 </div>
               ))}
             </div>
+            <span className="text-xs font-semibold text-muted uppercase tracking-wider mt-3 block">Saved</span>
+            <div className="flex gap-2 overflow-x-auto pt-2 pb-1 scrollbar-none">
+              {renderSlots().map((el, i) => (
+                <div key={i} className="w-28 shrink-0">{el}</div>
+              ))}
+            </div>
           </div>
 
           {/* body: color rows + presets sidebar (desktop) */}
@@ -400,13 +498,17 @@ export function ThemeEditor({ onClose }: { onClose: () => void }) {
               })}
             </div>
 
-            {/* right: presets sidebar (desktop only) */}
+            {/* right: presets + slots sidebar (desktop only) */}
             <div className="hidden lg:block shrink-0">
               <span className="text-xs font-semibold text-muted uppercase tracking-wider px-1 block mb-2">Presets</span>
               <div className="grid grid-cols-2 gap-2">
                 {PRESETS.map((p) => (
                   <PresetButton key={p.name} preset={p} onClick={() => loadPreset(p)} />
                 ))}
+              </div>
+              <span className="text-xs font-semibold text-muted uppercase tracking-wider px-1 block mt-4 mb-2">Saved</span>
+              <div className="grid grid-cols-2 gap-2">
+                {renderSlots()}
               </div>
             </div>
           </div>

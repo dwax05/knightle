@@ -11,6 +11,7 @@ type AuthCtx = {
   logout: () => Promise<void>;
   authedPost: (url: string, body: object) => Promise<any>;
   deleteAccount: (password: string) => Promise<string | null>;
+  reloadTheme: () => Promise<void>;
 };
 
 type RegisterData = { login: string; password: string; email: string };
@@ -146,7 +147,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [user]);
 
   return (
-    <Ctx.Provider value={{ user, loading, login, register, logout, authedPost, deleteAccount }}>
+    <Ctx.Provider value={{ user, loading, login, register, logout, authedPost, deleteAccount, reloadTheme: loadTheme }}>
       {children}
     </Ctx.Provider>
   );
