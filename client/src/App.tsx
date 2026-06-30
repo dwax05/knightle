@@ -139,9 +139,18 @@ function Home() {
               <>
                 <div className="w-full flex items-center justify-between pb-3 border-b border-border-app/40 mb-4 px-2 lg:px-0">
                   <span className="text-sm font-semibold tracking-widest uppercase text-muted">Room {versusCode}</span>
-                  <button onClick={() => { setVersusCode(null); (document.activeElement as HTMLElement)?.blur(); }} className="text-sm text-muted hover:text-fg transition">Leave</button>
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => { setVersusCode(null); (document.activeElement as HTMLElement)?.blur(); }} className="text-sm text-muted hover:text-fg transition">Leave</button>
+                    <button
+                      onClick={() => setFullscreen((f) => !f)}
+                      aria-label={fullscreen ? "Exit fullscreen" : "Fullscreen"}
+                      className="lg:hidden w-7 h-7 flex items-center justify-center rounded-md text-muted hover:text-fg transition"
+                    >
+                      {fullscreen ? <IconCompress className="w-4 h-4" /> : <IconExpand className="w-4 h-4" />}
+                    </button>
+                  </div>
                 </div>
-                <VersusGame code={versusCode} mode={versusMode} onExit={() => { setVersusCode(null); (document.activeElement as HTMLElement)?.blur(); }} />
+                <VersusGame code={versusCode} mode={versusMode} fullscreen={fullscreen} onExit={() => { setVersusCode(null); (document.activeElement as HTMLElement)?.blur(); }} />
               </>
             ) : (
               <>

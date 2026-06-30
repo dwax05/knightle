@@ -10,10 +10,11 @@ const REVEAL_TOTAL = (COLS - 1) * TILE_STAGGER + FLIP_DURATION + 50;
 
 type Opponent = { login: string; guessCount: number; finished: boolean; won: boolean } | null;
 
-export function VersusGame({ code, mode: initialMode, onExit }: {
+export function VersusGame({ code, mode: initialMode, onExit, fullscreen }: {
   code: string;
   mode: VersusMode;
   onExit: () => void;
+  fullscreen?: boolean;
 }) {
   const { authedPost, user } = useAuth();
   const [guesses, setGuesses] = useState<string[]>([]);
@@ -192,7 +193,7 @@ export function VersusGame({ code, mode: initialMode, onExit }: {
   const winnerName = youWon ? "You" : (opponent?.login ?? "Opponent");
 
   return (
-    <div className="w-full flex flex-col items-center gap-4">
+    <div className={`w-full flex flex-col items-center ${fullscreen ? "flex-1 gap-1" : "gap-4"}`}>
       <div className="w-full flex items-center gap-2 pb-3 border-b border-border-app/40 px-2 lg:px-0">
         <span className="text-xs font-bold tracking-widest uppercase text-muted">vs</span>
         {opponent ? (
@@ -211,7 +212,7 @@ export function VersusGame({ code, mode: initialMode, onExit }: {
         </span>
       </div>
 
-      <Board guesses={guesses} marks={marks} current={current} done={finished || isDone} onKeyPress={onKeyPress} revealingRow={revealingRow} shakingRow={shakingRow} onShakeEnd={() => {
+      <Board guesses={guesses} marks={marks} current={current} done={finished || isDone} onKeyPress={onKeyPress} revealingRow={revealingRow} shakingRow={shakingRow} fullscreen={fullscreen} onShakeEnd={() => {
           if (pendingShake.current) {
             pendingShake.current = false;
             flushSync(() => setShaking(false));
