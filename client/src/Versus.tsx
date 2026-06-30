@@ -71,8 +71,8 @@ export function VersusLobbyModal({
 
   return (
     <>
-      <div className="fixed inset-0 z-30 bg-black/50" onClick={onClose} />
-      <div className="fixed inset-0 z-40 flex items-center justify-center p-4 pointer-events-none">
+      <div className="fixed inset-0 z-50 bg-black/50" onClick={onClose} />
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
         <div className="pointer-events-auto w-full max-w-sm">
           {phase === "lobby" ? (
             <div className="flex flex-col gap-5 p-8 rounded-2xl bg-surface border border-border-app/40 shadow-xl shadow-black/60 animate-slide-down">
