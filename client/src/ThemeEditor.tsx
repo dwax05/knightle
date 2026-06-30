@@ -377,19 +377,6 @@ export function ThemeEditor({ onClose }: { onClose: () => void }) {
     persistSlots(slots.map((s, idx) => idx === i ? null : s));
   }
 
-  function renderSlots() {
-    return slots.map((slot, i) => (
-      <SlotButton
-        key={i}
-        index={i}
-        slot={slot}
-        onSave={() => handleSaveSlot(i)}
-        onLoad={() => handleLoadSlot(i)}
-        onClear={() => handleClearSlot(i)}
-      />
-    ));
-  }
-
   useEffect(() => {
     (async () => {
       const data = await authedPost("/api/theme/get", {});

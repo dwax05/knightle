@@ -1,4 +1,5 @@
-import React, { useRef, useState, useEffect, useCallback, ReactNode, UIEvent } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
+import type { ReactNode, UIEvent } from 'react';
 import { motion } from 'motion/react';
 
 interface AnimatedItemProps {
