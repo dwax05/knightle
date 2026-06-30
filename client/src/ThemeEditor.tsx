@@ -429,7 +429,6 @@ export function ThemeEditor({ onClose }: { onClose: () => void }) {
   function reset() {
     animateNextApply.current = true;
     setEntries(parseCss(TEMPLATE));
-    flash("Reset to default");
   }
 
   async function exportToClipboard() {
