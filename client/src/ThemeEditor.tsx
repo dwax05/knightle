@@ -337,7 +337,11 @@ function SlotButton({
 
 export function ThemeEditor({ onClose }: { onClose: () => void }) {
   const { authedPost } = useAuth();
-  const [entries, setEntries] = useState<Entry[]>([]);
+  const [entries, setEntries] = useState<Entry[]>(() => {
+    const tag = document.getElementById("user-theme") as HTMLStyleElement | null;
+    const parsed = parseCss(tag?.textContent ?? "");
+    return parsed.length ? parsed : parseCss(TEMPLATE);
+  });
   const [savedCss, setSavedCss] = useState("");
   const [status, setStatus] = useState("");
   const actionsRef = useRef<HTMLDivElement>(null);
