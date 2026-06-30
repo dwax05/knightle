@@ -75,10 +75,10 @@ function StatsSheet({ refreshKey, onClose }: { refreshKey: number; onClose: () =
     <div className="fixed inset-0 z-30 flex flex-col justify-end">
       <div className={`absolute inset-0 bg-black/50 transition-opacity duration-[250ms] ${closing ? "opacity-0" : "opacity-100"}`} onClick={dismiss} />
       <div
-        className={`relative bg-surface border-t border-border-app/40 rounded-t-2xl max-h-[80vh] overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden flex flex-col gap-6 p-4 pb-8 shadow-2xl shadow-black/60 ${closing ? "animate-sheet-close" : "animate-slide-up"}`}
+        className={`relative bg-surface border-t border-border-app/40 rounded-t-2xl max-h-[80vh] overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden flex flex-col items-center gap-6 p-4 pb-8 shadow-2xl shadow-black/60 ${closing ? "animate-sheet-close" : "animate-slide-up"}`}
         onAnimationEnd={() => { if (closing) onClose(); }}
       >
-        <div className="flex items-center justify-between mb-1">
+        <div className="flex items-center justify-between mb-1 w-full max-w-md">
           <span className="text-sm font-semibold tracking-widest uppercase text-muted">Stats & Leaderboard</span>
           <button
             onClick={dismiss}
