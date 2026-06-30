@@ -82,7 +82,7 @@ function Stat({ label, value }: { label: string; value: number }) {
   return (
     <div className="text-center">
       <div className="text-[22px] font-bold text-fg">
-        <Counter value={value} fontSize={22} gap={0} horizontalPadding={0} borderRadius={0} gradientHeight={0} fontWeight="bold" />
+        <Counter value={value} fontSize={22} padding={6} gap={0} horizontalPadding={0} borderRadius={0} gradientHeight={0} fontWeight="bold" />
       </div>
       <div className="text-[11px] text-muted">{label}</div>
     </div>
