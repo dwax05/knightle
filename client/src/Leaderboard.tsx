@@ -32,7 +32,10 @@ function medal(i: number) {
 
 export function Leaderboard({ refreshKey }: { refreshKey: number }) {
   const { authedPost } = useAuth();
-  const [tab, setTab] = useState<Tab>("wins");
+  const [tab, setTab] = useState<Tab>(() => {
+    const saved = localStorage.getItem("leaderboard:tab");
+    return (saved as Tab | null) ?? "wins";
+  });
   const [entriesByTab, setEntriesByTab] = useState<Record<Tab, Entry[]>>({
     wins: loadCache("cache:leaderboard:wins"),
     streak: loadCache("cache:leaderboard:streak"),
@@ -66,6 +69,7 @@ export function Leaderboard({ refreshKey }: { refreshKey: number }) {
   function switchTab(t: Tab) {
     prevTabRef.current = tab;
     setTab(t);
+    localStorage.setItem("leaderboard:tab", t);
   }
 
   const entries = entriesByTab[tab];
