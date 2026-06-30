@@ -89,7 +89,7 @@ export function Leaderboard({ refreshKey }: { refreshKey: number }) {
         ))}
       </div>
       <div className="overflow-hidden">
-        <AnimatePresence mode="popLayout" custom={direction}>
+        <AnimatePresence mode="popLayout" custom={direction} initial={false}>
           <motion.div
             key={tab}
             custom={direction}
