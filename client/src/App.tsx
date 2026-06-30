@@ -95,6 +95,49 @@ function StatsSheet({ refreshKey, onClose }: { refreshKey: number; onClose: () =
   );
 }
 
+function HomescreenPrompt() {
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    if (localStorage.getItem("homescreenDismissed")) return;
+    const isStandalone = window.matchMedia("(display-mode: standalone)").matches || (window.navigator as any).standalone === true;
+    if (isStandalone) return;
+    if (window.innerWidth >= 1024) return;
+    const t = setTimeout(() => setVisible(true), 1500);
+    return () => clearTimeout(t);
+  }, []);
+
+  function dismiss() {
+    setVisible(false);
+    localStorage.setItem("homescreenDismissed", "1");
+  }
+
+  if (!visible) return null;
+
+  const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+  const instruction = isIOS
+    ? <>Tap the <span className="font-semibold text-fg">Share</span> icon below, then <span className="font-semibold text-fg">"Add to Home Screen"</span></>
+    : <>Tap the <span className="font-semibold text-fg">menu (⋮)</span> in your browser, then <span className="font-semibold text-fg">"Add to Home Screen"</span></>;
+
+  return (
+    <div className="fixed bottom-0 left-0 right-0 z-50 px-4 pb-6 pointer-events-none">
+      <div className="bg-surface border border-border-app/50 rounded-2xl shadow-2xl shadow-black/60 p-4 pointer-events-auto flex items-start gap-3 animate-slide-up">
+        <div className="flex-1">
+          <p className="text-sm font-semibold text-fg">Add Knightle to your homescreen</p>
+          <p className="text-xs text-muted mt-1">{instruction}</p>
+        </div>
+        <button
+          onClick={dismiss}
+          aria-label="Dismiss"
+          className="shrink-0 w-7 h-7 flex items-center justify-center rounded-lg text-muted hover:text-fg hover:bg-bg/50 transition-colors text-sm"
+        >
+          ✕
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function Home() {
   const { reloadTheme } = useAuth();
   const [refreshKey, setRefreshKey] = useState(0);
@@ -184,6 +227,8 @@ function Home() {
       <div className="hidden lg:block absolute top-4 right-4 z-10">
         <HamburgerMenu onNavigate={setView} />
       </div>
+
+      <HomescreenPrompt />
 
       {/* Mobile FAB cluster — fixed bottom-right */}
       <div className={`lg:hidden fixed bottom-8 right-4 flex gap-2 z-20 ${fullscreen ? "hidden" : ""}`}>
