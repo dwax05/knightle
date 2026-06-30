@@ -114,6 +114,7 @@ export function VersusGame({ code, mode: initialMode, onExit, fullscreen }: {
     setWinner(null);
     setStatus("active");
     setRound(newRound);
+    setOpponent((prev) => prev ? { ...prev, guessCount: 0, finished: false, won: false } : null);
   }, []);
 
   const handleRematch = useCallback(async () => {
@@ -167,6 +168,7 @@ export function VersusGame({ code, mode: initialMode, onExit, fullscreen }: {
       if (e.target instanceof HTMLInputElement) return;
       if ((e.metaKey || e.ctrlKey) && e.key === "a") { e.preventDefault(); return; }
       if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.repeat && e.key === "Enter") return;
       if (isDone) { if (e.key === "Enter" && !rematchMe) handleRematch(); return; }
       if (finished) return;
       if (e.key === "Enter") submitGuess();
