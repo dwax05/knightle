@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect, useCallback, ReactNode, MouseEventHandler, UIEvent } from 'react';
+import React, { useRef, useState, useEffect, useCallback, ReactNode, UIEvent } from 'react';
 import { motion, useInView } from 'motion/react';
 
 interface AnimatedItemProps {
@@ -56,23 +56,6 @@ export function AnimatedHorizontalList<T>({
   const [keyboardNav, setKeyboardNav] = useState(false);
   const [leftOpacity, setLeftOpacity] = useState(0);
   const [rightOpacity, setRightOpacity] = useState(1);
-  const [isDragging, setIsDragging] = useState(false);
-  const dragStartX = useRef(0);
-  const DRAG_THRESHOLD = 5;
-
-  const handlePointerDown = (e: React.PointerEvent) => {
-    dragStartX.current = e.clientX;
-    setIsDragging(false);
-  };
-
-  const handlePointerMove = (e: React.PointerEvent) => {
-    if (!isDragging && Math.abs(e.clientX - dragStartX.current) > DRAG_THRESHOLD) {
-      setIsDragging(true);
-    }
-  };
-
-  const handlePointerUp = () => setIsDragging(false);
-
   const handleScroll = (e: UIEvent<HTMLDivElement>) => {
     const { scrollLeft, scrollWidth, clientWidth } = e.target as HTMLDivElement;
     setLeftOpacity(Math.min(scrollLeft / 50, 1));
@@ -132,13 +115,9 @@ export function AnimatedHorizontalList<T>({
     <div className={`relative ${className}`}>
       <div
         ref={listRef}
-        className={`flex overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden py-1 ${isDragging ? '[&_button]:pointer-events-none' : ''}`}
+        className="flex overflow-x-auto touch-pan-x [scrollbar-width:none] [&::-webkit-scrollbar]:hidden py-1"
         style={{ gap }}
         onScroll={handleScroll}
-        onPointerDown={handlePointerDown}
-        onPointerMove={handlePointerMove}
-        onPointerUp={handlePointerUp}
-        onPointerCancel={handlePointerUp}
       >
         {items.map((item, index) => (
           <AnimatedItem
