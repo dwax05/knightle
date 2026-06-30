@@ -346,10 +346,7 @@ export function ThemeEditor({ onClose }: { onClose: () => void }) {
   useEffect(() => {
     const el = actionsRef.current;
     if (!el) return;
-    const observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) setActionsVisible(true);
-      else setActionsVisible(entry.boundingClientRect.top > 0);
-    }, { threshold: 0.5 });
+    const observer = new IntersectionObserver(([entry]) => setActionsVisible(entry.isIntersecting), { threshold: 0.5 });
     observer.observe(el);
     return () => observer.disconnect();
   }, []);
