@@ -72,6 +72,7 @@ export function Leaderboard({ refreshKey }: { refreshKey: number }) {
           </button>
         ))}
       </div>
+      <div className="min-h-[196px]">
       {entries.length === 0 ? (
         <p className="text-sm text-muted">{tab === "today" ? "No wins today yet — be the first!" : "No wins yet — be the first!"}</p>
       ) : (
@@ -88,6 +89,7 @@ export function Leaderboard({ refreshKey }: { refreshKey: number }) {
           ))}
         </div>
       )}
+      </div>
     </div>
   );
 }
