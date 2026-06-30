@@ -149,6 +149,22 @@ const PRESETS: Preset[] = [
 ];
 
 const SWATCH_KEYS = ["--bg", "--accent", "--tile-correct", "--tile-present", "--error"];
+const SLOTS_KEY = "knightle_theme_slots";
+const SLOT_COUNT = 4;
+
+function loadSlots(): (Record<string, string> | null)[] {
+  try {
+    const raw = localStorage.getItem(SLOTS_KEY);
+    if (!raw) return Array(SLOT_COUNT).fill(null);
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed) && parsed.length === SLOT_COUNT) return parsed;
+  } catch {}
+  return Array(SLOT_COUNT).fill(null);
+}
+
+function saveSlots(slots: (Record<string, string> | null)[]) {
+  localStorage.setItem(SLOTS_KEY, JSON.stringify(slots));
+}
 
 const GROUPS: { label: string; keys: string[] }[] = [
   { label: "Page",    keys: ["--bg", "--fg", "--surface", "--border", "--muted"] },
@@ -276,11 +292,94 @@ function PresetButton({ preset, onClick }: { preset: Preset; onClick: () => void
   );
 }
 
+function SlotButton({
+  index,
+  slot,
+  onSave,
+  onLoad,
+  onClear,
+}: {
+  index: number;
+  slot: Record<string, string> | null;
+  onSave: () => void;
+  onLoad: () => void;
+  onClear: () => void;
+}) {
+  return (
+    <div className="relative">
+      <button
+        onClick={slot ? onLoad : onSave}
+        className="w-full text-left px-3 py-2.5 rounded-xl border border-border-app/40 shadow-[0_3px_0_rgba(0,0,0,0.4)] hover:brightness-110 active:translate-y-[3px] active:shadow-none transition-all duration-100"
+        style={{ background: slot?.["--bg"] ?? undefined }}
+      >
+        {slot ? (
+          <>
+            <div className="flex gap-1 mb-2 pr-8">
+              {SWATCH_KEYS.map((k) => (
+                <div key={k} className="h-2.5 flex-1 rounded-full" style={{ background: slot[k] }} />
+              ))}
+            </div>
+            <span className="text-xs font-medium" style={{ color: slot["--fg"] }}>
+              Slot {index + 1}
+            </span>
+          </>
+        ) : (
+          <span className="text-xs font-medium text-muted">Slot {index + 1} — Empty</span>
+        )}
+      </button>
+      <div className="absolute top-1.5 right-1.5 flex gap-1">
+        {slot && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onClear(); }}
+            className="w-5 h-5 flex items-center justify-center rounded text-xs font-bold leading-none hover:brightness-110 transition"
+            style={{ color: slot["--muted"] }}
+            aria-label="Clear slot"
+          >
+            ×
+          </button>
+        )}
+        <button
+          onClick={(e) => { e.stopPropagation(); onSave(); }}
+          className="w-5 h-5 flex items-center justify-center rounded text-xs leading-none hover:brightness-110 transition"
+          style={slot ? { color: slot["--muted"] } : undefined}
+          aria-label="Save to slot"
+          title="Save current theme here"
+        >
+          ↓
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function ThemeEditor({ onClose }: { onClose: () => void }) {
   const { authedPost } = useAuth();
   const [entries, setEntries] = useState<Entry[]>([]);
   const [savedCss, setSavedCss] = useState("");
   const [status, setStatus] = useState("");
+  const [slots, setSlots] = useState<(Record<string, string> | null)[]>(loadSlots);
+
+  function entriesToVars(e: Entry[]): Record<string, string> {
+    return Object.fromEntries(e.map((x) => [x.key, x.value]));
+  }
+
+  function handleSaveSlot(i: number) {
+    const updated = slots.map((s, idx) => idx === i ? entriesToVars(entries) : s);
+    setSlots(updated);
+    saveSlots(updated);
+  }
+
+  function handleLoadSlot(i: number) {
+    const slot = slots[i];
+    if (!slot) return;
+    setEntries((prev) => prev.map((e) => slot[e.key] ? { ...e, value: slot[e.key] } : e));
+  }
+
+  function handleClearSlot(i: number) {
+    const updated = slots.map((s, idx) => idx === i ? null : s);
+    setSlots(updated);
+    saveSlots(updated);
+  }
 
   useEffect(() => {
     (async () => {
@@ -379,6 +478,20 @@ export function ThemeEditor({ onClose }: { onClose: () => void }) {
                 </div>
               ))}
             </div>
+            <span className="text-xs font-semibold text-muted uppercase tracking-wider mt-3 block">Saved</span>
+            <div className="flex gap-2 overflow-x-auto pt-2 pb-1 scrollbar-none">
+              {slots.map((slot, i) => (
+                <div key={i} className="w-28 shrink-0">
+                  <SlotButton
+                    index={i}
+                    slot={slot}
+                    onSave={() => handleSaveSlot(i)}
+                    onLoad={() => handleLoadSlot(i)}
+                    onClear={() => handleClearSlot(i)}
+                  />
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* body: color rows + presets sidebar (desktop) */}
@@ -400,12 +513,25 @@ export function ThemeEditor({ onClose }: { onClose: () => void }) {
               })}
             </div>
 
-            {/* right: presets sidebar (desktop only) */}
+            {/* right: presets + slots sidebar (desktop only) */}
             <div className="hidden lg:block shrink-0">
               <span className="text-xs font-semibold text-muted uppercase tracking-wider px-1 block mb-2">Presets</span>
               <div className="grid grid-cols-2 gap-2">
                 {PRESETS.map((p) => (
                   <PresetButton key={p.name} preset={p} onClick={() => loadPreset(p)} />
+                ))}
+              </div>
+              <span className="text-xs font-semibold text-muted uppercase tracking-wider px-1 block mt-4 mb-2">Saved</span>
+              <div className="grid grid-cols-2 gap-2">
+                {slots.map((slot, i) => (
+                  <SlotButton
+                    key={i}
+                    index={i}
+                    slot={slot}
+                    onSave={() => handleSaveSlot(i)}
+                    onLoad={() => handleLoadSlot(i)}
+                    onClear={() => handleClearSlot(i)}
+                  />
                 ))}
               </div>
             </div>
