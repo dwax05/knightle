@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAuth } from "./auth";
 import { applyTheme } from "./theme-apply";
 import { IconArrowLeft } from "./icons";
@@ -153,27 +153,27 @@ const SLOT_COUNT = 4;
 const EMPTY_SLOTS: (Record<string, string> | null)[] = Array(SLOT_COUNT).fill(null);
 
 const GROUPS: { label: string; keys: string[] }[] = [
-  { label: "Page",    keys: ["--bg", "--fg", "--surface", "--border", "--muted"] },
-  { label: "Tiles",   keys: ["--tile-correct", "--tile-present", "--tile-absent", "--tile-text"] },
+  { label: "Page", keys: ["--bg", "--fg", "--surface", "--border", "--muted"] },
+  { label: "Tiles", keys: ["--tile-correct", "--tile-present", "--tile-absent", "--tile-text"] },
   { label: "Accents", keys: ["--success", "--error", "--accent"] },
   { label: "Buttons", keys: ["--button-bg", "--button-fg"] },
 ];
 
 const LABELS: Record<string, string> = {
-  "--bg":           "Background",
-  "--fg":           "Text",
-  "--surface":      "Surface",
-  "--border":       "Border",
-  "--muted":        "Muted text",
+  "--bg": "Background",
+  "--fg": "Text",
+  "--surface": "Surface",
+  "--border": "Border",
+  "--muted": "Muted text",
   "--tile-correct": "Correct",
   "--tile-present": "Present",
-  "--tile-absent":  "Absent",
-  "--tile-text":    "Tile text",
-  "--success":      "Success",
-  "--error":        "Error",
-  "--accent":       "Accent",
-  "--button-bg":    "Button",
-  "--button-fg":    "Button text",
+  "--tile-absent": "Absent",
+  "--tile-text": "Tile text",
+  "--success": "Success",
+  "--error": "Error",
+  "--accent": "Accent",
+  "--button-bg": "Button",
+  "--button-fg": "Button text",
 };
 
 function entriesToVars(entries: Entry[]): Record<string, string> {
@@ -340,6 +340,19 @@ export function ThemeEditor({ onClose }: { onClose: () => void }) {
   const [entries, setEntries] = useState<Entry[]>([]);
   const [savedCss, setSavedCss] = useState("");
   const [status, setStatus] = useState("");
+  const actionsRef = useRef<HTMLDivElement>(null);
+  const [actionsVisible, setActionsVisible] = useState(true);
+
+  useEffect(() => {
+    const el = actionsRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) setActionsVisible(true);
+      else setActionsVisible(entry.boundingClientRect.top > 0);
+    }, { threshold: 0.5 });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
   const [slots, setSlots] = useState<(Record<string, string> | null)[]>(EMPTY_SLOTS);
 
   function flash(msg: string) {
@@ -514,10 +527,10 @@ export function ThemeEditor({ onClose }: { onClose: () => void }) {
           </div>
 
           {/* actions */}
-          <div className="flex items-center gap-3 pt-2 border-t border-border-app/30">
+          <div ref={actionsRef} className="flex items-center gap-3 pt-2 border-t border-border-app/30">
             <button
               onClick={save}
-              className="px-4 py-2 rounded-lg bg-accent text-tiletext font-semibold shadow-[0_3px_0_rgba(0,0,0,0.35)] hover:brightness-110 active:translate-y-[3px] active:shadow-none transition-all duration-100"
+              className={`px-4 py-2 rounded-lg bg-accent text-tiletext font-semibold shadow-[0_3px_0_rgba(0,0,0,0.35)] hover:brightness-110 active:translate-y-[3px] active:shadow-none transition-all duration-100 lg:opacity-100 lg:pointer-events-auto ${actionsVisible ? "opacity-100 delay-10" : "opacity-0 pointer-events-none"}`}
             >
               Save
             </button>
@@ -544,6 +557,16 @@ export function ThemeEditor({ onClose }: { onClose: () => void }) {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Floating Save/Reset on mobile when actions bar is off-screen */}
+      <div className={`lg:hidden fixed bottom-8 left-9 z-30 flex gap-2 transition-all duration-150 ${actionsVisible ? "opacity-0 translate-y-2 pointer-events-none" : "opacity-100 translate-y-0 delay-10"}`}>
+        <button
+          onClick={save}
+          className="px-4 py-2 rounded-lg bg-accent text-tiletext font-semibold shadow-[0_3px_0_rgba(0,0,0,0.5)] hover:brightness-110 active:translate-y-[3px] active:shadow-none transition-all duration-100"
+        >
+          Save
+        </button>
       </div>
     </div>
   );
