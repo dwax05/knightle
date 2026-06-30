@@ -45,6 +45,14 @@ export function Board({
 }) {
   const [revealedCols, setRevealedCols] = useState<Set<number>>(new Set());
   const [pressedKey, setPressedKey] = useState<string | null>(null);
+  const [isLandscape, setIsLandscape] = useState(() => window.matchMedia("(orientation: landscape)").matches);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(orientation: landscape)");
+    const handler = () => setIsLandscape(mq.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
   const pressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -130,7 +138,11 @@ export function Board({
                   ? "border-border-app text-fg"
                   : "border-border-app/40 text-fg";
 
-              const tileSize = fullscreen ? "min(calc((100vw - 2.5rem) / 5), calc((100dvh - 19rem) / 6))" : undefined;
+              const tileSize = fullscreen
+                ? isLandscape
+                  ? "min(calc((26.5rem) / 5), calc((100dvh - 15rem) / 6))"
+                  : "min(calc((100vw - 2.5rem) / 5), calc((100dvh - 19rem) / 6))"
+                : undefined;
               return (
                 <div
                   key={c}
@@ -156,7 +168,7 @@ export function Board({
                 <button
                   key={key}
                   onClick={() => onKeyPress(key)}
-                  className={`${wide ? "px-2 sm:px-3 text-xs" : "flex-1 min-w-8"} ${fullscreen ? "h-14 text-base" : "h-13 sm:h-14"} rounded font-semibold uppercase ${bg} shadow-[0_3px_0_rgba(0,0,0,0.4)] hover:brightness-110 active:translate-y-[3px] active:shadow-none transition-all duration-75 ${pressedKey === key ? "translate-y-[3px] shadow-none" : ""}`}
+                  className={`${wide ? "px-2 sm:px-3 text-xs" : "flex-1 min-w-8"} ${fullscreen ? (isLandscape ? "h-10 text-sm" : "h-14 text-base") : "h-13 sm:h-14"} rounded font-semibold uppercase ${bg} shadow-[0_3px_0_rgba(0,0,0,0.4)] hover:brightness-110 active:translate-y-[3px] active:shadow-none transition-all duration-75 ${pressedKey === key ? "translate-y-[3px] shadow-none" : ""}`}
                 >
                   {key === "back" ? <IconBackspace className="w-5 h-5 mx-auto" /> : key}
                 </button>
