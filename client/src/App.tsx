@@ -132,12 +132,12 @@ function Home() {
         {/* Mobile: game only; desktop: game + side panels */}
         <div className="lg:contents w-full max-w-md flex flex-col gap-4">
           <div className={fullscreen
-            ? "fixed inset-0 z-40 flex flex-col bg-surface px-2 pt-3 pb-4 lg:static lg:rounded-2xl lg:border lg:border-border-app/30 lg:px-1 lg:py-4 lg:shadow-lg lg:shadow-black/40"
+            ? "fixed inset-0 z-40 flex flex-col bg-surface px-2 pt-3 pb-6 lg:static lg:rounded-2xl lg:border lg:border-border-app/30 lg:px-1 lg:py-4 lg:shadow-lg lg:shadow-black/40"
             : "flex flex-col items-center w-full lg:w-auto bg-surface border border-border-app/30 rounded-2xl px-1 py-4 lg:p-4 shadow-lg shadow-black/40"
           }>
             {versusCode ? (
               <>
-                <div className="w-full flex items-center justify-between pb-3 border-b border-border-app/40 mb-4 px-2 lg:px-0">
+                <div className={`w-full flex items-center justify-between pb-3 border-b border-border-app/40 px-2 lg:px-0 ${fullscreen ? "mb-1" : "mb-4"}`}>
                   <span className="text-sm font-semibold tracking-widest uppercase text-muted">Room {versusCode}</span>
                   <div className="flex items-center gap-2">
                     <button onClick={() => { setVersusCode(null); (document.activeElement as HTMLElement)?.blur(); }} className="text-sm text-muted hover:text-fg transition">Leave</button>

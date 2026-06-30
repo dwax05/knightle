@@ -112,7 +112,7 @@ export function Board({
   });
 
   return (
-    <div className={`flex flex-col items-center w-full max-w-md ${fullscreen ? "flex-1 justify-between gap-2 py-2" : "gap-4"}`}>
+    <div className={`flex flex-col items-center w-full max-w-md ${fullscreen ? "flex-1 justify-end gap-6 pb-2" : "gap-4"}`}>
       <div className={`grid ${fullscreen ? "gap-1" : "gap-1.5"}`}>
         {Array.from({ length: ROWS }, (_, r) => (
           <div
