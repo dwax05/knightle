@@ -273,7 +273,7 @@ function PresetButton({ preset, onClick }: { preset: Preset; onClick: () => void
         ))}
       </div>
       <span
-        className="text-xs font-medium"
+        className="text-xs font-medium flex items-end min-h-[2.5em]"
         style={{ color: preset.vars["--fg"] }}
       >
         {preset.name}
