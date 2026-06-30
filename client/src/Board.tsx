@@ -112,7 +112,7 @@ export function Board({
   });
 
   return (
-    <div className={`flex flex-col items-center w-full max-w-md ${fullscreen ? "flex-1 justify-end gap-6 pb-2" : "gap-4"}`}>
+    <div className={`flex flex-col items-center w-full max-w-md ${fullscreen ? "flex-1 justify-center gap-4 pb-2" : "gap-4"}`}>
       <div className={`grid ${fullscreen ? "gap-1" : "gap-1.5"}`}>
         {Array.from({ length: ROWS }, (_, r) => (
           <div
@@ -130,7 +130,7 @@ export function Board({
                   ? "border-border-app text-fg"
                   : "border-border-app/40 text-fg";
 
-              const tileSize = fullscreen ? "calc((100vw - 2.5rem) / 5)" : undefined;
+              const tileSize = fullscreen ? "min(calc((100vw - 2.5rem) / 5), calc((100dvh - 19rem) / 6))" : undefined;
               return (
                 <div
                   key={c}
@@ -145,7 +145,7 @@ export function Board({
         ))}
       </div>
 
-      <div className={`flex flex-col w-full ${fullscreen ? "gap-2" : "gap-1.5 sm:gap-2"}`}>
+      <div className={`flex flex-col w-full ${fullscreen ? "gap-1.5" : "gap-1.5 sm:gap-2"}`}>
         {KEYS.map((row, i) => (
           <div key={i} className={`flex justify-center ${fullscreen ? "gap-1.5" : "gap-1 sm:gap-1.5"}`}>
             {row.map((key) => {
@@ -156,7 +156,7 @@ export function Board({
                 <button
                   key={key}
                   onClick={() => onKeyPress(key)}
-                  className={`${wide ? "px-2 sm:px-3 text-xs" : "flex-1 min-w-8"} ${fullscreen ? "h-16 text-base" : "h-13 sm:h-14"} rounded font-semibold uppercase ${bg} shadow-[0_3px_0_rgba(0,0,0,0.4)] hover:brightness-110 active:translate-y-[3px] active:shadow-none transition-all duration-75 ${pressedKey === key ? "translate-y-[3px] shadow-none" : ""}`}
+                  className={`${wide ? "px-2 sm:px-3 text-xs" : "flex-1 min-w-8"} ${fullscreen ? "h-14 text-base" : "h-13 sm:h-14"} rounded font-semibold uppercase ${bg} shadow-[0_3px_0_rgba(0,0,0,0.4)] hover:brightness-110 active:translate-y-[3px] active:shadow-none transition-all duration-75 ${pressedKey === key ? "translate-y-[3px] shadow-none" : ""}`}
                 >
                   {key === "back" ? <IconBackspace className="w-5 h-5 mx-auto" /> : key}
                 </button>
