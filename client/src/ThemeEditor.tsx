@@ -427,8 +427,8 @@ export function ThemeEditor({ onClose }: { onClose: () => void }) {
   }
 
   function reset() {
+    animateNextApply.current = true;
     setEntries(parseCss(TEMPLATE));
-    applyTheme("");
     flash("Reset to default");
   }
 
