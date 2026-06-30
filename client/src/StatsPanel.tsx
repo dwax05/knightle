@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "./auth";
+import Counter from "./Counter";
 
 type Stats = {
   played: number;
@@ -57,10 +58,10 @@ export function StatsPanel({ refreshKey }: { refreshKey: number }) {
                     <div className="flex-1 bg-surface rounded-sm">
                       {count > 0 && (
                         <div
-                          className="bg-correct text-tiletext text-right font-semibold rounded-sm px-2 py-0.5"
+                          className="bg-correct text-tiletext text-right font-semibold rounded-sm px-2 py-0.5 flex justify-end"
                           style={{ width: `${Math.max(pct, 8)}%`, minWidth: 24, boxSizing: "border-box" }}
                         >
-                          {count}
+                          <Counter value={count} fontSize={13} gap={0} horizontalPadding={0} borderRadius={0} gradientHeight={0} fontWeight="600" />
                         </div>
                       )}
                     </div>
@@ -80,7 +81,9 @@ export function StatsPanel({ refreshKey }: { refreshKey: number }) {
 function Stat({ label, value }: { label: string; value: number }) {
   return (
     <div className="text-center">
-      <div className="text-[22px] font-bold text-fg">{value}</div>
+      <div className="text-[22px] font-bold text-fg flex justify-center">
+        <Counter value={value} fontSize={22} gap={0} horizontalPadding={0} borderRadius={0} gradientHeight={0} fontWeight="bold" />
+      </div>
       <div className="text-[11px] text-muted">{label}</div>
     </div>
   );
