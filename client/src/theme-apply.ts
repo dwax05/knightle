@@ -13,7 +13,7 @@ export function sanitizeThemeCss(raw: string): string {
     if (/url\s*\(|expression|javascript:|@import|<|>/i.test(value)) continue;
     if (value.length > 200) continue;
 
-    decls.push(`  ${name}: ${value};`);
+    decls.push(`  ${name}: ${value} !important;`);
   }
 
   if (decls.length === 0) return "";
@@ -31,8 +31,8 @@ export function applyTheme(raw: string) {
   }
   tag.textContent = clean;
   try {
-    if (clean) localStorage.setItem("cache:theme", clean);
-    else localStorage.removeItem("cache:theme");
+    if (clean) localStorage.setItem("cache:theme:v2", clean);
+    else localStorage.removeItem("cache:theme:v2");
   } catch { /* storage unavailable */ }
 }
 
