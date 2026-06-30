@@ -1,22 +1,17 @@
 import React, { useRef, useState, useEffect, useCallback, ReactNode, UIEvent } from 'react';
-import { motion, useInView } from 'motion/react';
+import { motion } from 'motion/react';
 
 interface AnimatedItemProps {
   children: ReactNode;
   index: number;
-  containerRef: React.RefObject<HTMLDivElement | null>;
-  onMouseEnter?: MouseEventHandler<HTMLDivElement>;
-  onClick?: MouseEventHandler<HTMLDivElement>;
+  inView: boolean;
+  onClick?: () => void;
 }
 
-function AnimatedItem({ children, index, containerRef, onMouseEnter, onClick }: AnimatedItemProps) {
-  const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { amount: 0.5, once: false, root: containerRef });
+function AnimatedItem({ children, index, inView, onClick }: AnimatedItemProps) {
   return (
     <motion.div
-      ref={ref}
       data-index={index}
-      onMouseEnter={onMouseEnter}
       onClick={onClick}
       initial={{ scale: 0.7, opacity: 0 }}
       animate={inView ? { scale: 1, opacity: 1 } : { scale: 0.7, opacity: 0 }}
@@ -56,6 +51,34 @@ export function AnimatedHorizontalList<T>({
   const [keyboardNav, setKeyboardNav] = useState(false);
   const [leftOpacity, setLeftOpacity] = useState(0);
   const [rightOpacity, setRightOpacity] = useState(1);
+  const [visibleItems, setVisibleItems] = useState<Set<number>>(new Set());
+
+  // Set up IntersectionObserver in the parent where the container ref is guaranteed
+  // to be populated by useEffect time — avoids the ref-timing bug where child
+  // useInView calls run before containerRef.current is set (breaks in prod).
+  useEffect(() => {
+    const container = listRef.current;
+    if (!container) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        setVisibleItems(prev => {
+          const next = new Set(prev);
+          entries.forEach(entry => {
+            const index = Number((entry.target as HTMLElement).dataset.index);
+            if (entry.isIntersecting) next.add(index);
+            else next.delete(index);
+          });
+          return next;
+        });
+      },
+      { root: container, threshold: 0.5 }
+    );
+
+    container.querySelectorAll<HTMLElement>('[data-index]').forEach(el => observer.observe(el));
+    return () => observer.disconnect();
+  }, [items]);
+
   const handleScroll = (e: UIEvent<HTMLDivElement>) => {
     const { scrollLeft, scrollWidth, clientWidth } = e.target as HTMLDivElement;
     setLeftOpacity(Math.min(scrollLeft / 50, 1));
@@ -123,7 +146,7 @@ export function AnimatedHorizontalList<T>({
           <AnimatedItem
             key={index}
             index={index}
-            containerRef={listRef}
+            inView={visibleItems.has(index)}
             onClick={() => handleItemClick(item, index)}
           >
             <div style={{ width: itemWidth }}>
