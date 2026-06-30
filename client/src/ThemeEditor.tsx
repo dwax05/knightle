@@ -296,42 +296,41 @@ function SlotButton({
   onClear: () => void;
 }) {
   return (
-    <div className="relative">
-      <button
-        onClick={slot ? onLoad : onSave}
-        className="w-full text-left px-3 py-2.5 rounded-xl border border-border-app/40 shadow-[0_3px_0_rgba(0,0,0,0.4)] hover:brightness-110 active:translate-y-[3px] active:shadow-none transition-all duration-100"
-        style={{ background: slot?.["--bg"] ?? undefined }}
-      >
-        <div className={`flex gap-1 mb-2 ${!slot ? "invisible" : ""}`}>
-          {SWATCH_KEYS.map((k) => (
-            <div key={k} className="h-2.5 flex-1 rounded-full" style={{ background: slot?.[k] }} />
-          ))}
-        </div>
-        <span className="text-xs font-medium" style={slot ? { color: slot["--fg"] } : undefined}>
-          {slot ? `Slot ${index + 1}` : <span className="text-muted">Slot {index + 1}</span>}
-        </span>
-      </button>
-
+    <button
+      onClick={slot ? onLoad : onSave}
+      className="relative w-full text-left px-3 py-2.5 rounded-xl border border-border-app/40 shadow-[0_3px_0_rgba(0,0,0,0.4)] hover:brightness-110 active:translate-y-[3px] active:shadow-none transition-all duration-100"
+      style={{ background: slot?.["--bg"] ?? undefined }}
+    >
       {slot && (
-        <button
+        <span
+          role="button"
           onClick={(e) => { e.stopPropagation(); onClear(); }}
-          className="absolute top-1.5 left-1.5 w-5 h-5 flex items-center justify-center rounded text-xs font-bold leading-none hover:brightness-110 transition"
+          className="absolute top-1.5 left-1.5 w-5 h-5 flex items-center justify-center rounded text-xs font-bold leading-none hover:brightness-110"
           style={{ color: slot["--muted"] }}
           aria-label="Clear slot"
         >
           ×
-        </button>
+        </span>
       )}
-      <button
+      <span
+        role="button"
         onClick={(e) => { e.stopPropagation(); onSave(); }}
-        className="absolute bottom-1.5 right-1.5 w-5 h-5 flex items-center justify-center rounded text-xs leading-none hover:brightness-110 transition"
+        className="absolute bottom-1.5 right-1.5 w-5 h-5 flex items-center justify-center rounded text-xs leading-none hover:brightness-110"
         style={slot ? { color: slot["--muted"] } : undefined}
         aria-label="Save to slot"
         title="Save current theme here"
       >
         ↓
-      </button>
-    </div>
+      </span>
+      <div className={`flex gap-1 mb-2 ${!slot ? "invisible" : ""}`}>
+        {SWATCH_KEYS.map((k) => (
+          <div key={k} className="h-2.5 flex-1 rounded-full" style={{ background: slot?.[k] }} />
+        ))}
+      </div>
+      <span className="text-xs font-medium" style={slot ? { color: slot["--fg"] } : undefined}>
+        {slot ? `Slot ${index + 1}` : <span className="text-muted">Slot {index + 1}</span>}
+      </span>
+    </button>
   );
 }
 
