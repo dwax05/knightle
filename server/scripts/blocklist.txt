@@ -1,0 +1,46 @@
+# Supplemental answer blocklist — words not caught by LDNOOBW
+# These are excluded from answers but remain valid guesses.
+# One word per line; lines starting with # are ignored.
+
+# Profanity missed by LDNOOBW
+asses
+boner
+boobs
+cunts
+dicks
+dildo
+erect
+farts
+feces
+fucks
+horny
+loins
+moans
+porno
+prick
+pubic
+raped
+raper
+rapes
+semen
+shite
+shits
+skank
+slut
+sluts
+sperm
+turds
+urine
+wanks
+
+# Slurs missed by LDNOOBW
+chink
+gooks
+gyppo
+gypsy
+kikes
+kraut
+micks
+nazis
+spade
+spook
