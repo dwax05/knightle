@@ -66,7 +66,7 @@ export function Leaderboard({ refreshKey }: { refreshKey: number }) {
           <button
             key={t}
             onClick={() => setTab(t)}
-            className={`flex-1 px-3 py-2 rounded-lg text-xs font-semibold transition-colors duration-150 ${tab === t ? "bg-surface text-fg shadow-sm" : "text-muted hover:text-fg"}`}
+            className={`flex-1 px-1 py-2 rounded-lg text-xs font-semibold transition-colors duration-150 whitespace-nowrap ${tab === t ? "bg-surface text-fg shadow-sm" : "text-muted hover:text-fg"}`}
           >
             {t === "wins" ? "Total Wins" : t === "streak" ? "Best Streak" : "Today"}
           </button>
