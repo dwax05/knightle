@@ -202,7 +202,7 @@ export function setApp(app: Express, client: MongoClient) {
       .aggregate([
         { $match: { wins: { $gt: 0 } } },
         { $sort: { wins: -1 } },
-        { $limit: 10 },
+        { $limit: 5 },
         {
           $lookup: {
             from: "Users",
