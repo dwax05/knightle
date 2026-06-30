@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "./auth";
+import Counter from "./Counter";
 
 type Entry = {
   name: string;
@@ -82,7 +83,15 @@ export function Leaderboard({ refreshKey }: { refreshKey: number }) {
             >
               <span className="w-6 text-center font-semibold">{medal(i)}</span>
               <span className="flex-1 truncate text-fg">{e.name}</span>
-              <span className="font-bold text-fg">{tab === "streak" ? e.maxStreak : e.wins}</span>
+              <Counter
+                value={tab === "streak" ? e.maxStreak : e.wins}
+                fontSize={14}
+                gap={0}
+                horizontalPadding={0}
+                borderRadius={0}
+                gradientHeight={0}
+                fontWeight="bold"
+              />
             </div>
           ) : (
             <div key={i} className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm opacity-20">
