@@ -342,6 +342,7 @@ export function ThemeEditor({ onClose }: { onClose: () => void }) {
   const [status, setStatus] = useState("");
   const actionsRef = useRef<HTMLDivElement>(null);
   const [actionsVisible, setActionsVisible] = useState(true);
+  const [saveFlash, setSaveFlash] = useState(false);
 
   useEffect(() => {
     const el = actionsRef.current;
@@ -421,10 +422,12 @@ export function ThemeEditor({ onClose }: { onClose: () => void }) {
   }
 
   async function save() {
+    setSaveFlash(true);
+    setTimeout(() => setSaveFlash(false), 150);
     const css = serializeCss(entries);
     const data = await authedPost("/api/theme/save", { css });
-    if (!data.error) setSavedCss(css);
-    flash(data.error || "Saved!");
+    if (data.error) flash(data.error);
+    else setSavedCss(css);
   }
 
   function reset() {
@@ -528,6 +531,7 @@ export function ThemeEditor({ onClose }: { onClose: () => void }) {
             <button
               onClick={save}
               className={`px-4 py-2 rounded-lg bg-accent text-tiletext font-semibold shadow-[0_3px_0_rgba(0,0,0,0.35)] hover:brightness-110 active:translate-y-[3px] active:shadow-none transition-all duration-100 lg:opacity-100 lg:pointer-events-auto ${actionsVisible ? "opacity-100 delay-10" : "opacity-0 pointer-events-none"}`}
+              style={saveFlash ? { background: "var(--success)" } : undefined}
             >
               Save
             </button>
@@ -561,6 +565,7 @@ export function ThemeEditor({ onClose }: { onClose: () => void }) {
         <button
           onClick={save}
           className="px-4 py-2 rounded-lg bg-accent text-tiletext font-semibold shadow-[0_3px_0_rgba(0,0,0,0.5)] hover:brightness-110 active:translate-y-[3px] active:shadow-none transition-all duration-100"
+          style={saveFlash ? { background: "var(--success)" } : undefined}
         >
           Save
         </button>
