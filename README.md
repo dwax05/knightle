@@ -21,7 +21,7 @@ A full-stack Wordle clone with user accounts, stats tracking, a leaderboard, a c
 - **Stats** — win rate, current/max streak, guess distribution
 - **Leaderboard** — top 5 players across three tabs: total wins, best streak, and wins today
 - **Versus mode** — create a room, share a 4-letter code, race a friend on the same word; two modes: **Speed** (first to solve wins) and **Precision** (fewest guesses wins); rematch support
-- **Theme editor** — inject custom CSS to restyle the board per-user (Gruvbox dark default)
+- **Theme editor** — choose from built-in color presets or customize individual color tokens; theme is saved per-user and applied on login (UCF Knights default)
 
 ## Local dev
 
