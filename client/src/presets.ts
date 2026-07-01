@@ -125,6 +125,36 @@ export const PRESETS: Preset[] = [
       "--accent": "#c4a7e7", "--button-bg": "#26233a", "--button-fg": "#e0def4",
     },
   },
+  {
+    name: "UCF Knights",
+    vars: {
+      "--bg": "#0d0d0d", "--fg": "#ffffff", "--surface": "#1a1800",
+      "--border": "#2e2900", "--muted": "#9a9080",
+      "--tile-correct": "#ffffff", "--tile-present": "#ffc904", "--tile-absent": "#767676",
+      "--tile-text": "#000000", "--success": "#ffc904", "--error": "#ff4444",
+      "--accent": "#ffc904", "--button-bg": "#1a1800", "--button-fg": "#ffc904",
+    },
+  },
+  {
+    name: "Kanagawa",
+    vars: {
+      "--bg": "#1f1f28", "--fg": "#dcd7ba", "--surface": "#2a2a37",
+      "--border": "#54546d", "--muted": "#727169",
+      "--tile-correct": "#76946a", "--tile-present": "#dca561", "--tile-absent": "#54546d",
+      "--tile-text": "#dcd7ba", "--success": "#76946a", "--error": "#c34043",
+      "--accent": "#7e9cd8", "--button-bg": "#2a2a37", "--button-fg": "#dcd7ba",
+    },
+  },
+  {
+    name: "Ayu Mirage",
+    vars: {
+      "--bg": "#1f2430", "--fg": "#cbccc6", "--surface": "#242936",
+      "--border": "#343f4c", "--muted": "#707a8c",
+      "--tile-correct": "#a6cc70", "--tile-present": "#ffd173", "--tile-absent": "#343f4c",
+      "--tile-text": "#1f2430", "--success": "#a6cc70", "--error": "#ff6666",
+      "--accent": "#5ccfe6", "--button-bg": "#242936", "--button-fg": "#cbccc6",
+    },
+  },
 ];
 
 export function serializePresetCss(vars: Record<string, string>): string {
