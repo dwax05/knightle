@@ -10,17 +10,12 @@ import { HelpModal } from "./HelpModal";
 import DotField from "./DotField";
 import { getDefaultPresetCss } from "./presets";
 import { applyTheme } from "./theme-apply";
+import { ThemeEditor } from "./ThemeEditor";
+import { ProfilePage } from "./ProfilePage";
 import type { VersusMode } from "./Versus";
 
-const ThemeEditor = lazy(() => import("./ThemeEditor").then(m => ({ default: m.ThemeEditor })));
-const ProfilePage = lazy(() => import("./ProfilePage").then(m => ({ default: m.ProfilePage })));
 const VersusLobbyModal = lazy(() => import("./Versus").then(m => ({ default: m.VersusLobbyModal })));
 const VersusGame = lazy(() => import("./VersusGame").then(m => ({ default: m.VersusGame })));
-
-const preloadMap = {
-  profile: () => import("./ProfilePage"),
-  theme: () => import("./ThemeEditor"),
-} as const;
 
 const NAV_ITEMS = [
   { view: "profile" as const, icon: <IconUser className="w-4 h-4" />, label: "Profile" },
@@ -79,8 +74,6 @@ function HamburgerMenu({ onNavigate, dropUp = false }: { onNavigate: (view: "the
               <div key={item.view}>
                 <button
                   onClick={() => navigate(item.view)}
-                  onMouseEnter={() => preloadMap[item.view]()}
-                  onTouchStart={() => preloadMap[item.view]()}
                   className="flex items-center gap-3 w-full px-4 py-3 text-sm font-medium text-muted hover:text-fg hover:bg-bg/50 transition-colors duration-150"
                 >
                   {item.icon}
@@ -223,8 +216,8 @@ return (
         exit={{ opacity: 0 }}
         transition={{ duration: 0.2 }}
       >
-      {view === "theme" && <Suspense fallback={null}><ThemeEditor onClose={() => setView("game")} /></Suspense>}
-      {view === "profile" && <Suspense fallback={null}><ProfilePage onClose={() => setView("game")} /></Suspense>}
+      {view === "theme" && <ThemeEditor onClose={() => setView("game")} />}
+      {view === "profile" && <ProfilePage onClose={() => setView("game")} />}
       {view === "game" && (
         <div className="max-w-4xl mx-auto px-4 py-6 relative">
           <Suspense fallback={null}>
