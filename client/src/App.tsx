@@ -271,7 +271,7 @@ function Home() {
                     <div className="w-full flex items-center justify-between pb-3 border-b border-border-app/40 mb-4 px-2 lg:px-0">
                       <div className="flex items-center gap-2">
                         <button
-                          onClick={() => setHelpOpen(true)}
+                          onClick={(e) => { setHelpOpen(true); (e.currentTarget as HTMLButtonElement).blur(); }}
                           aria-label="How to play"
                           className="w-7 h-7 flex items-center justify-center rounded-md text-muted hover:text-fg transition"
                         >
