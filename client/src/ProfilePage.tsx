@@ -1,6 +1,98 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "./auth";
 import { IconArrowLeft } from "./icons";
+import { Stack } from "./Stack";
+
+type ArchiveEntry = {
+  _id: string;
+  answer: string;
+  guesses: string[];
+  marks: ("correct" | "present" | "absent")[][];
+  won: boolean;
+  guessNum: number;
+  playedAt: string;
+};
+
+const MARK_BG: Record<string, string> = {
+  correct: "var(--tile-correct)",
+  present: "var(--tile-present)",
+  absent:  "var(--tile-absent)",
+};
+
+function ArchiveCard({ game }: { game: ArchiveEntry }) {
+  return (
+    <div className="w-full h-full bg-surface border border-border-app/40 rounded-2xl p-4 flex flex-col gap-3 select-none">
+      <div className="flex items-center justify-between">
+        <span className="text-xs text-muted">
+          {new Date(game.playedAt).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}
+        </span>
+        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${game.won ? "bg-success/15 text-success" : "bg-error/15 text-error"}`}>
+          {game.won ? `${game.guessNum}/6` : "✕"}
+        </span>
+      </div>
+
+      <div className="flex-1 flex items-center justify-center">
+        <div className="flex flex-col gap-1">
+          {Array.from({ length: 6 }, (_, r) => (
+            <div key={r} className="flex gap-1">
+              {Array.from({ length: 5 }, (_, c) => {
+                const mark = game.marks[r]?.[c];
+                return (
+                  <div
+                    key={c}
+                    className="w-8 h-8 rounded"
+                    style={{
+                      background: mark ? MARK_BG[mark] : "var(--border)",
+                      opacity: mark ? 1 : 0.25,
+                    }}
+                  />
+                );
+              })}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="text-center">
+        <span className="text-xl font-bold uppercase tracking-widest text-fg">{game.answer}</span>
+      </div>
+    </div>
+  );
+}
+
+function ArchiveSection() {
+  const { authedPost } = useAuth();
+  const [games, setGames] = useState<ArchiveEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    authedPost("/api/archive", {}).then((data) => {
+      setLoading(false);
+      if (!data.error && Array.isArray(data.games)) setGames(data.games);
+    });
+  }, [authedPost]);
+
+  if (loading) {
+    return <div className="text-xs text-muted text-center py-4">Loading...</div>;
+  }
+
+  if (games.length === 0) {
+    return (
+      <div className="text-sm text-muted text-center py-4">No games yet — finish a game to see it here.</div>
+    );
+  }
+
+  const cards = games.map((g) => <ArchiveCard key={g._id} game={g} />);
+
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="h-80 w-full">
+        <Stack cards={cards} />
+      </div>
+      <p className="text-xs text-muted text-center">Drag or tap to cycle through your last {games.length} games</p>
+    </div>
+  );
+}
 
 type Status = { type: "error" | "success"; message: string } | null;
 
@@ -121,6 +213,10 @@ export function ProfilePage({ onClose }: { onClose: () => void }) {
             <p className="text-xs text-muted">{user?.login}</p>
           </div>
         </div>
+
+        <Section title="Game archive">
+          <ArchiveSection />
+        </Section>
 
         <Section title="Change password">
           <input
