@@ -101,11 +101,11 @@ export function Stack({
         >
           <motion.div
             className="rounded-2xl overflow-hidden w-full h-full"
+            style={{ transformOrigin: '100% 90%' }}
             onClick={() => disableDrag && sendToBack(card.id)}
             animate={{
               rotateZ: (stack.length - index - 1) * 4,
               scale: 1 + index * 0.06 - stack.length * 0.06,
-              transformOrigin: '90% 90%',
             }}
             initial={false}
             transition={{

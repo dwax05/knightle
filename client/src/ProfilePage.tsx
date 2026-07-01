@@ -110,11 +110,11 @@ function ArchiveSection() {
     );
   }
 
-  const cards = loading ? SKELETON_CARDS : games.map((g) => <ArchiveCard key={g._id} game={g} />);
+  const cards = loading ? SKELETON_CARDS : [...games].reverse().map((g) => <ArchiveCard key={g._id} game={g} />);
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="h-80 w-full">
+      <div className="h-80 w-full pr-10">
         <Stack cards={cards} />
       </div>
       {!loading && <p className="text-xs text-muted text-center">Drag or tap to cycle through your last {games.length} games</p>}
