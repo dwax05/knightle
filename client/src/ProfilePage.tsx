@@ -60,6 +60,33 @@ function ArchiveCard({ game }: { game: ArchiveEntry }) {
   );
 }
 
+function ArchiveCardSkeleton() {
+  return (
+    <div className="w-full h-full bg-surface border border-border-app/40 rounded-2xl p-4 flex flex-col gap-3 select-none">
+      <div className="flex items-center justify-between">
+        <div className="h-3 w-20 rounded bg-border/40 animate-pulse" />
+        <div className="h-4 w-8 rounded-full bg-border/40 animate-pulse" />
+      </div>
+      <div className="flex-1 flex items-center justify-center">
+        <div className="flex flex-col gap-1">
+          {Array.from({ length: 6 }, (_, r) => (
+            <div key={r} className="flex gap-1">
+              {Array.from({ length: 5 }, (_, c) => (
+                <div key={c} className="w-8 h-8 rounded bg-border/30 animate-pulse" style={{ animationDelay: `${(r * 5 + c) * 30}ms` }} />
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="flex justify-center">
+        <div className="h-6 w-32 rounded bg-border/40 animate-pulse" />
+      </div>
+    </div>
+  );
+}
+
+const SKELETON_CARDS = [<ArchiveCardSkeleton key={0} />, <ArchiveCardSkeleton key={1} />, <ArchiveCardSkeleton key={2} />];
+
 function ArchiveSection() {
   const { authedPost } = useAuth();
   const [games, setGames] = useState<ArchiveEntry[]>([]);
@@ -72,24 +99,20 @@ function ArchiveSection() {
     });
   }, [authedPost]);
 
-  if (loading) {
-    return <div className="text-xs text-muted text-center py-4">Loading...</div>;
-  }
-
-  if (games.length === 0) {
+  if (!loading && games.length === 0) {
     return (
       <div className="text-sm text-muted text-center py-4">No games yet — finish a game to see it here.</div>
     );
   }
 
-  const cards = games.map((g) => <ArchiveCard key={g._id} game={g} />);
+  const cards = loading ? SKELETON_CARDS : games.map((g) => <ArchiveCard key={g._id} game={g} />);
 
   return (
     <div className="flex flex-col gap-2">
       <div className="h-80 w-full">
         <Stack cards={cards} />
       </div>
-      <p className="text-xs text-muted text-center">Drag or tap to cycle through your last {games.length} games</p>
+      {!loading && <p className="text-xs text-muted text-center">Drag or tap to cycle through your last {games.length} games</p>}
     </div>
   );
 }
