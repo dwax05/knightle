@@ -16,12 +16,12 @@ export function HelpModal({ onClose }: { onClose: () => void }) {
     <motion.div
       className="fixed inset-0 z-50 flex items-center justify-center px-4"
       onClick={onClose}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
+      initial={{ opacity: 0, backdropFilter: "blur(0px)" }}
+      animate={{ opacity: 1, backdropFilter: "blur(4px)" }}
+      exit={{ opacity: 0, backdropFilter: "blur(0px)" }}
       transition={{ duration: 0.2 }}
     >
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+      <div className="absolute inset-0 bg-black/60" />
       <motion.div
         className="relative bg-surface border border-border-app/40 rounded-2xl shadow-2xl shadow-black/60 p-6 w-full max-w-sm flex flex-col gap-5"
         onClick={(e) => e.stopPropagation()}

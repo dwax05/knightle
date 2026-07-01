@@ -81,9 +81,9 @@ export function VersusLobbyModal({
     <motion.div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
       onClick={onClose}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
+      initial={{ opacity: 0, backdropFilter: "blur(0px)" }}
+      animate={{ opacity: 1, backdropFilter: "blur(4px)" }}
+      exit={{ opacity: 0, backdropFilter: "blur(0px)" }}
       transition={{ duration: 0.2 }}
     >
       <div className="absolute inset-0 bg-black/50" />
@@ -92,7 +92,7 @@ export function VersusLobbyModal({
           {phase === "lobby" ? (
             <motion.div
               key="lobby"
-              className="flex flex-col gap-5 p-8 rounded-2xl bg-surface border border-border-app/40 shadow-xl shadow-black/60"
+              className="flex flex-col gap-5 p-8 rounded-2xl bg-surface border border-border-app/40 shadow-2xl shadow-black/60"
               variants={CARD_VARIANTS}
               initial="hidden"
               animate="visible"
@@ -146,7 +146,7 @@ export function VersusLobbyModal({
           ) : (
             <motion.div
               key="waiting"
-              className="flex flex-col gap-5 p-8 rounded-2xl bg-surface border border-border-app/40 shadow-xl shadow-black/60 text-center"
+              className="flex flex-col gap-5 p-8 rounded-2xl bg-surface border border-border-app/40 shadow-2xl shadow-black/60 text-center"
               variants={CARD_VARIANTS}
               initial="hidden"
               animate="visible"
