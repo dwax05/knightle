@@ -1,19 +1,21 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, lazy, Suspense } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { AuthProvider, useAuth } from "./auth";
 import { AuthForm } from "./AuthForm";
 import { Game } from "./Game";
 import { StatsPanel } from "./StatsPanel";
-import { ThemeEditor } from "./ThemeEditor";
 import { Leaderboard } from "./Leaderboard";
-import { VersusLobbyModal, type VersusMode } from "./Versus";
-import { VersusGame } from "./VersusGame";
-import { ProfilePage } from "./ProfilePage";
 import { IconUser, IconPalette, IconBarChart, IconLightning, IconExpand, IconCompress, IconQuestion } from "./icons";
 import { HelpModal } from "./HelpModal";
 import DotField from "./DotField";
 import { getDefaultPresetCss } from "./presets";
 import { applyTheme } from "./theme-apply";
+import type { VersusMode } from "./Versus";
+
+const ThemeEditor = lazy(() => import("./ThemeEditor").then(m => ({ default: m.ThemeEditor })));
+const ProfilePage = lazy(() => import("./ProfilePage").then(m => ({ default: m.ProfilePage })));
+const VersusLobbyModal = lazy(() => import("./Versus").then(m => ({ default: m.VersusLobbyModal })));
+const VersusGame = lazy(() => import("./VersusGame").then(m => ({ default: m.VersusGame })));
 
 const NAV_ITEMS = [
   { view: "profile" as const, icon: <IconUser className="w-4 h-4" />, label: "Profile" },
@@ -214,18 +216,20 @@ function Home() {
         exit={{ opacity: 0 }}
         transition={{ duration: 0.2 }}
       >
-      {view === "theme" && <ThemeEditor onClose={() => setView("game")} />}
-      {view === "profile" && <ProfilePage onClose={() => setView("game")} />}
+      {view === "theme" && <Suspense fallback={null}><ThemeEditor onClose={() => setView("game")} /></Suspense>}
+      {view === "profile" && <Suspense fallback={null}><ProfilePage onClose={() => setView("game")} /></Suspense>}
       {view === "game" && (
         <div className="max-w-4xl mx-auto px-4 py-6 relative">
-          <AnimatePresence>
-            {lobbyOpen && (
-              <VersusLobbyModal
-                onStart={(code, mode) => { sessionStorage.setItem("versusCode", code); sessionStorage.setItem("versusMode", mode); setVersusCode(code); setVersusMode(mode); setLobbyOpen(false); }}
-                onClose={() => setLobbyOpen(false)}
-              />
-            )}
-          </AnimatePresence>
+          <Suspense fallback={null}>
+            <AnimatePresence>
+              {lobbyOpen && (
+                <VersusLobbyModal
+                  onStart={(code, mode) => { sessionStorage.setItem("versusCode", code); sessionStorage.setItem("versusMode", mode); setVersusCode(code); setVersusMode(mode); setLobbyOpen(false); }}
+                  onClose={() => setLobbyOpen(false)}
+                />
+              )}
+            </AnimatePresence>
+          </Suspense>
 
           {statsOpen && (
             <div className="lg:hidden">
@@ -264,7 +268,7 @@ function Home() {
                         </button>
                       </div>
                     </div>
-                    <VersusGame code={versusCode} mode={versusMode} fullscreen={fullscreen} onExit={() => { sessionStorage.removeItem("versusCode"); sessionStorage.removeItem("versusMode"); sessionStorage.removeItem("versusGuesses"); sessionStorage.removeItem("versusMarks"); setVersusCode(null); (document.activeElement as HTMLElement)?.blur(); }} />
+                    <Suspense fallback={null}><VersusGame code={versusCode} mode={versusMode} fullscreen={fullscreen} onExit={() => { sessionStorage.removeItem("versusCode"); sessionStorage.removeItem("versusMode"); sessionStorage.removeItem("versusGuesses"); sessionStorage.removeItem("versusMarks"); setVersusCode(null); (document.activeElement as HTMLElement)?.blur(); }} /></Suspense>
                   </>
                 ) : (
                   <>
