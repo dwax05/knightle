@@ -17,6 +17,11 @@ const ProfilePage = lazy(() => import("./ProfilePage").then(m => ({ default: m.P
 const VersusLobbyModal = lazy(() => import("./Versus").then(m => ({ default: m.VersusLobbyModal })));
 const VersusGame = lazy(() => import("./VersusGame").then(m => ({ default: m.VersusGame })));
 
+const preloadMap = {
+  profile: () => import("./ProfilePage"),
+  theme: () => import("./ThemeEditor"),
+} as const;
+
 const NAV_ITEMS = [
   { view: "profile" as const, icon: <IconUser className="w-4 h-4" />, label: "Profile" },
   { view: "theme" as const, icon: <IconPalette className="w-4 h-4" />, label: "Theme" },
@@ -74,6 +79,8 @@ function HamburgerMenu({ onNavigate, dropUp = false }: { onNavigate: (view: "the
               <div key={item.view}>
                 <button
                   onClick={() => navigate(item.view)}
+                  onMouseEnter={() => preloadMap[item.view]()}
+                  onTouchStart={() => preloadMap[item.view]()}
                   className="flex items-center gap-3 w-full px-4 py-3 text-sm font-medium text-muted hover:text-fg hover:bg-bg/50 transition-colors duration-150"
                 >
                   {item.icon}
@@ -207,7 +214,7 @@ function Home() {
     reloadTheme();
   }, [view]);
 
-  return (
+return (
     <AnimatePresence mode="wait">
       <motion.div
         key={view}
