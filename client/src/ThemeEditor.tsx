@@ -3,6 +3,7 @@ import { useAuth } from "./auth";
 import { applyTheme, applyThemeAnimated } from "./theme-apply";
 import { IconArrowLeft } from "./icons";
 import { AnimatedHorizontalList } from "./AnimatedHorizontalList";
+import { TabBar } from "./TabBar";
 
 const PREVIEW_ROWS: { word: string; marks: ("correct" | "present" | "absent")[] }[] = [
   { word: "CRANE", marks: ["absent",  "present", "absent",  "correct", "absent"]  },
@@ -397,17 +398,15 @@ function SidebarCard({
 
   return (
     <div className="hidden lg:flex flex-col shrink-0 w-96 bg-surface border border-border-app/30 rounded-2xl p-4 gap-3">
-      <div className="flex items-center gap-1 p-1 bg-bg rounded-xl">
-        {(["themes", "preview"] as SidebarTab[]).map((t) => (
-          <button
-            key={t}
-            onClick={() => setTab(t)}
-            className={`flex-1 px-1 py-2 rounded-lg text-xs font-semibold transition-colors duration-150 capitalize ${tab === t ? "bg-surface text-fg shadow-sm" : "text-muted hover:text-fg"}`}
-          >
-            {t === "themes" ? "Themes" : "Preview"}
-          </button>
-        ))}
-      </div>
+      <TabBar
+        layoutId="theme-editor-tabs"
+        tabs={[
+          { value: "themes" as SidebarTab, label: "Themes" },
+          { value: "preview" as SidebarTab, label: "Preview" },
+        ]}
+        value={tab}
+        onChange={setTab}
+      />
 
       {tab === "themes" ? (
         <div className="flex flex-col gap-3">

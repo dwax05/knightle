@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { useAuth } from "./auth";
 import Counter from "./Counter";
+import { TabBar } from "./TabBar";
 
 type Entry = {
   name: string;
@@ -77,17 +78,12 @@ export function Leaderboard({ refreshKey }: { refreshKey: number }) {
   return (
     <div className="w-full max-w-md lg:w-64 bg-surface border border-border-app/30 rounded-2xl p-4 flex flex-col gap-3 shadow-lg shadow-black/40">
       <h3 className="text-sm font-semibold tracking-widest uppercase text-muted text-center pb-3 border-b border-border-app/40">Leaderboard</h3>
-      <div className="flex items-center gap-1 p-1 bg-bg rounded-xl">
-        {(["wins", "streak", "today"] as Tab[]).map((t) => (
-          <button
-            key={t}
-            onClick={() => switchTab(t)}
-            className={`flex-1 px-1 py-2 rounded-lg text-xs font-semibold transition-colors duration-150 whitespace-nowrap ${tab === t ? "bg-surface text-fg shadow-sm" : "text-muted hover:text-fg"}`}
-          >
-            {TAB_LABELS[t]}
-          </button>
-        ))}
-      </div>
+      <TabBar
+        layoutId="leaderboard-tabs"
+        tabs={(["wins", "streak", "today"] as Tab[]).map((t) => ({ value: t, label: TAB_LABELS[t] }))}
+        value={tab}
+        onChange={switchTab}
+      />
       <div className="overflow-hidden">
         <AnimatePresence mode="popLayout" custom={direction} initial={false}>
           <motion.div

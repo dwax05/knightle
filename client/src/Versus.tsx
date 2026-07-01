@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useAuth } from "./auth";
 import { IconLightning, IconTarget } from "./icons";
+import { TabBar } from "./TabBar";
 
 type Phase = "lobby" | "waiting";
 export type VersusMode = "speed" | "precision";
@@ -83,19 +84,12 @@ export function VersusLobbyModal({
 
               {/* Create section */}
               <div className="flex flex-col gap-2">
-                <div className="flex items-center gap-1 p-1 bg-bg rounded-xl">
-                  {MODES.map(({ value, label, icon }) => (
-                    <button
-                      key={value}
-                      onClick={() => setMode(value)}
-                      className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-colors duration-150 ${
-                        mode === value ? "bg-surface text-fg shadow-sm" : "text-muted hover:text-fg"
-                      }`}
-                    >
-                      {icon}{label}
-                    </button>
-                  ))}
-                </div>
+                <TabBar
+                  layoutId="versus-mode-tabs"
+                  tabs={MODES.map(({ value, label, icon }) => ({ value, label: <>{icon}{label}</> }))}
+                  value={mode}
+                  onChange={setMode}
+                />
                 <p className="text-xs text-muted text-center">{activeMeta.desc}</p>
                 <button onClick={createRoom} disabled={busy} className="w-full py-2.5 rounded-lg bg-accent text-tiletext font-semibold shadow-[0_3px_0_rgba(0,0,0,0.35)] hover:brightness-110 active:translate-y-[3px] active:shadow-none disabled:opacity-50 disabled:shadow-none disabled:translate-y-0 transition-all duration-100">
                   {busy ? "Creating..." : "Create a room"}
