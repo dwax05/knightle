@@ -352,6 +352,7 @@ export default function App() {
   return (
     <AuthProvider>
       <main>
+        <div className="fixed inset-0 bg-bg" style={{ zIndex: -20 }} />
         <div className="fixed inset-0 -z-10">
           <DotField glowColor="transparent" cursorRadius={150} returnSpeed={0.02} />
         </div>
