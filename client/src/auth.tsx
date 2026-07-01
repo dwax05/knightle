@@ -39,7 +39,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     tokenRef.current = null;
     localStorage.removeItem("user");
     localStorage.removeItem("rememberMe");
-    localStorage.removeItem("seenHelp");
   }
 
   async function refresh(): Promise<boolean> {
@@ -119,6 +118,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (data.error) return data.error;
     tokenRef.current = data.accessToken;
     persistUser({ id: data.id, login: data.login });
+    localStorage.removeItem("seenHelp");
     return null;
   }
 
