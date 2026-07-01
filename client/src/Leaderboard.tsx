@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { useAuth } from "./auth";
 import Counter from "./Counter";
@@ -64,11 +64,7 @@ export function Leaderboard({ refreshKey }: { refreshKey: number }) {
     return () => { cancelled = true; };
   }, [refreshKey, authedPost]);
 
-  const prevTabRef = useRef<Tab>(tab);
-  const direction = TAB_ORDER.indexOf(tab) > TAB_ORDER.indexOf(prevTabRef.current) ? 1 : -1;
-
   function switchTab(t: Tab) {
-    prevTabRef.current = tab;
     setTab(t);
     localStorage.setItem("leaderboard:tab", t);
   }
@@ -85,19 +81,13 @@ export function Leaderboard({ refreshKey }: { refreshKey: number }) {
         onChange={switchTab}
       />
       <div className="overflow-hidden">
-        <AnimatePresence mode="popLayout" custom={direction} initial={false}>
+        <AnimatePresence mode="wait" initial={false}>
           <motion.div
             key={tab}
-            custom={direction}
-            variants={{
-              enter: (d: number) => ({ x: `${d * 20}%`, opacity: 0 }),
-              center: { x: 0, opacity: 1 },
-              exit: (d: number) => ({ x: `${d * -20}%`, opacity: 0 }),
-            }}
-            initial="enter"
-            animate="center"
-            exit="exit"
-            transition={{ duration: 0.2, ease: "easeInOut" }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
             className="flex flex-col gap-1"
           >
             {Array.from({ length: 5 }, (_, i) => {
