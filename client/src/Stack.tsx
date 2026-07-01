@@ -5,40 +5,37 @@ interface CardRotateProps {
   children: React.ReactNode;
   onSendToBack: () => void;
   sensitivity: number;
-  disableDrag?: boolean;
+  mobile?: boolean;
 }
 
-function CardRotate({ children, onSendToBack, sensitivity, disableDrag = false }: CardRotateProps) {
+function CardRotate({ children, onSendToBack, sensitivity, mobile = false }: CardRotateProps) {
   const x = useMotionValue(0);
   const y = useMotionValue(0);
   const rotateX = useTransform(y, [-100, 100], [60, -60]);
   const rotateY = useTransform(x, [-100, 100], [-60, 60]);
 
   function handleDragEnd(_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) {
-    if (Math.abs(info.offset.x) > sensitivity || Math.abs(info.offset.y) > sensitivity) {
+    const triggered = mobile
+      ? Math.abs(info.offset.x) > sensitivity
+      : Math.abs(info.offset.x) > sensitivity || Math.abs(info.offset.y) > sensitivity;
+
+    if (triggered) {
       onSendToBack();
     } else {
       x.set(0);
-      y.set(0);
+      if (!mobile) y.set(0);
     }
-  }
-
-  if (disableDrag) {
-    return (
-      <motion.div className="absolute inset-0 cursor-pointer" style={{ x: 0, y: 0 }}>
-        {children}
-      </motion.div>
-    );
   }
 
   return (
     <motion.div
-      className="absolute inset-0 cursor-grab"
-      style={{ x, y, rotateX, rotateY }}
-      drag
+      className={`absolute inset-0 ${mobile ? 'touch-pan-y' : 'cursor-grab'}`}
+      style={{ x, y: mobile ? 0 : y, rotateX: mobile ? 0 : rotateX, rotateY }}
+      drag={mobile ? 'x' : true}
       dragConstraints={{ top: 0, right: 0, bottom: 0, left: 0 }}
       dragElastic={0.6}
-      whileTap={{ cursor: 'grabbing' }}
+      whileTap={mobile ? undefined : { cursor: 'grabbing' }}
+      onTap={mobile ? onSendToBack : undefined}
       onDragEnd={handleDragEnd}
     >
       {children}
@@ -50,7 +47,6 @@ interface StackProps {
   cards: React.ReactNode[];
   sensitivity?: number;
   animationConfig?: { stiffness: number; damping: number };
-  mobileClickOnly?: boolean;
   mobileBreakpoint?: number;
 }
 
@@ -58,7 +54,6 @@ export function Stack({
   cards,
   sensitivity = 150,
   animationConfig = { stiffness: 260, damping: 20 },
-  mobileClickOnly = true,
   mobileBreakpoint = 768,
 }: StackProps) {
   const [isMobile, setIsMobile] = useState(false);
@@ -69,8 +64,6 @@ export function Stack({
     window.addEventListener('resize', check);
     return () => window.removeEventListener('resize', check);
   }, [mobileBreakpoint]);
-
-  const disableDrag = mobileClickOnly && isMobile;
 
   const [stack, setStack] = useState<{ id: number; content: React.ReactNode }[]>(() =>
     cards.map((content, i) => ({ id: i, content }))
@@ -97,12 +90,11 @@ export function Stack({
           key={card.id}
           onSendToBack={() => sendToBack(card.id)}
           sensitivity={sensitivity}
-          disableDrag={disableDrag}
+          mobile={isMobile}
         >
           <motion.div
             className="rounded-2xl overflow-hidden w-full h-full"
             style={{ transformOrigin: '100% 90%' }}
-            onClick={() => disableDrag && sendToBack(card.id)}
             animate={{
               rotateZ: (stack.length - index - 1) * 4,
               scale: 1 + index * 0.06 - stack.length * 0.06,
