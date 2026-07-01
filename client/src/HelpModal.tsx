@@ -3,7 +3,12 @@ import { motion } from "motion/react";
 
 export function HelpModal({ onClose }: { onClose: () => void }) {
   useEffect(() => {
-    function onKey(e: KeyboardEvent) { if (e.key === "Escape") onClose(); }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        (document.activeElement as HTMLElement)?.blur();
+        onClose();
+      }
+    }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
@@ -28,7 +33,7 @@ export function HelpModal({ onClose }: { onClose: () => void }) {
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-bold text-fg tracking-wide">How to play</h2>
           <button
-            onClick={onClose}
+            onClick={(e) => { (e.currentTarget as HTMLButtonElement).blur(); onClose(); }}
             className="w-7 h-7 flex items-center justify-center rounded-md text-muted hover:text-fg transition"
             aria-label="Close"
           >
