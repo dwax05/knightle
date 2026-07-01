@@ -19,9 +19,14 @@ const MARK_BG: Record<string, string> = {
   absent:  "var(--tile-absent)",
 };
 
+const CARD_STYLE: React.CSSProperties = {
+  background: "linear-gradient(145deg, rgba(255,255,255,0.055) 0%, rgba(255,255,255,0) 55%), var(--surface)",
+  boxShadow: "0 24px 56px rgba(0,0,0,0.65), 0 6px 14px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.09)",
+};
+
 function ArchiveCard({ game }: { game: ArchiveEntry }) {
   return (
-    <div className="w-full h-full bg-surface border border-border-app/40 rounded-2xl p-4 flex flex-col gap-3 select-none">
+    <div className="w-full h-full rounded-2xl p-4 flex flex-col gap-3 select-none" style={CARD_STYLE}>
       <div className="flex items-center justify-between">
         <span className="text-xs text-muted">
           {new Date(game.playedAt).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}
@@ -62,7 +67,7 @@ function ArchiveCard({ game }: { game: ArchiveEntry }) {
 
 function ArchiveCardSkeleton() {
   return (
-    <div className="w-full h-full bg-surface border border-border-app/40 rounded-2xl p-4 flex flex-col gap-3 select-none">
+    <div className="w-full h-full rounded-2xl p-4 flex flex-col gap-3 select-none" style={CARD_STYLE}>
       <div className="flex items-center justify-between">
         <div className="h-3 w-20 rounded bg-border/40 animate-pulse" />
         <div className="h-4 w-8 rounded-full bg-border/40 animate-pulse" />
