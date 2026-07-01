@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion } from "motion/react";
 import { useAuth } from "./auth";
 import { applyTheme, applyThemeAnimated } from "./theme-apply";
 import { IconArrowLeft } from "./icons";
@@ -269,6 +270,14 @@ function SidebarCard({
         onChange={setTab}
       />
 
+      <AnimatePresence mode="wait" initial={false}>
+      <motion.div
+        key={tab}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.15 }}
+      >
       {tab === "themes" ? (
         <div className="flex flex-col gap-3">
           <div>
@@ -298,6 +307,8 @@ function SidebarCard({
       ) : (
         <BoardPreview />
       )}
+      </motion.div>
+      </AnimatePresence>
     </div>
   );
 }
