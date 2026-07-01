@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { useAuth } from "./auth";
 import Counter from "./Counter";
@@ -17,6 +17,20 @@ type Tab = "wins" | "streak" | "today";
 const TAB_ORDER: Tab[] = ["wins", "streak", "today"];
 const TAB_LABELS: Record<Tab, string> = { wins: "Total Wins", streak: "Best Streak", today: "Today" };
 const MEDAL_COLORS = ["#FFD700", "#C0C0C0", "#CD7F32"];
+
+const slideVariants = {
+  enter: (dir: number) => ({ x: `${dir * 30}%`, opacity: 0 }),
+  center: {
+    x: 0,
+    opacity: 1,
+    transition: { type: "spring" as const, stiffness: 300, damping: 28 },
+  },
+  exit: (dir: number) => ({
+    x: `${dir * -30}%`,
+    opacity: 0,
+    transition: { duration: 0.15, ease: "easeIn" as const },
+  }),
+};
 
 function loadCache(key: string): Entry[] {
   try {
@@ -37,6 +51,7 @@ export function Leaderboard({ refreshKey }: { refreshKey: number }) {
     const saved = localStorage.getItem("leaderboard:tab");
     return (saved as Tab | null) ?? "wins";
   });
+  const dirRef = useRef(0);
   const [entriesByTab, setEntriesByTab] = useState<Record<Tab, Entry[]>>({
     wins: loadCache("cache:leaderboard:wins"),
     streak: loadCache("cache:leaderboard:streak"),
@@ -65,6 +80,7 @@ export function Leaderboard({ refreshKey }: { refreshKey: number }) {
   }, [refreshKey, authedPost]);
 
   function switchTab(t: Tab) {
+    dirRef.current = TAB_ORDER.indexOf(t) > TAB_ORDER.indexOf(tab) ? 1 : -1;
     setTab(t);
     localStorage.setItem("leaderboard:tab", t);
   }
@@ -81,13 +97,14 @@ export function Leaderboard({ refreshKey }: { refreshKey: number }) {
         onChange={switchTab}
       />
       <div className="overflow-hidden">
-        <AnimatePresence mode="wait" initial={false}>
+        <AnimatePresence mode="popLayout" custom={dirRef.current} initial={false}>
           <motion.div
             key={tab}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
+            custom={dirRef.current}
+            variants={slideVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
             className="flex flex-col gap-1"
           >
             {Array.from({ length: 5 }, (_, i) => {
