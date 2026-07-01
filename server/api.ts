@@ -263,7 +263,7 @@ export function setApp(app: Express, client: MongoClient) {
     const doc = await db.collection("Themes").findOne({ userId: req.user!.userId });
     res.status(200).json({
       css: doc?.css ?? "",
-      slots: doc?.slots ?? [null, null, null, null],
+      slots: doc?.slots?.slice(0, 3) ?? [null, null, null],
       error: "",
     });
   });
@@ -283,7 +283,7 @@ export function setApp(app: Express, client: MongoClient) {
 
   app.post("/api/theme/slots", requireAuth, async (req: AuthedRequest, res) => {
     const { slots } = req.body;
-    if (!Array.isArray(slots) || slots.length !== 4) {
+    if (!Array.isArray(slots) || slots.length !== 3) {
       return res.status(200).json({ error: "Invalid slots" });
     }
     await db.collection("Themes").updateOne(

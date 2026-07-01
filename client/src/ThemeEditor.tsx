@@ -150,7 +150,7 @@ const PRESETS: Preset[] = [
 ];
 
 const SWATCH_KEYS = ["--bg", "--accent", "--tile-correct", "--tile-present", "--error"];
-const SLOT_COUNT = 4;
+const SLOT_COUNT = 3;
 const EMPTY_SLOTS: (Record<string, string> | null)[] = Array(SLOT_COUNT).fill(null);
 
 const GROUPS: { label: string; keys: string[] }[] = [
@@ -529,15 +529,15 @@ export function ThemeEditor({ onClose }: { onClose: () => void }) {
             </div>
 
             {/* right: presets + slots sidebar (desktop only) */}
-            <div className="hidden lg:block shrink-0 w-64">
+            <div className="hidden lg:block shrink-0 w-96">
               <span className="text-xs font-semibold text-muted uppercase tracking-wider px-1 block mb-2">Presets</span>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-3 gap-2">
                 {PRESETS.map((p, i) => (
                   <PresetButton key={i} preset={p} onClick={() => loadPreset(p)} />
                 ))}
               </div>
               <span className="text-xs font-semibold text-muted uppercase tracking-wider px-1 block mt-4 mb-2">Saved</span>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-3 gap-2">
                 {slots.map((slot, i) => (
                   <SlotButton
                     key={i}
