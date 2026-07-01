@@ -102,7 +102,7 @@ export function Game({ onGameEnd, fullscreen }: { onGameEnd?: () => void; fullsc
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if (e.target instanceof HTMLInputElement) return;
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLButtonElement) return;
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       if (e.repeat && e.key === "Enter") return;
       if (done) { if (e.key === "Enter") newGame(); return; }
