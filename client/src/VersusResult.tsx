@@ -2,12 +2,13 @@ import { IconTrophy, IconSkull, IconScale } from "./icons";
 import { type VersusMode } from "./Versus";
 
 export function VersusResult({
-  mode = "speed", result, rematchMe, rematchOpponent, onRematch, onLeave,
+  mode = "speed", result, rematchMe, rematchOpponent, rematchDeclined, onRematch, onLeave,
 }: {
   mode?: VersusMode;
   result: { youWon: boolean; winnerName: string; winnerGuesses: number; isDraw?: boolean };
   rematchMe: boolean;
   rematchOpponent: boolean;
+  rematchDeclined: boolean;
   onRematch: () => void;
   onLeave: () => void;
 }) {
@@ -32,11 +33,14 @@ export function VersusResult({
         </div>
 
         {/* rematch status line */}
-        {rematchOpponent && !rematchMe && (
+        {rematchDeclined && (
+          <p className="text-sm text-muted">Opponent declined the rematch.</p>
+        )}
+        {!rematchDeclined && rematchOpponent && !rematchMe && (
           <p className="text-sm text-accent animate-pulse">Opponent wants a rematch!</p>
         )}
-        {rematchMe && !rematchOpponent && (
-          <p className="text-sm text-muted animate-pulse">Waiting for opponent to accept...</p>
+        {!rematchDeclined && rematchMe && !rematchOpponent && (
+          <p className="text-sm text-muted animate-pulse">Waiting for opponent...</p>
         )}
 
         <div className="flex gap-3 w-full mt-2">
@@ -48,7 +52,7 @@ export function VersusResult({
           </button>
           <button
             onClick={onRematch}
-            disabled={rematchMe}
+            disabled={rematchMe || rematchDeclined}
             className="flex-1 py-2.5 rounded-lg bg-accent text-tiletext font-semibold shadow-[0_3px_0_rgba(0,0,0,0.35)] hover:brightness-110 active:translate-y-[3px] active:shadow-none disabled:opacity-50 disabled:shadow-none disabled:translate-y-0 transition-all duration-100"
           >
             {rematchMe ? "Ready ✓" : rematchOpponent ? "Accept rematch" : "Rematch"}

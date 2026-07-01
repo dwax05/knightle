@@ -449,6 +449,7 @@ export function setApp(app: Express, client: MongoClient) {
       rematch: {
         me: !!game.rematch?.[uid],
         opponent: opponentRematchRequested(game, uid),
+        opponentDeclined: opponentDeclined(game, uid),
       },
       myGuesses,
       myMarks,
@@ -500,6 +501,23 @@ export function setApp(app: Express, client: MongoClient) {
         }
       );
     }
+
+    res.status(200).json({ error: "" });
+  });
+
+  app.post("/api/versus/leave", requireAuth, async (req: AuthedRequest, res) => {
+    const code = String(req.body.code ?? "").toUpperCase();
+    if (!/^[A-Z]{4}$/.test(code)) return res.status(200).json({ error: "Invalid code" });
+
+    const uid = String(req.user!.userId);
+    const game = await db.collection("Versus").findOne({ code });
+    if (!game || !game.players[uid]) return res.status(200).json({ error: "Not in this room" });
+    if (game.status !== "done") return res.status(200).json({ error: "" });
+
+    await db.collection("Versus").updateOne(
+      { code },
+      { $set: { [`rematch.${uid}`]: "declined" } }
+    );
 
     res.status(200).json({ error: "" });
   });
@@ -594,7 +612,12 @@ export function setApp(app: Express, client: MongoClient) {
 
   function opponentRematchRequested(game: any, myUid: string): boolean {
     const oppUid = Object.keys(game.players).find((id) => id !== myUid);
-    return !!(oppUid && game.rematch?.[oppUid]);
+    return oppUid ? game.rematch?.[oppUid] === true : false;
+  }
+
+  function opponentDeclined(game: any, myUid: string): boolean {
+    const oppUid = Object.keys(game.players).find((id) => id !== myUid);
+    return oppUid ? game.rematch?.[oppUid] === "declined" : false;
   }
 
   async function makeRoomCode(db: Db): Promise<string> {
