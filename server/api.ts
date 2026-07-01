@@ -182,7 +182,9 @@ export function setApp(app: Express, client: MongoClient) {
     await db.collection("Games").updateOne({ gameId }, { $push: { guesses: g, marks } });
 
     if (finished) {
-      await updateStats(req.user!.userId, won, guessNum);
+      const allGuesses = [...game.guesses, g];
+      const allMarks = [...game.marks, marks];
+      await updateStats(req.user!.userId, won, guessNum, game.answer, allGuesses, allMarks);
     }
 
     res.status(200).json({
@@ -203,7 +205,7 @@ export function setApp(app: Express, client: MongoClient) {
       const startOfDay = new Date();
       startOfDay.setUTCHours(0, 0, 0, 0);
 
-      const top = await db.collection("GameHistory").aggregate([
+      const top = await db.collection("GameArchive").aggregate([
         { $match: { won: true, playedAt: { $gte: startOfDay } } },
         { $group: { _id: "$userId", wins: { $sum: 1 } } },
         { $sort: { wins: -1 } },
@@ -525,10 +527,20 @@ export function setApp(app: Express, client: MongoClient) {
     res.status(200).json({ error: "" });
   });
 
+  app.post("/api/archive", requireAuth, async (req: AuthedRequest, res) => {
+    const games = await db.collection("GameArchive")
+      .find({ userId: req.user!.userId })
+      .sort({ playedAt: -1 })
+      .limit(10)
+      .toArray();
+    res.status(200).json({ games, error: "" });
+  });
+
   app.post("/api/clear-game-data", requireAuth, async (req: AuthedRequest, res) => {
     await Promise.all([
       db.collection("Stats").deleteOne({ userId: req.user!.userId }),
       db.collection("Games").deleteMany({ userId: req.user!.userId }),
+      db.collection("GameArchive").deleteMany({ userId: req.user!.userId }),
     ]);
     res.status(200).json({ error: "" });
   });
@@ -547,12 +559,20 @@ export function setApp(app: Express, client: MongoClient) {
       db.collection("Users").deleteOne({ UserID: req.user!.userId }),
       db.collection("Stats").deleteOne({ userId: req.user!.userId }),
       db.collection("Games").deleteMany({ userId: req.user!.userId }),
+      db.collection("GameArchive").deleteMany({ userId: req.user!.userId }),
       db.collection("Themes").deleteOne({ userId: req.user!.userId }),
     ]);
     res.status(200).json({ error: "" });
   });
 
-  async function updateStats(userId: number, won: boolean, guessNum: number) {
+  async function updateStats(
+    userId: number,
+    won: boolean,
+    guessNum: number,
+    answer: string,
+    guesses: string[],
+    marks: string[][]
+  ) {
     const stats =
       (await db.collection("Stats").findOne({ userId })) ?? emptyStats(userId);
 
@@ -565,9 +585,10 @@ export function setApp(app: Express, client: MongoClient) {
     } else {
       stats.currentStreak = 0;
     }
+    const playedAt = new Date();
     await Promise.all([
       db.collection("Stats").updateOne({ userId }, { $set: stats }, { upsert: true }),
-      db.collection("GameHistory").insertOne({ userId, won, guessNum, playedAt: new Date() }),
+      db.collection("GameArchive").insertOne({ userId, answer, guesses, marks, won, guessNum, playedAt }),
     ]);
   }
 
