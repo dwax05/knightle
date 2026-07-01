@@ -155,7 +155,7 @@ export const PRESETS: Preset[] = [
     vars: {
       "--bg": "#0d0d0d", "--fg": "#ffffff", "--surface": "#1a1800",
       "--border": "#2e2900", "--muted": "#9a9080",
-      "--tile-correct": "#ffffff", "--tile-present": "#ffc904", "--tile-absent": "#767676",
+      "--tile-correct": "#22c55e", "--tile-present": "#ffc904", "--tile-absent": "#767676",
       "--tile-text": "#000000", "--success": "#ffc904", "--error": "#ff4444",
       "--accent": "#ffc904", "--button-bg": "#1a1800", "--button-fg": "#ffc904",
     },
