@@ -1,3 +1,4 @@
+import { motion } from "motion/react";
 import { IconTrophy, IconSkull } from "./icons";
 
 export function GameResult({
@@ -14,8 +15,20 @@ export function GameResult({
   const won = outcome === "won";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in">
-      <div className="w-full max-w-sm mx-4 rounded-2xl bg-surface border border-border-app/40 p-8 flex flex-col items-center gap-5 text-center shadow-2xl">
+    <motion.div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
+    >
+      <motion.div
+        className="w-full max-w-sm mx-4 rounded-2xl bg-surface border border-border-app/40 p-8 flex flex-col items-center gap-5 text-center shadow-2xl"
+        initial={{ opacity: 0, scale: 0.88 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.88, transition: { duration: 0.2 } }}
+        transition={{ type: "spring", stiffness: 320, damping: 24 }}
+      >
         <div>{won ? <IconTrophy className="w-12 h-12" /> : <IconSkull className="w-12 h-12" />}</div>
 
         <div>
@@ -33,7 +46,7 @@ export function GameResult({
         >
           Play again
         </button>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }

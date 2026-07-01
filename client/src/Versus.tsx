@@ -1,7 +1,14 @@
 import { useEffect, useState, useRef } from "react";
+import { motion, AnimatePresence } from "motion/react";
 import { useAuth } from "./auth";
 import { IconLightning, IconTarget } from "./icons";
 import { TabBar } from "./TabBar";
+
+const SPRING = { type: "spring" as const, stiffness: 320, damping: 24 };
+const CARD_VARIANTS = {
+  hidden: { opacity: 0, scale: 0.88, transition: { duration: 0.2 } },
+  visible: { opacity: 1, scale: 1 },
+};
 
 type Phase = "lobby" | "waiting";
 export type VersusMode = "speed" | "precision";
@@ -71,12 +78,27 @@ export function VersusLobbyModal({
   const activeMeta = MODES.find((m) => m.value === mode)!;
 
   return (
-    <>
-      <div className="fixed inset-0 z-50 bg-black/50" onClick={onClose} />
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
-        <div className="pointer-events-auto w-full max-w-sm">
+    <motion.div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      onClick={onClose}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
+    >
+      <div className="absolute inset-0 bg-black/50" />
+      <div className="relative pointer-events-auto w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
+        <AnimatePresence mode="wait">
           {phase === "lobby" ? (
-            <div className="flex flex-col gap-5 p-8 rounded-2xl bg-surface border border-border-app/40 shadow-xl shadow-black/60 animate-slide-down">
+            <motion.div
+              key="lobby"
+              className="flex flex-col gap-5 p-8 rounded-2xl bg-surface border border-border-app/40 shadow-xl shadow-black/60"
+              variants={CARD_VARIANTS}
+              initial="hidden"
+              animate="visible"
+              exit="hidden"
+              transition={SPRING}
+            >
               <div className="text-center">
                 <h2 className="text-2xl font-bold text-fg">Versus</h2>
                 <p className="text-sm text-muted">Race a friend to the same word</p>
@@ -120,9 +142,17 @@ export function VersusLobbyModal({
               <button onClick={onClose} className="text-sm text-muted hover:text-fg transition">
                 ← Back
               </button>
-            </div>
+            </motion.div>
           ) : (
-            <div className="flex flex-col gap-5 p-8 rounded-2xl bg-surface border border-border-app/40 shadow-xl shadow-black/60 text-center animate-slide-down">
+            <motion.div
+              key="waiting"
+              className="flex flex-col gap-5 p-8 rounded-2xl bg-surface border border-border-app/40 shadow-xl shadow-black/60 text-center"
+              variants={CARD_VARIANTS}
+              initial="hidden"
+              animate="visible"
+              exit="hidden"
+              transition={SPRING}
+            >
               <h2 className="text-2xl font-bold text-fg">Room created</h2>
               <p className="text-sm text-muted">Share this code with your opponent</p>
               <div className="text-5xl font-bold tracking-[0.3em] text-accent font-mono py-4">{code}</div>
@@ -132,10 +162,10 @@ export function VersusLobbyModal({
               </div>
               <p className="text-sm text-muted animate-pulse">Waiting for opponent to join...</p>
               <button onClick={onClose} className="text-sm text-muted hover:text-fg transition">Cancel</button>
-            </div>
+            </motion.div>
           )}
-        </div>
+          </AnimatePresence>
       </div>
-    </>
+    </motion.div>
   );
 }
