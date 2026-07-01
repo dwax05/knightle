@@ -88,32 +88,48 @@ function HamburgerMenu({ onNavigate, dropUp = false }: { onNavigate: (view: "the
 }
 
 function StatsSheet({ refreshKey, onClose }: { refreshKey: number; onClose: () => void }) {
-  const [closing, setClosing] = useState(false);
-
-  function dismiss() {
-    setClosing(true);
-  }
+  const [visible, setVisible] = useState(true);
 
   return (
     <div className="fixed inset-0 z-30 flex flex-col justify-end">
-      <div className={`absolute inset-0 bg-black/50 transition-opacity duration-[250ms] ${closing ? "opacity-0" : "opacity-100"}`} onClick={dismiss} />
-      <div
-        className={`relative bg-surface border-t border-border-app/40 rounded-t-2xl max-h-[80vh] overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden flex flex-col items-center gap-6 p-4 pb-8 shadow-2xl shadow-black/60 ${closing ? "animate-sheet-close" : "animate-slide-up"}`}
-        onAnimationEnd={() => { if (closing) onClose(); }}
-      >
-        <div className="flex items-center justify-between mb-1 w-full max-w-md">
-          <span className="text-sm font-semibold tracking-widest uppercase text-muted">Stats & Leaderboard</span>
-          <button
-            onClick={dismiss}
-            aria-label="Close"
-            className="w-8 h-8 flex items-center justify-center rounded-lg text-muted bg-surface border border-border-app/40 shadow-[0_2px_0_rgba(0,0,0,0.35)] hover:brightness-110 active:translate-y-[2px] active:shadow-none transition-all duration-100 text-lg"
+      <AnimatePresence>
+        {visible && (
+          <motion.div
+            key="backdrop"
+            className="absolute inset-0 bg-black/50"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            onClick={() => setVisible(false)}
+          />
+        )}
+      </AnimatePresence>
+      <AnimatePresence onExitComplete={onClose}>
+        {visible && (
+          <motion.div
+            key="sheet"
+            className="relative bg-surface border-t border-border-app/40 rounded-t-2xl max-h-[80vh] overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden flex flex-col items-center gap-6 p-4 pb-8 shadow-2xl shadow-black/60"
+            initial={{ y: "100%" }}
+            animate={{ y: 0 }}
+            exit={{ y: "100%", transition: { duration: 0.25, ease: "easeIn" } }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
           >
-            ✕
-          </button>
-        </div>
-        <StatsPanel refreshKey={refreshKey} />
-        <Leaderboard refreshKey={refreshKey} />
-      </div>
+            <div className="flex items-center justify-between mb-1 w-full max-w-md">
+              <span className="text-sm font-semibold tracking-widest uppercase text-muted">Stats & Leaderboard</span>
+              <button
+                onClick={() => setVisible(false)}
+                aria-label="Close"
+                className="w-8 h-8 flex items-center justify-center rounded-lg text-muted bg-surface border border-border-app/40 shadow-[0_2px_0_rgba(0,0,0,0.35)] hover:brightness-110 active:translate-y-[2px] active:shadow-none transition-all duration-100 text-lg"
+              >
+                ✕
+              </button>
+            </div>
+            <StatsPanel refreshKey={refreshKey} />
+            <Leaderboard refreshKey={refreshKey} />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
