@@ -6,14 +6,14 @@ import { AnimatedHorizontalList } from "./AnimatedHorizontalList";
 import { TabBar } from "./TabBar";
 
 const PREVIEW_ROWS: { word: string; marks: ("correct" | "present" | "absent")[] }[] = [
-  { word: "CRANE", marks: ["absent",  "present", "absent",  "correct", "absent"]  },
-  { word: "KNELT", marks: ["correct", "absent",  "correct", "correct", "absent"]  },
+  { word: "CRANE", marks: ["absent", "absent", "absent", "present", "present"] },
+  { word: "KNELT", marks: ["correct", "absent", "correct", "present", "absent"] },
   { word: "KNEEL", marks: ["correct", "correct", "correct", "correct", "correct"] },
 ];
 const TILE_COLOR: Record<string, string> = {
   correct: "var(--tile-correct)",
   present: "var(--tile-present)",
-  absent:  "var(--tile-absent)",
+  absent: "var(--tile-absent)",
 };
 
 function BoardPreview() {
