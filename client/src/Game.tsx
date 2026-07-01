@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { flushSync } from "react-dom";
+import { AnimatePresence } from "motion/react";
 import { useAuth } from "./auth";
 import { Board, COLS, FLIP_DURATION, TILE_STAGGER, type Mark } from "./Board";
 import { GameResult } from "./GameResult";
 
 const REVEAL_TOTAL = (COLS - 1) * TILE_STAGGER + FLIP_DURATION + 50;
 
-export function Game({ onGameEnd, fullscreen }: { onGameEnd?: () => void; fullscreen?: boolean }) {
+export function Game({ onGameEnd, fullscreen, disabled }: { onGameEnd?: () => void; fullscreen?: boolean; disabled?: boolean }) {
   const { authedPost } = useAuth();
   const [gameId, setGameId] = useState<string | null>(null);
   const [guesses, setGuesses] = useState<string[]>([]);
@@ -102,6 +103,7 @@ export function Game({ onGameEnd, fullscreen }: { onGameEnd?: () => void; fullsc
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
+      if (disabled) return;
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLButtonElement) return;
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       if (e.repeat && e.key === "Enter") return;
@@ -112,7 +114,7 @@ export function Game({ onGameEnd, fullscreen }: { onGameEnd?: () => void; fullsc
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [done, newGame, submitGuess, backspace, typeLetter]);
+  }, [disabled, done, newGame, submitGuess, backspace, typeLetter]);
 
   return (
     <div className={`flex flex-col items-center w-full ${fullscreen ? "flex-1 gap-1" : "gap-4"}`}>
@@ -121,6 +123,7 @@ export function Game({ onGameEnd, fullscreen }: { onGameEnd?: () => void; fullsc
         marks={marks}
         current={current}
         done={!!done}
+        disabled={disabled}
         onKeyPress={onKeyPress}
         revealingRow={revealingRow}
         shakingRow={shakingRow}
@@ -136,14 +139,16 @@ export function Game({ onGameEnd, fullscreen }: { onGameEnd?: () => void; fullsc
         }}
       />
       <div className="min-h-6 font-semibold text-fg">{message}</div>
-      {done && (
-        <GameResult
-          outcome={done}
-          guessCount={finalGuessCount}
-          answer={answer}
-          onNewGame={newGame}
-        />
-      )}
+      <AnimatePresence>
+        {done && (
+          <GameResult
+            outcome={done}
+            guessCount={finalGuessCount}
+            answer={answer}
+            onNewGame={newGame}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

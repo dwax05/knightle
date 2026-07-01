@@ -1,6 +1,12 @@
+import { useEffect } from "react";
 import { motion } from "motion/react";
 
 export function HelpModal({ onClose }: { onClose: () => void }) {
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) { if (e.key === "Escape") onClose(); }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
   return (
     <motion.div
       className="fixed inset-0 z-50 flex items-center justify-center px-4"
@@ -16,7 +22,7 @@ export function HelpModal({ onClose }: { onClose: () => void }) {
         onClick={(e) => e.stopPropagation()}
         initial={{ opacity: 0, scale: 0.88 }}
         animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.88 }}
+        exit={{ opacity: 0, scale: 0.88, transition: { duration: 0.2 } }}
         transition={{ type: "spring", stiffness: 320, damping: 24 }}
       >
         <div className="flex items-center justify-between">

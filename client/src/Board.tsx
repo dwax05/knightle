@@ -27,6 +27,7 @@ export function Board({
   marks,
   current,
   done,
+  disabled,
   onKeyPress,
   revealingRow,
   shakingRow,
@@ -37,6 +38,7 @@ export function Board({
   marks: Mark[][];
   current: string;
   done: boolean;
+  disabled?: boolean;
   onKeyPress: (key: string) => void;
   revealingRow: number;
   shakingRow?: boolean;
@@ -66,7 +68,7 @@ export function Board({
       if (e.target instanceof HTMLInputElement) return;
       if ((e.metaKey || e.ctrlKey) && e.key === "a") { e.preventDefault(); return; }
       if (e.metaKey || e.altKey || e.ctrlKey) return;
-      if (done) return;
+      if (done || disabled) return;
       const id = toKeyId(e);
       if (!id) return;
       setPressedKey(id);
@@ -84,7 +86,7 @@ export function Board({
       window.removeEventListener("keyup", onUp);
       if (pressTimer.current) clearTimeout(pressTimer.current);
     };
-  }, [done]);
+  }, [done, disabled]);
 
   useEffect(() => {
     if (revealingRow < 0) {
