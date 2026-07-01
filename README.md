@@ -83,6 +83,7 @@ All endpoints are `POST /api/*`. Auth-required routes expect `Authorization: Bea
 | `/api/leaderboard` | ✓ | Top 5 by `sort`: `"wins"` (default), `"streak"`, or `"today"` |
 | `/api/theme/get` | ✓ | Load saved CSS theme |
 | `/api/theme/save` | ✓ | Save CSS theme |
+| `/api/archive` | ✓ | Last 5 completed solo games from `GameArchive` |
 | `/api/password-reset` | ✓ | Change password (requires current password) |
 | `/api/clear-game-data` | ✓ | Delete all stats and game history |
 | `/api/delete-account` | ✓ | Delete account and all associated data |
