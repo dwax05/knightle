@@ -177,7 +177,7 @@ function Home() {
         <div className="lg:contents w-full max-w-md flex flex-col gap-4">
           <div className={fullscreen
             ? "fixed inset-0 z-40 flex flex-col overflow-hidden bg-surface px-2 pt-3 pb-2"
-            : "flex flex-col items-center w-full lg:w-auto bg-surface border border-border-app/30 rounded-2xl px-1 py-4 lg:p-4"
+            : "flex flex-col items-center w-full lg:w-auto bg-surface border border-border-app/30 rounded-2xl px-1 py-4 lg:p-4 shadow-lg shadow-black/40"
           }>
             {versusCode ? (
               <>
