@@ -69,6 +69,16 @@
   50%       { transform: perspective(400px) rotateX(-90deg); }
 }
 
+@keyframes tile-pop {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
+
+.animate-tile-pop {
+  animation: tile-pop 100ms ease-in-out;
+}
+
 html {
   background: var(--bg);
   scrollbar-width: none;

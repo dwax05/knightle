@@ -143,10 +143,11 @@ export function Board({
                   ? "min(calc((26.5rem) / 5), calc((100dvh - 15rem) / 6))"
                   : "min(calc((100vw - 2.5rem) / 5), calc((100dvh - 19rem) / 6))"
                 : undefined;
+              const isCurrentRow = r === guesses.length && !done;
               return (
                 <div
-                  key={c}
-                  className={`${fullscreen ? "" : "w-14 h-14 sm:w-15 sm:h-15 lg:w-16 lg:h-16"} flex items-center justify-center text-2xl font-bold uppercase rounded border-2 ${colorClass} ${isRevealing ? "animate-flip-tile" : ""}`}
+                  key={isCurrentRow && cell.ch ? `${c}-${cell.ch}` : c}
+                  className={`${fullscreen ? "" : "w-14 h-14 sm:w-15 sm:h-15 lg:w-16 lg:h-16"} flex items-center justify-center text-2xl font-bold uppercase rounded border-2 ${colorClass} ${isRevealing ? "animate-flip-tile" : ""} ${isCurrentRow && cell.ch ? "animate-tile-pop" : ""}`}
                   style={{ ...(isRevealing ? { animationDelay: `${c * TILE_STAGGER}ms` } : {}), ...(tileSize ? { width: tileSize, height: tileSize } : {}) }}
                 >
                   {cell.ch}
