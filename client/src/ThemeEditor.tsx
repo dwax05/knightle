@@ -293,7 +293,7 @@ function ColorRow({
         onChange={(e) => handleText(e.target.value)}
         spellCheck={false}
         maxLength={7}
-        className="hidden lg:block w-28 px-3 py-1.5 rounded-lg font-mono text-sm border focus:outline-none focus:ring-2 focus:ring-white/20 transition"
+        className="w-28 px-3 py-1.5 rounded-lg font-mono text-sm border focus:outline-none focus:ring-2 focus:ring-white/20 transition"
         style={{ background: resolvedBg, color: textColor, borderColor: resolvedBg }}
       />
     </div>
