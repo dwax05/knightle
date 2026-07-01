@@ -531,7 +531,7 @@ export function setApp(app: Express, client: MongoClient) {
     const games = await db.collection("GameArchive")
       .find({ userId: req.user!.userId })
       .sort({ playedAt: -1 })
-      .limit(10)
+      .limit(5)
       .toArray();
     res.status(200).json({ games, error: "" });
   });
