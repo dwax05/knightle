@@ -33,6 +33,7 @@ export function VersusGame({ code, mode: initialMode, onExit, fullscreen }: {
   const [round, setRound] = useState(0);
   const [rematchMe, setRematchMe] = useState(false);
   const [rematchOpponent, setRematchOpponent] = useState(false);
+  const [rematchDeclined, setRematchDeclined] = useState(false);
   const [shakingRow, setShakingRow] = useState(false);
   const shakingRowRef = useRef(false);
   const pendingShake = useRef(false);
@@ -123,6 +124,11 @@ export function VersusGame({ code, mode: initialMode, onExit, fullscreen }: {
     setRematchMe(true);
   }, [code, authedPost]);
 
+  const handleLeave = useCallback(async () => {
+    await authedPost("/api/versus/leave", { code });
+    onExit();
+  }, [code, authedPost, onExit]);
+
   const myId = user?.id;
 
   const bothFinished = finished && (opponent?.finished ?? false);
@@ -158,7 +164,7 @@ export function VersusGame({ code, mode: initialMode, onExit, fullscreen }: {
       if (data.status) setStatus(data.status);
       if (data.round) setRound(data.round);
       if (data.mode) setMode(data.mode);
-      if (data.rematch) { setRematchMe(data.rematch.me); setRematchOpponent(data.rematch.opponent); }
+      if (data.rematch) { setRematchMe(data.rematch.me); setRematchOpponent(data.rematch.opponent); setRematchDeclined(data.rematch.opponentDeclined ?? false); }
     });
     return () => { cancelled = true; };
   }, []);
@@ -197,6 +203,7 @@ export function VersusGame({ code, mode: initialMode, onExit, fullscreen }: {
       if (data.rematch) {
         setRematchMe(data.rematch.me);
         setRematchOpponent(data.rematch.opponent);
+        setRematchDeclined(data.rematch.opponentDeclined ?? false);
       }
     }, 1500);
     return () => { if (pollRef.current) clearInterval(pollRef.current); };
@@ -251,8 +258,9 @@ export function VersusGame({ code, mode: initialMode, onExit, fullscreen }: {
           result={{ youWon, winnerName, winnerGuesses, isDraw }}
           rematchMe={rematchMe}
           rematchOpponent={rematchOpponent}
+          rematchDeclined={rematchDeclined}
           onRematch={handleRematch}
-          onLeave={onExit}
+          onLeave={handleLeave}
         />
       )}
 
