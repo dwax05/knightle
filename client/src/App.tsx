@@ -46,25 +46,43 @@ function HamburgerMenu({ onNavigate, dropUp = false }: { onNavigate: (view: "the
         <span className={`w-5 h-0.5 bg-fg rounded-full transition-all duration-200 ${open ? "-rotate-45 -translate-y-2" : ""}`} />
       </button>
 
-      {open && (
-        <div className="fixed inset-0 z-10 bg-black/30" onClick={() => setOpen(false)} />
-      )}
-      {open && (
-        <div className={`absolute ${dropUp ? "bottom-full mb-2" : "top-full mt-2"} right-0 min-w-36 bg-surface border border-border-app/50 rounded-xl overflow-hidden animate-slide-down z-20 shadow-xl shadow-black/60`}>
-          {NAV_ITEMS.map((item, i) => (
-            <div key={item.view}>
-              <button
-                onClick={() => navigate(item.view)}
-                className="flex items-center gap-3 w-full px-4 py-3 text-sm font-medium text-muted hover:text-fg hover:bg-bg/50 transition-colors duration-150"
-              >
-                {item.icon}
-                <span className="tracking-wide">{item.label}</span>
-              </button>
-              {i < NAV_ITEMS.length - 1 && <div className="h-px bg-border-app/40 mx-3" />}
-            </div>
-          ))}
-        </div>
-      )}
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            className="fixed inset-0 z-10 bg-black/30"
+            onClick={() => setOpen(false)}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+          />
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            className={`absolute ${dropUp ? "bottom-full mb-2" : "top-full mt-2"} right-0 min-w-36 bg-surface border border-border-app/50 rounded-xl overflow-hidden z-20 shadow-xl shadow-black/60`}
+            initial={{ opacity: 0, scale: 0.95, y: dropUp ? 6 : -6 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: dropUp ? 6 : -6 }}
+            transition={{ duration: 0.15, ease: "easeOut" }}
+            style={{ transformOrigin: dropUp ? "bottom right" : "top right" }}
+          >
+            {NAV_ITEMS.map((item, i) => (
+              <div key={item.view}>
+                <button
+                  onClick={() => navigate(item.view)}
+                  className="flex items-center gap-3 w-full px-4 py-3 text-sm font-medium text-muted hover:text-fg hover:bg-bg/50 transition-colors duration-150"
+                >
+                  {item.icon}
+                  <span className="tracking-wide">{item.label}</span>
+                </button>
+                {i < NAV_ITEMS.length - 1 && <div className="h-px bg-border-app/40 mx-3" />}
+              </div>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -206,10 +224,15 @@ function Home() {
           <div className="flex flex-col lg:flex-row gap-4 lg:gap-18 items-center lg:items-start justify-center">
             {/* Mobile: game only; desktop: game + side panels */}
             <div className="lg:contents w-full max-w-md flex flex-col gap-4">
-              <div className={fullscreen
-                ? "fixed inset-0 z-40 flex flex-col overflow-hidden bg-surface px-2 pt-3 pb-2"
-                : "flex flex-col items-center w-full lg:w-auto bg-surface border border-border-app/30 rounded-2xl px-1 py-4 lg:p-4 shadow-lg shadow-black/40"
-              }>
+              <motion.div
+                layout
+                style={{ borderRadius: fullscreen ? 0 : 16 }}
+                transition={{ type: "spring", stiffness: 260, damping: 26 }}
+                className={fullscreen
+                  ? "fixed inset-0 z-40 flex flex-col overflow-hidden bg-surface px-2 pt-3 pb-2"
+                  : "flex flex-col items-center w-full lg:w-auto bg-surface border border-border-app/30 overflow-hidden px-1 py-4 lg:p-4 shadow-lg shadow-black/40"
+                }
+              >
                 {versusCode ? (
                   <>
                     <div className={`w-full flex items-center justify-between pb-3 border-b border-border-app/40 px-2 lg:px-0 ${fullscreen ? "mb-1" : "mb-4"}`}>
@@ -254,7 +277,7 @@ function Home() {
                     <Game fullscreen={fullscreen} disabled={lobbyOpen || helpOpen} onGameEnd={() => setRefreshKey((k) => k + 1)} />
                   </>
                 )}
-              </div>
+              </motion.div>
 
               {/* Desktop side panels */}
               <div className="hidden lg:flex flex-col gap-6 w-auto items-stretch">
@@ -272,16 +295,26 @@ function Home() {
           <HomescreenPrompt />
 
           {/* Mobile FAB cluster — fixed bottom-right */}
-          <div className={`lg:hidden fixed bottom-8 right-4 flex gap-2 z-20 ${fullscreen ? "hidden" : ""}`}>
-            <button
-              onClick={() => setStatsOpen(true)}
-              aria-label="Stats & Leaderboard"
-              className="w-10 h-10 flex items-center justify-center bg-surface border border-border-app/50 rounded-xl shadow-[0_3px_0_rgba(0,0,0,0.4)] hover:brightness-110 active:translate-y-[2px] active:shadow-none transition-all duration-100"
-            >
-              <IconBarChart className="w-5 h-5" />
-            </button>
-            <HamburgerMenu onNavigate={setView} dropUp />
-          </div>
+          <AnimatePresence>
+            {!fullscreen && (
+              <motion.div
+                className="lg:hidden fixed bottom-8 right-4 flex gap-2 z-20"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.15 }}
+              >
+                <button
+                  onClick={() => setStatsOpen(true)}
+                  aria-label="Stats & Leaderboard"
+                  className="w-10 h-10 flex items-center justify-center bg-surface border border-border-app/50 rounded-xl shadow-[0_3px_0_rgba(0,0,0,0.4)] hover:brightness-110 active:translate-y-[2px] active:shadow-none transition-all duration-100"
+                >
+                  <IconBarChart className="w-5 h-5" />
+                </button>
+                <HamburgerMenu onNavigate={setView} dropUp />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       )}
       </motion.div>
