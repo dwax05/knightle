@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { AnimatePresence } from "motion/react";
 import { AuthProvider, useAuth } from "./auth";
 import { AuthForm } from "./AuthForm";
 import { Game } from "./Game";
@@ -8,7 +9,8 @@ import { Leaderboard } from "./Leaderboard";
 import { VersusLobbyModal, type VersusMode } from "./Versus";
 import { VersusGame } from "./VersusGame";
 import { ProfilePage } from "./ProfilePage";
-import { IconUser, IconPalette, IconBarChart, IconLightning, IconExpand, IconCompress } from "./icons";
+import { IconUser, IconPalette, IconBarChart, IconLightning, IconExpand, IconCompress, IconQuestion } from "./icons";
+import { HelpModal } from "./HelpModal";
 import DotField from "./DotField";
 import { getDefaultPresetCss } from "./presets";
 import { applyTheme } from "./theme-apply";
@@ -156,6 +158,12 @@ function Home() {
   const [lobbyOpen, setLobbyOpen] = useState(false);
   const [view, setView] = useState<"game" | "theme" | "profile">("game");
   const [fullscreen, setFullscreen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
+  useEffect(() => {
+    if (localStorage.getItem("seenHelp")) return;
+    const t = setTimeout(() => setHelpOpen(true), 1000);
+    return () => clearTimeout(t);
+  }, []);
   const mounted = useRef(false);
 
   useEffect(() => {
@@ -179,6 +187,10 @@ function Home() {
           <StatsSheet refreshKey={refreshKey} onClose={() => setStatsOpen(false)} />
         </div>
       )}
+
+      <AnimatePresence>
+        {helpOpen && <HelpModal onClose={() => { localStorage.setItem("seenHelp", "1"); setHelpOpen(false); }} />}
+      </AnimatePresence>
 
       <div className="flex flex-col lg:flex-row gap-4 lg:gap-18 items-center lg:items-start justify-center">
         {/* Mobile: game only; desktop: game + side panels */}
@@ -207,7 +219,16 @@ function Home() {
             ) : (
               <>
                 <div className="w-full flex items-center justify-between pb-3 border-b border-border-app/40 mb-4 px-2 lg:px-0">
-                  <span className="text-sm font-semibold tracking-widest uppercase text-muted">Knightle</span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setHelpOpen(true)}
+                      aria-label="How to play"
+                      className="w-7 h-7 flex items-center justify-center rounded-md text-muted hover:text-fg transition"
+                    >
+                      <IconQuestion className="w-4 h-4" />
+                    </button>
+                    <span className="text-sm font-semibold tracking-widest uppercase text-muted">Knightle</span>
+                  </div>
                   <div className="flex items-center gap-2">
                     <button onClick={(e) => { setLobbyOpen(true); (e.currentTarget as HTMLButtonElement).blur(); }} className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-surface border border-border-app/50 text-xs font-semibold tracking-wide text-fg shadow-[0_2px_0_rgba(0,0,0,0.4)] hover:brightness-110 active:translate-y-[2px] active:shadow-none transition-all duration-100"><IconLightning className="w-3 h-3" /> Versus</button>
                     <button

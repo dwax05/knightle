@@ -122,6 +122,16 @@ export function IconExpand({ className }: IconProps) {
   );
 }
 
+export function IconQuestion({ className }: IconProps) {
+  return (
+    <Svg className={className}>
+      <circle cx="12" cy="12" r="10" />
+      <path d="M9.1 9a3 3 0 0 1 5.82 1c0 2-3 3-3 3" />
+      <circle cx="12" cy="17" r=".5" fill="currentColor" stroke="none" />
+    </Svg>
+  );
+}
+
 export function IconCompress({ className }: IconProps) {
   return (
     <Svg className={className}>
