@@ -10,6 +10,8 @@ import { VersusGame } from "./VersusGame";
 import { ProfilePage } from "./ProfilePage";
 import { IconUser, IconPalette, IconBarChart, IconLightning, IconExpand, IconCompress } from "./icons";
 import DotField from "./DotField";
+import { getDefaultPresetCss } from "./presets";
+import { applyTheme } from "./theme-apply";
 
 const NAV_ITEMS = [
   { view: "profile" as const, icon: <IconUser className="w-4 h-4" />, label: "Profile" },
@@ -137,6 +139,12 @@ function HomescreenPrompt() {
       </div>
     </div>
   );
+}
+
+// Apply the default preset once on startup for users without a cached or saved theme.
+// This makes DEFAULT_PRESET_NAME in presets.ts the live source of truth at runtime.
+if (!document.getElementById("user-theme")) {
+  applyTheme(getDefaultPresetCss());
 }
 
 function Home() {
