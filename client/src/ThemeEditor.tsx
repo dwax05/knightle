@@ -4,6 +4,48 @@ import { applyTheme, applyThemeAnimated } from "./theme-apply";
 import { IconArrowLeft } from "./icons";
 import { AnimatedHorizontalList } from "./AnimatedHorizontalList";
 
+const PREVIEW_ROWS: { word: string; marks: ("correct" | "present" | "absent")[] }[] = [
+  { word: "CRANE", marks: ["absent",  "present", "absent",  "correct", "absent"]  },
+  { word: "KNELT", marks: ["correct", "absent",  "correct", "correct", "absent"]  },
+  { word: "KNEEL", marks: ["correct", "correct", "correct", "correct", "correct"] },
+];
+const TILE_COLOR: Record<string, string> = {
+  correct: "var(--tile-correct)",
+  present: "var(--tile-present)",
+  absent:  "var(--tile-absent)",
+};
+
+function BoardPreview() {
+  return (
+    <div className="flex flex-col gap-2 items-center py-2">
+      {PREVIEW_ROWS.map((row, ri) => (
+        <div key={ri} className="flex gap-2">
+          {row.word.split("").map((letter, ci) => (
+            <div
+              key={ci}
+              className="w-16 h-16 flex items-center justify-center rounded font-bold text-base"
+              style={{ background: TILE_COLOR[row.marks[ci]], color: "var(--tile-text)" }}
+            >
+              {letter}
+            </div>
+          ))}
+        </div>
+      ))}
+      {[0, 1, 2].map((i) => (
+        <div key={i} className="flex gap-2">
+          {Array.from({ length: 5 }).map((_, ci) => (
+            <div
+              key={ci}
+              className="w-16 h-16 rounded border"
+              style={{ borderColor: "var(--border)", background: "var(--bg)" }}
+            />
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // must stay in sync with theme.css :root defaults
 const TEMPLATE = `:root {
   --bg: #1e1e2e;
@@ -251,7 +293,7 @@ function ColorRow({
         onChange={(e) => handleText(e.target.value)}
         spellCheck={false}
         maxLength={7}
-        className="w-28 px-3 py-1.5 rounded-lg font-mono text-sm border focus:outline-none focus:ring-2 focus:ring-white/20 transition"
+        className="hidden lg:block w-28 px-3 py-1.5 rounded-lg font-mono text-sm border focus:outline-none focus:ring-2 focus:ring-white/20 transition"
         style={{ background: resolvedBg, color: textColor, borderColor: resolvedBg }}
       />
     </div>
@@ -333,6 +375,70 @@ function SlotButton({
         {slot ? `Slot ${index + 1}` : <span className="text-muted">Slot {index + 1}</span>}
       </span>
     </button>
+  );
+}
+
+type SidebarTab = "themes" | "preview";
+
+function SidebarCard({
+  slots,
+  onLoadPreset,
+  onSaveSlot,
+  onLoadSlot,
+  onClearSlot,
+}: {
+  slots: (Record<string, string> | null)[];
+  onLoadPreset: (p: Preset) => void;
+  onSaveSlot: (i: number) => void;
+  onLoadSlot: (i: number) => void;
+  onClearSlot: (i: number) => void;
+}) {
+  const [tab, setTab] = useState<SidebarTab>("themes");
+
+  return (
+    <div className="hidden lg:flex flex-col shrink-0 w-96 bg-surface border border-border-app/30 rounded-2xl p-4 gap-3">
+      <div className="flex items-center gap-1 p-1 bg-bg rounded-xl">
+        {(["themes", "preview"] as SidebarTab[]).map((t) => (
+          <button
+            key={t}
+            onClick={() => setTab(t)}
+            className={`flex-1 px-1 py-2 rounded-lg text-xs font-semibold transition-colors duration-150 capitalize ${tab === t ? "bg-surface text-fg shadow-sm" : "text-muted hover:text-fg"}`}
+          >
+            {t === "themes" ? "Themes" : "Preview"}
+          </button>
+        ))}
+      </div>
+
+      {tab === "themes" ? (
+        <div className="flex flex-col gap-3">
+          <div>
+            <span className="text-xs font-semibold text-muted uppercase tracking-wider px-1 block mb-2">Presets</span>
+            <div className="grid grid-cols-3 gap-2">
+              {PRESETS.map((p, i) => (
+                <PresetButton key={i} preset={p} onClick={() => onLoadPreset(p)} />
+              ))}
+            </div>
+          </div>
+          <div>
+            <span className="text-xs font-semibold text-muted uppercase tracking-wider px-1 block mb-2">Saved</span>
+            <div className="grid grid-cols-3 gap-2">
+              {slots.map((slot, i) => (
+                <SlotButton
+                  key={i}
+                  index={i}
+                  slot={slot}
+                  onSave={() => onSaveSlot(i)}
+                  onLoad={() => onLoadSlot(i)}
+                  onClear={() => onClearSlot(i)}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : (
+        <BoardPreview />
+      )}
+    </div>
   );
 }
 
@@ -528,28 +634,14 @@ export function ThemeEditor({ onClose }: { onClose: () => void }) {
               })}
             </div>
 
-            {/* right: presets + slots sidebar (desktop only) */}
-            <div className="hidden lg:block shrink-0 w-96">
-              <span className="text-xs font-semibold text-muted uppercase tracking-wider px-1 block mb-2">Presets</span>
-              <div className="grid grid-cols-3 gap-2">
-                {PRESETS.map((p, i) => (
-                  <PresetButton key={i} preset={p} onClick={() => loadPreset(p)} />
-                ))}
-              </div>
-              <span className="text-xs font-semibold text-muted uppercase tracking-wider px-1 block mt-4 mb-2">Saved</span>
-              <div className="grid grid-cols-3 gap-2">
-                {slots.map((slot, i) => (
-                  <SlotButton
-                    key={i}
-                    index={i}
-                    slot={slot}
-                    onSave={() => handleSaveSlot(i)}
-                    onLoad={() => handleLoadSlot(i)}
-                    onClear={() => handleClearSlot(i)}
-                  />
-                ))}
-              </div>
-            </div>
+            {/* right: tabbed card (desktop only) */}
+            <SidebarCard
+              slots={slots}
+              onLoadPreset={loadPreset}
+              onSaveSlot={handleSaveSlot}
+              onLoadSlot={handleLoadSlot}
+              onClearSlot={handleClearSlot}
+            />
           </div>
 
           {/* actions */}
