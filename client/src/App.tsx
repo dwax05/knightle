@@ -9,6 +9,7 @@ import { VersusLobbyModal, type VersusMode } from "./Versus";
 import { VersusGame } from "./VersusGame";
 import { ProfilePage } from "./ProfilePage";
 import { IconUser, IconPalette, IconBarChart, IconLightning, IconExpand, IconCompress } from "./icons";
+import DotField from "./DotField";
 
 const NAV_ITEMS = [
   { view: "profile" as const, icon: <IconUser className="w-4 h-4" />, label: "Profile" },
@@ -176,7 +177,7 @@ function Home() {
         <div className="lg:contents w-full max-w-md flex flex-col gap-4">
           <div className={fullscreen
             ? "fixed inset-0 z-40 flex flex-col overflow-hidden bg-surface px-2 pt-3 pb-2"
-            : "flex flex-col items-center w-full lg:w-auto bg-surface border border-border-app/30 rounded-2xl px-1 py-4 lg:p-4 shadow-lg shadow-black/40"
+            : "flex flex-col items-center w-full lg:w-auto bg-surface border border-border-app/30 rounded-2xl px-1 py-4 lg:p-4"
           }>
             {versusCode ? (
               <>
@@ -255,6 +256,9 @@ export default function App() {
   return (
     <AuthProvider>
       <main>
+        <div className="fixed inset-0 -z-10">
+          <DotField glowColor="transparent" cursorRadius={150} returnSpeed={0.02} />
+        </div>
         <AuthGate />
       </main>
     </AuthProvider>
