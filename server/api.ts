@@ -202,8 +202,11 @@ export function setApp(app: Express, client: MongoClient) {
     const sort = req.body.sort;
 
     if (sort === "today") {
-      const startOfDay = new Date();
-      startOfDay.setUTCHours(0, 0, 0, 0);
+      // Midnight EST = 05:00 UTC. Roll back a day if today's 5am UTC hasn't arrived yet.
+      const now = new Date();
+      const startOfDay = new Date(now);
+      startOfDay.setUTCHours(5, 0, 0, 0);
+      if (startOfDay > now) startOfDay.setUTCDate(startOfDay.getUTCDate() - 1);
 
       const top = await db.collection("GameArchive").aggregate([
         { $match: { won: true, playedAt: { $gte: startOfDay } } },

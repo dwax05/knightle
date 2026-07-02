@@ -267,7 +267,7 @@ function SidebarCard({
           { value: "preview" as SidebarTab, label: "Preview" },
         ]}
         value={tab}
-        onChange={setTab}
+        onChange={(v) => setTab(v)}
       />
 
       <AnimatePresence mode="wait" initial={false}>
