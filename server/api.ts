@@ -1,13 +1,16 @@
 import type { Express } from "express";
 import type { MongoClient, Db } from "mongodb";
-import { randomUUID } from "crypto";
+import { randomUUID, randomBytes } from "crypto";
 import bcrypt from "bcrypt";
 import rateLimit from "express-rate-limit";
+import { Resend } from "resend";
 
 import { createToken, createRefreshToken, verifyRefreshToken } from "./createJWT";
 import { requireAuth, type AuthedRequest } from "./auth";
 import { ANSWERS, VALID_GUESSES } from "./words";
 import { scoreGuess } from "./wordle";
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 const SALT_ROUNDS = 10;
 const MAX_GUESSES = 6;
@@ -539,6 +542,84 @@ export function setApp(app: Express, client: MongoClient) {
       { UserID: req.user!.userId },
       { $set: { Password: hashed } }
     );
+    res.status(200).json({ error: "" });
+  });
+
+  const forgotPasswordLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 5,
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
+
+  app.post("/api/forgot-password", forgotPasswordLimiter, async (req, res) => {
+    const { email } = req.body;
+    if (!email || typeof email !== "string") {
+      return res.status(200).json({ error: "Email is required" });
+    }
+
+    const normalized = email.toLowerCase().trim();
+    const user = await db.collection("Users").findOne({
+      Email: { $regex: new RegExp(`^${normalized}$`, "i") },
+    });
+
+    // Always respond the same way to avoid leaking whether an email exists
+    if (!user) {
+      console.log("[forgot-password] no user found for email:", normalized);
+      return res.status(200).json({ error: "" });
+    }
+
+    const token = randomBytes(32).toString("hex");
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+
+    await db.collection("PasswordResets").deleteMany({ userId: user.UserID });
+    await db.collection("PasswordResets").insertOne({ token, userId: user.UserID, expiresAt });
+
+    const resetUrl = `${process.env.CLIENT_ORIGIN}?token=${token}`;
+
+    const { error: resendError } = await resend.emails.send({
+      from: "Knightle <noreply@knightle.xyz>",
+      to: user.Email,
+      subject: "Reset your Knightle password",
+      html: `
+        <p>Hi ${user.Login},</p>
+        <p>Click the link below to reset your password. This link expires in 1 hour.</p>
+        <p><a href="${resetUrl}">${resetUrl}</a></p>
+        <p>If you didn't request this, you can safely ignore this email.</p>
+      `,
+    });
+
+    if (resendError) {
+      console.error("[forgot-password] resend error:", resendError);
+      return res.status(200).json({ error: "Failed to send email, please try again" });
+    }
+
+    res.status(200).json({ error: "" });
+  });
+
+  app.post("/api/reset-password-token", async (req, res) => {
+    const { token, newPassword } = req.body;
+    if (!token || !newPassword) {
+      return res.status(200).json({ error: "Token and new password are required" });
+    }
+    if (typeof newPassword !== "string" || newPassword.length < 6) {
+      return res.status(200).json({ error: "Password must be at least 6 characters" });
+    }
+
+    const record = await db.collection("PasswordResets").findOne({ token });
+    if (!record) return res.status(200).json({ error: "Invalid or expired reset link" });
+    if (record.expiresAt < new Date()) {
+      await db.collection("PasswordResets").deleteOne({ token });
+      return res.status(200).json({ error: "Reset link has expired" });
+    }
+
+    const hashed = await bcrypt.hash(newPassword, SALT_ROUNDS);
+    await db.collection("Users").updateOne(
+      { UserID: record.userId },
+      { $set: { Password: hashed } }
+    );
+    await db.collection("PasswordResets").deleteOne({ token });
+
     res.status(200).json({ error: "" });
   });
 
