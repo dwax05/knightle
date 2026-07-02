@@ -5,7 +5,7 @@ import { AuthForm } from "./AuthForm";
 import { Game } from "./Game";
 import { StatsPanel } from "./StatsPanel";
 import { Leaderboard } from "./Leaderboard";
-import { IconUser, IconPalette, IconBarChart, IconLightning, IconTarget, IconExpand, IconCompress, IconQuestion, IconBackspace } from "./icons";
+import { IconUser, IconPalette, IconBarChart, IconLightning, IconTarget, IconExpand, IconCompress, IconQuestion, IconBackspace, IconGitHub } from "./icons";
 import { HelpModal } from "./HelpModal";
 import DotField from "./DotField";
 import { getDefaultPresetCss } from "./presets";
@@ -132,6 +132,61 @@ function StatsSheet({ refreshKey, onClose }: { refreshKey: number; onClose: () =
             <StatsPanel refreshKey={refreshKey} />
             <Leaderboard refreshKey={refreshKey} />
           </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function GitHubStarButton({ bubbleSide = "right" }: { bubbleSide?: "left" | "right" }) {
+  const [showBubble, setShowBubble] = useState(false);
+
+  function dismiss() {
+    setShowBubble(false);
+    localStorage.setItem("ghStarSeen", "1");
+  }
+
+  useEffect(() => {
+    if (localStorage.getItem("ghStarSeen")) return;
+    const onFirstInput = () => setShowBubble(true);
+    document.addEventListener("knightle:first-input", onFirstInput);
+    return () => document.removeEventListener("knightle:first-input", onFirstInput);
+  }, []);
+
+  useEffect(() => {
+    if (!showBubble) return;
+    const handler = () => dismiss();
+    document.addEventListener("pointerdown", handler);
+    return () => document.removeEventListener("pointerdown", handler);
+  }, [showBubble]);
+
+  const isRight = bubbleSide === "right";
+
+  return (
+    <div className="relative z-50">
+      <a
+        href="https://github.com/dwax05/knightle"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="GitHub"
+        onClick={dismiss}
+        className="w-10 h-10 flex items-center justify-center bg-surface border border-border-app/50 rounded-xl shadow-[0_3px_0_rgba(0,0,0,0.4)] hover:brightness-110 active:translate-y-[2px] active:shadow-none transition-all duration-100 text-muted hover:text-fg"
+      >
+        <IconGitHub className="w-5 h-5" />
+      </a>
+      <AnimatePresence>
+        {showBubble && (
+          <motion.button
+            onClick={dismiss}
+            className={`absolute z-50 ${isRight ? "left-full ml-5" : "right-full mr-5"} top-1/2 -translate-y-1/2 bg-surface border border-border-app/50 rounded-xl px-3 py-2 text-xs font-medium text-fg whitespace-nowrap shadow-lg shadow-black/40 cursor-pointer`}
+            initial={{ opacity: 0, scale: 0.85 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.85 }}
+            transition={{ type: "spring", stiffness: 320, damping: 24 }}
+          >
+            <div className={`absolute ${isRight ? "-left-2 border-l border-b" : "-right-2 border-r border-t"} top-1/2 -translate-y-1/2 w-4 h-4 bg-surface border-border-app/50 rotate-45`} />
+            Knightle is open source — star us on GitHub
+          </motion.button>
         )}
       </AnimatePresence>
     </div>
@@ -367,12 +422,28 @@ function Home() {
               </div>
             </div>
 
-            {/* Desktop hamburger — top-right */}
-            <div className="hidden lg:block absolute top-4 right-4 z-10">
+            {/* Desktop hamburger + GitHub — top-right */}
+            <div className="hidden lg:flex flex-col items-center gap-2 fixed top-4 right-4 z-10">
               <HamburgerMenu onNavigate={setView} onOpenChange={setMenuOpen} />
+              <GitHubStarButton bubbleSide="left" />
             </div>
 
             <HomescreenPrompt />
+
+            {/* Mobile GitHub — fixed bottom-left */}
+            <AnimatePresence>
+              {!fullscreen && (
+                <motion.div
+                  className="lg:hidden fixed bottom-8 left-4 z-30"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.15 }}
+                >
+                  <GitHubStarButton bubbleSide="right" />
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {/* Mobile FAB cluster — fixed bottom-right */}
             <AnimatePresence>
