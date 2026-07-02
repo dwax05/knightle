@@ -8,14 +8,12 @@ type AuthCtx = {
   loading: boolean;
   offline: boolean;
   login: (login: string, password: string, rememberMe: boolean) => Promise<string | null>;
-  register: (data: RegisterData) => Promise<string | null>;
+  loginWithTokens: (data: { accessToken: string; id: number; login: string }) => void;
   logout: () => Promise<void>;
   authedPost: (url: string, body: object) => Promise<any>;
   deleteAccount: (password: string) => Promise<string | null>;
   reloadTheme: () => Promise<void>;
 };
-
-type RegisterData = { login: string; password: string; email: string };
 
 const Ctx = createContext<AuthCtx>(null!);
 export const useAuth = () => useContext(Ctx);
@@ -122,13 +120,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return null;
   }, [persistUser]);
 
-  const register = useCallback(async (d: RegisterData) => {
-    const data = await post("/api/register", d);
-    if (data.error) return data.error;
+  const loginWithTokens = useCallback((data: { accessToken: string; id: number; login: string }) => {
     tokenRef.current = data.accessToken;
     persistUser({ id: data.id, login: data.login });
     localStorage.removeItem("seenHelp");
-    return null;
   }, [persistUser]);
 
   const logout = useCallback(async () => {
@@ -157,7 +152,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [user, loadTheme]);
 
   return (
-    <Ctx.Provider value={{ user, loading, offline, login, register, logout, authedPost, deleteAccount, reloadTheme: loadTheme }}>
+    <Ctx.Provider value={{ user, loading, offline, login, loginWithTokens, logout, authedPost, deleteAccount, reloadTheme: loadTheme }}>
       {children}
     </Ctx.Provider>
   );

@@ -8,14 +8,14 @@ A full-stack Wordle clone with user accounts, stats tracking, a leaderboard, a c
 |-------|------|
 | Client | React 19, TypeScript, Vite, Tailwind CSS 4 |
 | Server | Express 5, TypeScript, MongoDB 7 |
-| Auth | JWT access + refresh tokens, bcrypt, rate-limited login |
+| Auth | JWT access + refresh tokens, bcrypt, email verification (Resend), rate-limited login |
 | Dev | Docker Compose, tsx watch, concurrently |
 | Prod | Docker Compose, nginx, Let's Encrypt SSL, GitHub Actions |
 
 ## Features
 
 - **Solo game** — server-side answer selection, 6 guesses, color-coded tile feedback with flip animations; in-progress games persist across page refreshes and are resumed automatically
-- **Accounts** — register/login with hashed passwords, short-lived access tokens, and httpOnly refresh tokens
+- **Accounts** — register with a 3-step stepper (username/email → password → email verification via 6-digit OTP); login with hashed passwords, short-lived access tokens, and httpOnly refresh tokens
 - **Remember me** — optional persistent login via 30-day refresh cookie; silent token refresh on page load
 - **Profile** — change password, log out, clear game data, delete account
 - **Stats** — win rate, current/max streak, guess distribution
@@ -53,6 +53,8 @@ ACCESS_TOKEN_SECRET=
 REFRESH_TOKEN_SECRET=
 MONGO_URI=mongodb://knightle_admin:<password>@mongo:27017/knightle?authSource=admin
 MONGO_PASSWORD=
+RESEND_API_KEY=
+CLIENT_ORIGIN=https://knightle.xyz
 ```
 
 Required GitHub Actions secrets: `SSH_HOST`, `SSH_USER`, `SSH_PRIVATE_KEY`.
@@ -72,7 +74,10 @@ All endpoints are `POST /api/*`. Auth-required routes expect `Authorization: Bea
 
 | Endpoint | Auth | Description |
 |----------|------|-------------|
-| `/api/register` | — | Create account, sets refresh cookie |
+| `/api/check-username` | — | Check username + email availability before step 1 advances |
+| `/api/register` | — | Create account (unverified), send 6-digit OTP via Resend; returns `{ verificationPending, login }` |
+| `/api/verify-email` | — | Submit OTP; marks account verified, sets refresh cookie, returns access token |
+| `/api/resend-verification` | — | Resend OTP to the registered email (3 per 5 min) |
 | `/api/login` | — | Returns access token, sets refresh cookie |
 | `/api/auth/refresh` | cookie | Exchange refresh cookie for a new access token |
 | `/api/auth/logout` | — | Clears the refresh cookie |

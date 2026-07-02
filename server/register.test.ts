@@ -55,11 +55,12 @@ function makeCollection(name: string) {
       }),
     };
   }
-  // fallback no-op collection
+  // fallback no-op collection (covers EmailVerifications etc.)
   return {
     findOne: vi.fn().mockResolvedValue(null),
     insertOne: vi.fn().mockResolvedValue({}),
     updateOne: vi.fn().mockResolvedValue({}),
+    deleteMany: vi.fn().mockResolvedValue({}),
   };
 }
 
@@ -92,17 +93,17 @@ function register(login: string, email = `${login}@test.com`) {
 }
 
 describe("POST /api/register", () => {
-  it("registers a user and returns their id and login", async () => {
+  it("registers a user and returns verificationPending", async () => {
     const res = await register("alice");
     expect(res.body.error).toBeUndefined();
+    expect(res.body.verificationPending).toBe(true);
     expect(res.body.login).toBe("alice");
-    expect(res.body.id).toBe(1);
   });
 
-  it("rejects a login that is already taken", async () => {
+  it("rejects a username that is already taken", async () => {
     await register("alice");
     const res = await register("alice", "other@test.com");
-    expect(res.body.error).toBe("User already exists");
+    expect(res.body.error).toBe("Username already taken");
   });
 
   it("assigns unique ids to concurrent registrations", async () => {
@@ -110,9 +111,8 @@ describe("POST /api/register", () => {
       Array.from({ length: 10 }, (_, i) => register(`user${i}`))
     );
 
-    const ids = results.map((r) => r.body.id);
-    expect(ids).not.toContain(undefined);
-    expect(new Set(ids).size).toBe(10);
+    const pending = results.filter((r) => r.body.verificationPending);
+    expect(pending).toHaveLength(10);
     expect(users).toHaveLength(10);
   });
 
@@ -120,12 +120,12 @@ describe("POST /api/register", () => {
     const [a, b] = await Promise.all([register("dupe"), register("dupe")]);
 
     const bodies = [a.body, b.body];
-    const winners = bodies.filter((r) => !r.error);
+    const winners = bodies.filter((r) => r.verificationPending);
     const losers = bodies.filter((r) => r.error);
 
     expect(winners).toHaveLength(1);
     expect(losers).toHaveLength(1);
-    expect(losers[0].error).toBe("User already exists");
+    expect(losers[0].error).toBe("Username already taken");
     expect(users).toHaveLength(1);
   });
 });
