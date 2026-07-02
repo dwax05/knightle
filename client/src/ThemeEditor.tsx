@@ -120,25 +120,36 @@ function contrastColor(hex: string): string {
 function ColorRow({
   entry,
   onChange,
+  onDraftChange,
+  resetKey,
 }: {
   entry: Entry;
   onChange: (key: string, value: string) => void;
+  onDraftChange: (key: string, valid: boolean) => void;
+  resetKey: number;
 }) {
   const [draft, setDraft] = useState(entry.value);
 
-  useEffect(() => { setDraft(entry.value); }, [entry.value]);
+  useEffect(() => {
+    setDraft(entry.value);
+    onDraftChange(entry.key, true);
+  }, [entry.value, resetKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const resolvedBg = isValidHex(draft) ? draft : (isValidHex(entry.value) ? entry.value : "#313244");
+  const draftValid = isValidHex(draft);
+  const resolvedBg = draftValid ? draft : (isValidHex(entry.value) ? entry.value : "#313244");
   const textColor = contrastColor(resolvedBg);
 
   function handleText(v: string) {
     setDraft(v);
-    if (isValidHex(v)) onChange(entry.key, v);
+    const valid = isValidHex(v);
+    if (valid) onChange(entry.key, v);
+    onDraftChange(entry.key, valid);
   }
 
   function handlePicker(v: string) {
     setDraft(v);
     onChange(entry.key, v);
+    onDraftChange(entry.key, true);
   }
 
   return (
@@ -156,8 +167,11 @@ function ColorRow({
         onChange={(e) => handleText(e.target.value)}
         spellCheck={false}
         maxLength={7}
-        className="w-28 px-3 py-1.5 rounded-lg font-mono text-sm border focus:outline-none focus:ring-2 focus:ring-white/20 transition"
-        style={{ background: resolvedBg, color: textColor, borderColor: resolvedBg }}
+        className="w-28 px-3 py-1.5 rounded-lg font-mono text-sm border focus:outline-none focus:ring-2 transition"
+        style={draftValid
+          ? { background: resolvedBg, color: textColor, borderColor: resolvedBg }
+          : { background: "var(--surface)", color: "var(--error)", borderColor: "var(--error)" }
+        }
       />
     </div>
   );
@@ -326,11 +340,12 @@ export function ThemeEditor({ onClose }: { onClose: () => void }) {
     return parseCss(TEMPLATE);
   });
   const [savedCss, setSavedCss] = useState("");
-  const [status, setStatus] = useState("");
+  const [status, setStatus] = useState<{ msg: string; error: boolean } | null>(null);
   const actionsRef = useRef<HTMLDivElement>(null);
   const animateNextApply = useRef(false);
   const [actionsVisible, setActionsVisible] = useState(true);
   const [saveFlash, setSaveFlash] = useState(false);
+  const [saveErrorFlash, setSaveErrorFlash] = useState(false);
 
   useEffect(() => {
     const el = actionsRef.current;
@@ -341,9 +356,9 @@ export function ThemeEditor({ onClose }: { onClose: () => void }) {
   }, []);
   const [slots, setSlots] = useState<(Record<string, string> | null)[]>(EMPTY_SLOTS);
 
-  function flash(msg: string) {
-    setStatus(msg);
-    setTimeout(() => setStatus(""), 2000);
+  function flash(msg: string, error = false) {
+    setStatus({ msg, error });
+    setTimeout(() => setStatus(null), 2000);
   }
 
   async function persistSlots(updated: (Record<string, string> | null)[]) {
@@ -388,6 +403,18 @@ export function ThemeEditor({ onClose }: { onClose: () => void }) {
     }
   }, [entries]);
 
+  const [invalidDrafts, setInvalidDrafts] = useState<Set<string>>(new Set());
+  const [draftResetKey, setDraftResetKey] = useState(0);
+
+  function handleDraftChange(key: string, valid: boolean) {
+    setInvalidDrafts((prev) => {
+      if (valid === !prev.has(key)) return prev;
+      const next = new Set(prev);
+      valid ? next.delete(key) : next.add(key);
+      return next;
+    });
+  }
+
   function handleChange(key: string, value: string) {
     setEntries((prev) => prev.map((e) => (e.key === key ? { ...e, value } : e)));
   }
@@ -405,17 +432,23 @@ export function ThemeEditor({ onClose }: { onClose: () => void }) {
   }
 
   async function save() {
+    if (invalidDrafts.size > 0) {
+      setSaveErrorFlash(true);
+      setTimeout(() => setSaveErrorFlash(false), 300);
+      return;
+    }
     setSaveFlash(true);
     setTimeout(() => setSaveFlash(false), 150);
     const css = serializeCss(entries);
     const data = await authedPost("/api/theme/save", { css });
-    if (data.error) flash(data.error);
+    if (data.error) flash(data.error, true);
     else setSavedCss(css);
   }
 
   function reset() {
     animateNextApply.current = true;
     setEntries(parseCss(TEMPLATE));
+    setDraftResetKey((k) => k + 1);
   }
 
   async function exportToClipboard() {
@@ -426,7 +459,7 @@ export function ThemeEditor({ onClose }: { onClose: () => void }) {
   async function importFromClipboard() {
     const text = await navigator.clipboard.readText();
     const parsed = parseCss(text);
-    if (!parsed.length) { flash("Nothing to import"); return; }
+    if (!parsed.length) { flash("Nothing to import", true); return; }
     setEntries(parsed);
     flash("Imported!");
   }
@@ -498,7 +531,7 @@ export function ThemeEditor({ onClose }: { onClose: () => void }) {
                   <div key={group.label} className="flex flex-col gap-2">
                     <span className="text-xs font-semibold text-muted uppercase tracking-wider">{group.label}</span>
                     {groupEntries.map((entry) => (
-                      <ColorRow key={entry.key} entry={entry} onChange={handleChange} />
+                      <ColorRow key={entry.key} entry={entry} onChange={handleChange} onDraftChange={handleDraftChange} resetKey={draftResetKey} />
                     ))}
                   </div>
                 );
@@ -520,7 +553,7 @@ export function ThemeEditor({ onClose }: { onClose: () => void }) {
             <button
               onClick={save}
               className={`px-4 py-2 rounded-lg bg-accent text-tiletext font-semibold shadow-[0_3px_0_rgba(0,0,0,0.35)] hover:brightness-110 active:translate-y-[3px] active:shadow-none transition-all duration-100 lg:opacity-100 lg:pointer-events-auto ${actionsVisible ? "opacity-100 delay-10" : "opacity-0 pointer-events-none"}`}
-              style={saveFlash ? { background: "var(--success)" } : undefined}
+              style={saveFlash ? { background: "var(--success)" } : saveErrorFlash ? { background: "var(--error)" } : undefined}
             >
               Save
             </button>
@@ -530,7 +563,7 @@ export function ThemeEditor({ onClose }: { onClose: () => void }) {
             >
               Reset
             </button>
-            {status && <span className="text-sm text-success font-medium">{status}</span>}
+            {status && <span className={`text-sm font-medium ${status.error ? "text-error" : "text-success"}`}>{status.msg}</span>}
             <div className="ml-auto flex items-center gap-3">
               <button
                 onClick={exportToClipboard}
@@ -554,7 +587,7 @@ export function ThemeEditor({ onClose }: { onClose: () => void }) {
         <button
           onClick={save}
           className="px-4 py-2 rounded-lg bg-accent text-tiletext font-semibold shadow-[0_3px_0_rgba(0,0,0,0.5)] hover:brightness-110 active:translate-y-[3px] active:shadow-none transition-all duration-100"
-          style={saveFlash ? { background: "var(--success)" } : undefined}
+          style={saveFlash ? { background: "var(--success)" } : saveErrorFlash ? { background: "var(--error)" } : undefined}
         >
           Save
         </button>
