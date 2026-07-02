@@ -163,7 +163,7 @@ function GitHubStarButton({ bubbleSide = "right" }: { bubbleSide?: "left" | "rig
   const isRight = bubbleSide === "right";
 
   return (
-    <div className="relative z-50">
+    <div className="relative">
       <a
         href="https://github.com/dwax05/knightle"
         target="_blank"
@@ -424,7 +424,9 @@ function Home() {
 
             {/* Desktop hamburger + GitHub — top-right */}
             <div className="hidden lg:flex flex-col items-center gap-2 fixed top-4 right-4 z-10">
-              <HamburgerMenu onNavigate={setView} onOpenChange={setMenuOpen} />
+              <div className="relative z-10">
+                <HamburgerMenu onNavigate={setView} onOpenChange={setMenuOpen} />
+              </div>
               <GitHubStarButton bubbleSide="left" />
             </div>
 
