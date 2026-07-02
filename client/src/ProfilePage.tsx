@@ -142,10 +142,13 @@ function StatusMsg({ s }: { s: Status }) {
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({ title, action, children }: { title: string; action?: React.ReactNode; children: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-3 p-5 rounded-xl bg-surface border border-border-app/40 shadow-lg shadow-black/40">
-      <h2 className="text-sm font-semibold text-muted uppercase tracking-wider">{title}</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-sm font-semibold text-muted uppercase tracking-wider">{title}</h2>
+        {action}
+      </div>
       {children}
     </div>
   );
@@ -158,6 +161,7 @@ export function ProfilePage({ onClose }: { onClose: () => void }) {
   const [pwForm, setPwForm] = useState({ current: "", next: "", confirm: "" });
   const [pwStatus, setPwStatus] = useState<Status>(null);
   const [pwBusy, setPwBusy] = useState(false);
+  const [resetLinkBusy, setResetLinkBusy] = useState(false);
 
   // clear game data
   const [clearConfirm, setClearConfirm] = useState(false);
@@ -169,6 +173,17 @@ export function ProfilePage({ onClose }: { onClose: () => void }) {
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [deleteStatus, setDeleteStatus] = useState<Status>(null);
   const [deleteBusy, setDeleteBusy] = useState(false);
+
+  async function handleSendResetLink() {
+    setResetLinkBusy(true);
+    const data = await authedPost("/api/send-password-reset", {});
+    setResetLinkBusy(false);
+    if (data.error) {
+      setPwStatus({ type: "error", message: data.error });
+    } else {
+      setPwStatus({ type: "success", message: "Reset link sent — check your inbox" });
+    }
+  }
 
   async function handlePasswordReset() {
     setPwStatus(null);
@@ -246,7 +261,15 @@ export function ProfilePage({ onClose }: { onClose: () => void }) {
           <ArchiveSection />
         </Section>
 
-        <Section title="Change password">
+        <Section title="Change password" action={
+          <button
+            onClick={handleSendResetLink}
+            disabled={resetLinkBusy}
+            className="text-xs text-muted hover:text-fg transition disabled:opacity-50"
+          >
+            {resetLinkBusy ? "Sending..." : "Forgot password?"}
+          </button>
+        }>
           <input
             className={inputClass}
             type="password"
