@@ -61,7 +61,10 @@ function Digit({ place, value, height, digitStyle }: DigitProps) {
       </span>
     );
   }
+  return <NumericDigit place={place} value={value} height={height} digitStyle={digitStyle} />;
+}
 
+function NumericDigit({ place, value, height, digitStyle }: DigitProps & { place: number }) {
   const valueRoundedToPlace = getValueRoundedToPlace(value, place);
   const animatedValue = useSpring(valueRoundedToPlace);
 
