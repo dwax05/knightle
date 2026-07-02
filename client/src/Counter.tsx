@@ -177,10 +177,12 @@ export default function Counter({
           <Digit key={place} place={place} value={value} height={height} digitStyle={digitStyle} />
         ))}
       </span>
-      <span style={gradientContainerStyle}>
-        <span style={topGradientStyle ?? defaultTopGradientStyle} />
-        <span style={bottomGradientStyle ?? defaultBottomGradientStyle} />
-      </span>
+      {gradientHeight > 0 && (
+        <span style={gradientContainerStyle}>
+          <span style={topGradientStyle ?? defaultTopGradientStyle} />
+          <span style={bottomGradientStyle ?? defaultBottomGradientStyle} />
+        </span>
+      )}
     </span>
   );
 }

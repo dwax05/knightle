@@ -339,7 +339,9 @@ export function ThemeEditor({ onClose }: { onClose: () => void }) {
     } catch { /* storage unavailable */ }
     return parseCss(TEMPLATE);
   });
-  const [savedCss, setSavedCss] = useState("");
+  const [savedCss, setSavedCss] = useState(() => {
+    try { return localStorage.getItem("cache:theme:v2") ?? ""; } catch { return ""; }
+  });
   const [status, setStatus] = useState<{ msg: string; error: boolean } | null>(null);
   const actionsRef = useRef<HTMLDivElement>(null);
   const animateNextApply = useRef(false);

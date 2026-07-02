@@ -52,7 +52,7 @@ const DotField = memo(({
   const dotsRef = useRef<Dot[]>([]);
   const mouseRef = useRef({ x: -9999, y: -9999, prevX: -9999, prevY: -9999, speed: 0 });
   const rafRef = useRef<number | null>(null);
-  const sizeRef = useRef({ w: 0, h: 0, offsetX: 0, offsetY: 0 });
+  const sizeRef = useRef({ w: 0, h: 0 });
   const glowOpacity = useRef(0);
   const engagement = useRef(0);
   const propsRef = useRef<Record<string, unknown>>({});
@@ -85,12 +85,7 @@ const DotField = memo(({
       canvas!.style.height = `${h}px`;
       ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-      sizeRef.current = {
-        w,
-        h,
-        offsetX: rect.left + window.scrollX,
-        offsetY: rect.top + window.scrollY,
-      };
+      sizeRef.current = { w, h };
 
       buildDots(w, h);
     }

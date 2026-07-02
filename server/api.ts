@@ -103,12 +103,7 @@ export function setApp(app: Express, client: MongoClient) {
     }
 
     const { accessToken } = createToken(payload.login, payload.userId);
-    // re-issue refresh cookie preserving its type (session vs persistent)
-    const hasMaxAge = !!req.cookies[REFRESH_COOKIE];
     const newRefresh = createRefreshToken(payload.login, payload.userId);
-    // check if original cookie was persistent by seeing if it will outlive a session
-    // we can't read maxAge from the cookie itself, so we re-issue without maxAge (session cookie)
-    // unless the client tells us rememberMe via a header
     const rememberMe = req.headers["x-remember-me"] === "1";
     setRefreshCookie(res, newRefresh, rememberMe);
     res.status(200).json({ accessToken, id: payload.userId, login: payload.login });
@@ -178,8 +173,7 @@ export function setApp(app: Express, client: MongoClient) {
     const lost = !won && guessNum >= MAX_GUESSES;
     const finished = won || lost;
 
-    await db.collection("Games").updateOne({ gameId }, { $set: { finished } });
-    await db.collection("Games").updateOne({ gameId }, { $push: { guesses: g, marks } });
+    await db.collection("Games").updateOne({ gameId }, { $set: { finished }, $push: { guesses: g, marks } });
 
     if (finished) {
       const allGuesses = [...game.guesses, g];
