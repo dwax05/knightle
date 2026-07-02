@@ -23,6 +23,7 @@ async function start() {
   console.log("db connected");
 
   await client.db().collection("Users").createIndex({ Login: 1 }, { unique: true });
+  await client.db().collection("Users").createIndex({ UserID: 1 }, { unique: true });
   await client.db().collection("Stats").createIndex({ userId: 1 }, { unique: true });
   await client.db().collection("Versus").createIndex(
     { createdAt: 1 },
@@ -32,6 +33,15 @@ async function start() {
   await client.db().collection("PasswordResets").createIndex(
     { expiresAt: 1 },
     { expireAfterSeconds: 0 } // MongoDB auto-deletes expired records
+  );
+
+  // seed the user-id counter from the current max so registration can
+  // allocate ids atomically with $inc ($setOnInsert makes this idempotent)
+  const last = await client.db().collection("Users").find().sort({ UserID: -1 }).limit(1).toArray();
+  await client.db().collection<{ _id: string; seq: number }>("Counters").updateOne(
+    { _id: "userId" },
+    { $setOnInsert: { seq: last[0]?.UserID ?? 0 } },
+    { upsert: true }
   );
 
   setApp(app, client);

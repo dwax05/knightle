@@ -9,6 +9,17 @@ import { SALT_ROUNDS } from "./shared";
 const REFRESH_COOKIE = "refresh_token";
 const IS_PROD = process.env.NODE_ENV === "production";
 
+// atomically allocate the next UserID; the counter is seeded from the current
+// max at startup (see index.ts), so concurrent registers can't collide
+async function nextUserId(db: Db): Promise<number> {
+  const counter = await db.collection<{ _id: string; seq: number }>("Counters").findOneAndUpdate(
+    { _id: "userId" },
+    { $inc: { seq: 1 } },
+    { upsert: true, returnDocument: "after" }
+  );
+  return counter!.seq;
+}
+
 function setRefreshCookie(res: Response, token: string, rememberMe: boolean) {
   res.cookie(REFRESH_COOKIE, token, {
     httpOnly: true,
@@ -40,9 +51,7 @@ export function registerAuthRoutes(app: Express, db: Db) {
       return res.status(200).json({ error: "User already exists" });
     }
 
-    const last = await db.collection("Users").find().sort({ UserID: -1 }).limit(1).toArray();
-    const nextId = last.length ? last[0].UserID + 1 : 1;
-
+    const nextId = await nextUserId(db);
     const hashed = await bcrypt.hash(password, SALT_ROUNDS);
 
     const user = {
@@ -52,7 +61,14 @@ export function registerAuthRoutes(app: Express, db: Db) {
       Password: hashed,
       EmailVerified: false,  // groundwork for later verification
     };
-    await db.collection("Users").insertOne(user);
+    try {
+      await db.collection("Users").insertOne(user);
+    } catch (e: any) {
+      // two concurrent registers with the same login both pass the findOne
+      // check; the unique index on Login rejects the loser here
+      if (e?.code === 11000) return res.status(200).json({ error: "User already exists" });
+      throw e;
+    }
 
     const token = createToken(user.Login, user.UserID);
     const refreshToken = createRefreshToken(user.Login, user.UserID);
