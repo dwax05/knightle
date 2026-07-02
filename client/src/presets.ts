@@ -21,7 +21,7 @@ export const PRESETS: Preset[] = [
     vars: {
       "--bg": "#282a36", "--fg": "#f8f8f2", "--surface": "#44475a",
       "--border": "#6272a4", "--muted": "#6272a4",
-      "--tile-correct": "#50fa7b", "--tile-present": "#f1fa8c", "--tile-absent": "#44475a",
+      "--tile-correct": "#50fa7b", "--tile-present": "#f1fa8c", "--tile-absent": "#383a4a",
       "--tile-text": "#282a36", "--success": "#50fa7b", "--error": "#ff5555",
       "--accent": "#bd93f9", "--button-bg": "#44475a", "--button-fg": "#f8f8f2",
     },
@@ -104,7 +104,7 @@ export const PRESETS: Preset[] = [
     vars: {
       "--bg": "#002b36", "--fg": "#839496", "--surface": "#073642",
       "--border": "#586e75", "--muted": "#657b83",
-      "--tile-correct": "#859900", "--tile-present": "#b58900", "--tile-absent": "#073642",
+      "--tile-correct": "#859900", "--tile-present": "#b58900", "--tile-absent": "#0d4a5c",
       "--tile-text": "#fdf6e3", "--success": "#859900", "--error": "#dc322f",
       "--accent": "#268bd2", "--button-bg": "#073642", "--button-fg": "#839496",
     },
@@ -114,7 +114,7 @@ export const PRESETS: Preset[] = [
     vars: {
       "--bg": "#fdf6e3", "--fg": "#657b83", "--surface": "#eee8d5",
       "--border": "#93a1a1", "--muted": "#93a1a1",
-      "--tile-correct": "#859900", "--tile-present": "#b58900", "--tile-absent": "#eee8d5",
+      "--tile-correct": "#859900", "--tile-present": "#b58900", "--tile-absent": "#c9c2ae",
       "--tile-text": "#fdf6e3", "--success": "#859900", "--error": "#dc322f",
       "--accent": "#268bd2", "--button-bg": "#eee8d5", "--button-fg": "#657b83",
     },
@@ -145,7 +145,7 @@ export const PRESETS: Preset[] = [
     vars: {
       "--bg": "#0d0d0d", "--fg": "#ffb000", "--surface": "#1a1400",
       "--border": "#3d2e00", "--muted": "#7a5c00",
-      "--tile-correct": "#00cc44", "--tile-present": "#ffb000", "--tile-absent": "#1a1400",
+      "--tile-correct": "#00cc44", "--tile-present": "#ffb000", "--tile-absent": "#2e2500",
       "--tile-text": "#0d0d0d", "--success": "#00cc44", "--error": "#ff3300",
       "--accent": "#ffb000", "--button-bg": "#1a1400", "--button-fg": "#ffb000",
     },
