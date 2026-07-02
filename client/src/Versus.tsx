@@ -73,7 +73,7 @@ export function VersusLobbyModal({
       }
     }, 1500);
     return () => { if (pollRef.current) clearInterval(pollRef.current); };
-  }, [phase, code, authedPost, onStart]);
+  }, [phase, code, mode, authedPost, onStart]);
 
   const activeMeta = MODES.find((m) => m.value === mode)!;
 

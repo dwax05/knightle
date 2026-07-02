@@ -167,7 +167,7 @@ export function VersusGame({ code, mode: initialMode, onExit, fullscreen }: {
       if (data.rematch) { setRematchMe(data.rematch.me); setRematchOpponent(data.rematch.opponent); setRematchDeclined(data.rematch.opponentDeclined ?? false); }
     });
     return () => { cancelled = true; };
-  }, []);
+  }, [code, authedPost]);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {

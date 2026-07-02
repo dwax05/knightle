@@ -51,7 +51,7 @@ export function Game({ onGameEnd, fullscreen, disabled }: { onGameEnd?: () => vo
       }
     });
     return () => { cancelled = true; };
-  }, []);
+  }, [authedPost, newGame]);
   useEffect(() => () => { if (revealTimer.current) clearTimeout(revealTimer.current); }, []);
 
   const submitGuess = useCallback(async () => {

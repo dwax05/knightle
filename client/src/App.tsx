@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, lazy, Suspense } from "react";
+import { useState, useEffect, useRef, useCallback, lazy, Suspense } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { AuthProvider, useAuth } from "./auth";
 import { AuthForm } from "./AuthForm";
@@ -25,13 +25,13 @@ const NAV_ITEMS = [
 function HamburgerMenu({ onNavigate, onOpenChange, dropUp = false }: { onNavigate: (view: "theme" | "profile") => void; onOpenChange?: (open: boolean) => void; dropUp?: boolean }) {
   const [open, setOpen] = useState(false);
 
-  function toggle(v: boolean) { setOpen(v); onOpenChange?.(v); }
+  const toggle = useCallback((v: boolean) => { setOpen(v); onOpenChange?.(v); }, [onOpenChange]);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) { if (e.key === "Escape") toggle(false); }
     if (open) window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [open]);
+  }, [open, toggle]);
 
   function navigate(view: "theme" | "profile") {
     toggle(false);
@@ -310,7 +310,7 @@ function Home() {
   useEffect(() => {
     if (!mounted.current) { mounted.current = true; return; }
     reloadTheme();
-  }, [view]);
+  }, [view, reloadTheme]);
 
   return (
     <AnimatePresence mode="wait">
