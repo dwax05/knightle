@@ -22,7 +22,7 @@ export function TabBar<T extends string>({
       {tabs.map((tab) => (
         <button
           key={tab.value}
-          onClick={() => onChange(tab.value)}
+          onClick={(e) => { onChange(tab.value); (e.currentTarget as HTMLButtonElement).blur(); }}
           className={`relative flex-1 flex items-center justify-center px-1 py-2 rounded-lg text-xs font-semibold transition-colors duration-150 whitespace-nowrap ${
             value === tab.value ? "text-fg" : "text-muted hover:text-fg"
           }`}
