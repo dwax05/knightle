@@ -17,7 +17,7 @@ A full-stack Wordle clone with user accounts, stats tracking, a leaderboard, a c
 - **Solo game** — server-side answer selection, 6 guesses, color-coded tile feedback with flip animations; in-progress games persist across page refreshes and are resumed automatically
 - **Accounts** — register with a 3-step stepper (username/email → password → email verification via 6-digit OTP); login with hashed passwords, short-lived access tokens, and httpOnly refresh tokens
 - **Remember me** — optional persistent login via 30-day refresh cookie; silent token refresh on page load
-- **Profile** — change password, log out, clear game data, delete account
+- **Profile** — change password, send a password reset link (without logging out), log out, clear game data, delete account
 - **Stats** — win rate, current/max streak, guess distribution
 - **Leaderboard** — top 5 players across three tabs: total wins, best streak, and wins today
 - **Versus mode** — create a room, share a 4-letter code, race a friend on the same word; two modes: **Speed** (first to solve wins) and **Precision** (fewest guesses wins); rematch support
@@ -90,6 +90,7 @@ All endpoints are `POST /api/*`. Auth-required routes expect `Authorization: Bea
 | `/api/theme/save` | ✓ | Save CSS theme |
 | `/api/archive` | ✓ | Last 5 completed solo games from `GameArchive` |
 | `/api/password-reset` | ✓ | Change password (requires current password) |
+| `/api/send-password-reset` | ✓ | Send a reset link to the logged-in user's email on file (no email input needed) |
 | `/api/clear-game-data` | ✓ | Delete all stats and game history |
 | `/api/delete-account` | ✓ | Delete account and all associated data |
 | `/api/versus/create` | ✓ | Open a versus room |
