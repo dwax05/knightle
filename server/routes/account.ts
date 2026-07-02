@@ -10,6 +10,29 @@ import { SALT_ROUNDS } from "./shared";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+async function sendPasswordResetLink(db: Db, user: { UserID: number; Login: string; Email: string }): Promise<string | null> {
+  const token = randomBytes(32).toString("hex");
+  const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+
+  await db.collection("PasswordResets").deleteMany({ userId: user.UserID });
+  await db.collection("PasswordResets").insertOne({ token, userId: user.UserID, expiresAt });
+
+  const resetUrl = `${process.env.CLIENT_ORIGIN}?token=${token}`;
+  const { error } = await resend.emails.send({
+    from: "Knightle <noreply@knightle.xyz>",
+    to: user.Email,
+    subject: "Reset your Knightle password",
+    html: `
+      <p>Hi ${user.Login},</p>
+      <p>Click the link below to reset your password. This link expires in 1 hour.</p>
+      <p><a href="${resetUrl}">${resetUrl}</a></p>
+      <p>If you didn't request this, you can safely ignore this email.</p>
+    `,
+  });
+
+  return error ? "Failed to send email, please try again" : null;
+}
+
 export function registerAccountRoutes(app: Express, db: Db) {
   app.post("/api/password-reset", requireAuth, async (req: AuthedRequest, res) => {
     const { currentPassword, newPassword } = req.body;
@@ -55,30 +78,21 @@ export function registerAccountRoutes(app: Express, db: Db) {
     // Always respond the same way to avoid leaking whether an email exists
     if (!user) return res.status(200).json({ error: "" });
 
-    const token = randomBytes(32).toString("hex");
-    const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
-
-    await db.collection("PasswordResets").deleteMany({ userId: user.UserID });
-    await db.collection("PasswordResets").insertOne({ token, userId: user.UserID, expiresAt });
-
-    const resetUrl = `${process.env.CLIENT_ORIGIN}?token=${token}`;
-
-    const { error: resendError } = await resend.emails.send({
-      from: "Knightle <noreply@knightle.xyz>",
-      to: user.Email,
-      subject: "Reset your Knightle password",
-      html: `
-        <p>Hi ${user.Login},</p>
-        <p>Click the link below to reset your password. This link expires in 1 hour.</p>
-        <p><a href="${resetUrl}">${resetUrl}</a></p>
-        <p>If you didn't request this, you can safely ignore this email.</p>
-      `,
-    });
-
-    if (resendError) {
-      console.error("[forgot-password] resend error:", resendError);
-      return res.status(200).json({ error: "Failed to send email, please try again" });
+    const emailError = await sendPasswordResetLink(db, { UserID: user.UserID as number, Login: user.Login as string, Email: user.Email as string });
+    if (emailError) {
+      console.error("[forgot-password] resend error:", emailError);
+      return res.status(200).json({ error: emailError });
     }
+
+    res.status(200).json({ error: "" });
+  });
+
+  app.post("/api/send-password-reset", requireAuth, forgotPasswordLimiter, async (req: AuthedRequest, res) => {
+    const user = await db.collection("Users").findOne({ UserID: req.user!.userId });
+    if (!user) return res.status(200).json({ error: "User not found" });
+
+    const emailError = await sendPasswordResetLink(db, { UserID: user.UserID as number, Login: user.Login as string, Email: user.Email as string });
+    if (emailError) return res.status(200).json({ error: emailError });
 
     res.status(200).json({ error: "" });
   });
