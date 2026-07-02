@@ -65,9 +65,8 @@ export function HelpModal({ onClose }: { onClose: () => void }) {
             label={<><span className="text-fg font-semibold">G</span> is not in the word.</>}
           />
         </div>
-
         <p className="text-xs text-muted text-center">
-          A new puzzle is available whenever you finish. Play as many as you like.
+          Want a different look? Check out the <span className="text-fg font-medium">Themes</span> tab to pick a palette or build your own.
         </p>
       </motion.div>
     </motion.div>
