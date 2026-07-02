@@ -95,7 +95,7 @@ function StatsSheet({ refreshKey, onClose }: { refreshKey: number; onClose: () =
   const [visible, setVisible] = useState(true);
 
   return (
-    <div className="fixed inset-0 z-30 flex flex-col justify-end">
+    <div className="fixed inset-0 z-40 flex flex-col justify-end">
       <AnimatePresence>
         {visible && (
           <motion.div
