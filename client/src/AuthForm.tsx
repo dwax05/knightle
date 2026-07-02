@@ -68,7 +68,7 @@ export function AuthForm() {
       const data = await res.json();
       setSubmitting(false);
       if (data.error) return setStatus({ type: "error", message: data.error });
-      setStatus({ type: "success", message: "If that email is registered, a reset link is on its way." });
+      setStatus({ type: "success", message: "Check your inbox for a reset link." });
       return;
     }
 
