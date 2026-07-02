@@ -211,7 +211,7 @@ export function setApp(app: Express, client: MongoClient) {
       const top = await db.collection("GameArchive").aggregate([
         { $match: { won: true, playedAt: { $gte: startOfDay } } },
         { $group: { _id: "$userId", wins: { $sum: 1 } } },
-        { $sort: { wins: -1 } },
+        { $sort: { wins: -1, _id: 1 } },
         { $limit: 5 },
         { $lookup: { from: "Users", localField: "_id", foreignField: "UserID", as: "user" } },
       ]).toArray();
@@ -232,7 +232,7 @@ export function setApp(app: Express, client: MongoClient) {
       .collection("Stats")
       .aggregate([
         { $match: { [sortField]: { $gt: 0 } } },
-        { $sort: { [sortField]: -1 } },
+        { $sort: { [sortField]: -1, userId: 1 } },
         { $limit: 5 },
         {
           $lookup: {

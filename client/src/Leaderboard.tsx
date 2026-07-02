@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { useAuth } from "./auth";
 import Counter from "./Counter";
@@ -58,26 +58,27 @@ export function Leaderboard({ refreshKey }: { refreshKey: number }) {
     today: loadCache("cache:leaderboard:today"),
   });
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      const results = await Promise.all(
-        TAB_ORDER.map(sort => authedPost("/api/leaderboard", { sort }))
-      );
-      if (cancelled) return;
-      setEntriesByTab(prev => {
-        const next = { ...prev };
-        TAB_ORDER.forEach((t, i) => {
-          if (results[i].leaderboard) {
-            next[t] = results[i].leaderboard;
-            localStorage.setItem(`cache:leaderboard:${t}`, JSON.stringify(results[i].leaderboard));
-          }
-        });
-        return next;
+  const fetchAll = useCallback(async () => {
+    const results = await Promise.all(
+      TAB_ORDER.map(sort => authedPost("/api/leaderboard", { sort }))
+    );
+    setEntriesByTab(prev => {
+      const next = { ...prev };
+      TAB_ORDER.forEach((t, i) => {
+        if (results[i].leaderboard) {
+          next[t] = results[i].leaderboard;
+          localStorage.setItem(`cache:leaderboard:${t}`, JSON.stringify(results[i].leaderboard));
+        }
       });
-    })();
-    return () => { cancelled = true; };
-  }, [refreshKey, authedPost]);
+      return next;
+    });
+  }, [authedPost]);
+
+  useEffect(() => {
+    fetchAll();
+    const id = setInterval(fetchAll, 30_000);
+    return () => clearInterval(id);
+  }, [refreshKey, fetchAll]);
 
   function switchTab(t: Tab) {
     dirRef.current = TAB_ORDER.indexOf(t) > TAB_ORDER.indexOf(tab) ? 1 : -1;
@@ -107,33 +108,40 @@ export function Leaderboard({ refreshKey }: { refreshKey: number }) {
             exit="exit"
             className="flex flex-col gap-1"
           >
-            {Array.from({ length: 5 }, (_, i) => {
-              const e = entries[i];
-              return e ? (
-                <div
-                  key={i}
-                  className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm ${e.isMe ? "bg-accent/15 border border-accent/40" : "bg-surface"}`}
-                >
-                  <span className="w-6 text-center font-semibold">{medal(i)}</span>
-                  <span className="flex-1 truncate text-fg">{e.name}</span>
-                  <Counter
-                    value={tab === "streak" ? e.maxStreak : e.wins}
-                    fontSize={14}
-                    gap={0}
-                    horizontalPadding={0}
-                    borderRadius={0}
-                    gradientHeight={0}
-                    fontWeight="bold"
-                  />
-                </div>
-              ) : (
-                <div key={i} className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm opacity-20">
-                  <span className="w-6 text-center font-semibold text-muted">{i + 1}</span>
-                  <div className="flex-1 h-3 rounded bg-muted/50" />
-                  <div className="w-4 h-3 rounded bg-muted/50" />
-                </div>
-              );
-            })}
+            <AnimatePresence initial={false}>
+              {Array.from({ length: 5 }, (_, i) => {
+                const e = entries[i];
+                return e ? (
+                  <motion.div
+                    key={e.name}
+                    layout="position"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ layout: { type: "spring", stiffness: 300, damping: 30 }, opacity: { duration: 0.2 } }}
+                    className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm ${e.isMe ? "bg-accent/15 border border-accent/40" : "bg-surface"}`}
+                  >
+                    <span className="w-6 text-center font-semibold">{medal(i)}</span>
+                    <span className="flex-1 truncate text-fg">{e.name}</span>
+                    <Counter
+                      value={tab === "streak" ? e.maxStreak : e.wins}
+                      fontSize={14}
+                      gap={0}
+                      horizontalPadding={0}
+                      borderRadius={0}
+                      gradientHeight={0}
+                      fontWeight="bold"
+                    />
+                  </motion.div>
+                ) : (
+                  <div key={`empty-${i}`} className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm opacity-20">
+                    <span className="w-6 text-center font-semibold text-muted">{i + 1}</span>
+                    <div className="flex-1 h-3 rounded bg-muted/50" />
+                    <div className="w-4 h-3 rounded bg-muted/50" />
+                  </div>
+                );
+              })}
+            </AnimatePresence>
           </motion.div>
         </AnimatePresence>
       </div>
