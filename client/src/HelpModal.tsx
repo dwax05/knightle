@@ -67,7 +67,7 @@ export function HelpModal({ onClose }: { onClose: () => void }) {
         </div>
 
         <p className="text-xs text-muted text-center">
-          A new puzzle is available whenever you finish — play as many as you like.
+          A new puzzle is available whenever you finish. Play as many as you like.
         </p>
       </motion.div>
     </motion.div>
