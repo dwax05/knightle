@@ -85,8 +85,13 @@ export function Game({ onGameEnd, fullscreen, disabled }: { onGameEnd?: () => vo
     }, REVEAL_TOTAL);
   }, [current, gameId, done, revealingRow, guesses.length, authedPost, onGameEnd]);
 
+  const firedFirstInput = useRef(false);
   const typeLetter = useCallback((ch: string) => {
     if (done) return;
+    if (!firedFirstInput.current) {
+      firedFirstInput.current = true;
+      document.dispatchEvent(new CustomEvent("knightle:first-input"));
+    }
     setCurrent((c) => (c.length < COLS ? c + ch.toLowerCase() : c));
   }, [done]);
 
