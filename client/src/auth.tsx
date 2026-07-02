@@ -6,6 +6,7 @@ type User = { id: number; login: string };
 type AuthCtx = {
   user: User | null;
   loading: boolean;
+  offline: boolean;
   login: (login: string, password: string, rememberMe: boolean) => Promise<string | null>;
   register: (data: RegisterData) => Promise<string | null>;
   logout: () => Promise<void>;
@@ -28,6 +29,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
   // true while we're doing the initial silent refresh on mount
   const [loading, setLoading] = useState(() => !!localStorage.getItem("user"));
+  const [offline, setOffline] = useState(false);
 
   function persistUser(u: User) {
     setUser(u);
@@ -78,20 +80,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify(body),
       });
 
-    let res = await doFetch(tokenRef.current ?? "");
+    try {
+      let res = await doFetch(tokenRef.current ?? "");
 
-    if (res.status === 401) {
-      // try to silently refresh once, then retry
-      const ok = await refresh();
-      if (!ok) {
-        clearUser();
-        return { error: "Session expired, please log in again" };
+      if (res.status === 401) {
+        const ok = await refresh();
+        if (!ok) {
+          clearUser();
+          return { error: "Session expired, please log in again" };
+        }
+        res = await doFetch(tokenRef.current ?? "");
       }
-      res = await doFetch(tokenRef.current ?? "");
-    }
 
-    if (!res.ok) return { error: `Request failed (${res.status})` };
-    return res.json();
+      if (!res.ok) return { error: `Request failed (${res.status})` };
+      return res.json();
+    } catch (err) {
+      if (err instanceof TypeError) {
+        setOffline(true);
+        return { error: "offline" };
+      }
+      throw err;
+    }
   }
 
   async function post(url: string, body: object) {
@@ -148,7 +157,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [user]);
 
   return (
-    <Ctx.Provider value={{ user, loading, login, register, logout, authedPost, deleteAccount, reloadTheme: loadTheme }}>
+    <Ctx.Provider value={{ user, loading, offline, login, register, logout, authedPost, deleteAccount, reloadTheme: loadTheme }}>
       {children}
     </Ctx.Provider>
   );
