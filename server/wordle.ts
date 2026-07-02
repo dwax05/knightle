@@ -1,4 +1,10 @@
+import { ANSWERS } from "./words";
+
 export type Mark = "correct" | "present" | "absent";
+
+export function randomAnswer(): string {
+  return ANSWERS[Math.floor(Math.random() * ANSWERS.length)];
+}
 
 export function scoreGuess(guess: string, answer: string): Mark[] {
   const result: Mark[] = Array(5).fill("absent");
