@@ -170,7 +170,7 @@ export function Board({
               return (
                 <button
                   key={key}
-                  onClick={() => onKeyPress(key)}
+                  onClick={(e) => { onKeyPress(key); e.currentTarget.blur(); }}
                   className={`${wide ? "px-2 sm:px-3 text-xs" : "flex-1 min-w-8"} ${fullscreen ? (isLandscape ? "h-10 text-sm" : "h-14 text-base") : "h-13 sm:h-14"} rounded font-semibold uppercase ${bg} shadow-[0_3px_0_rgba(0,0,0,0.4)] hover:brightness-110 active:translate-y-[3px] active:shadow-none transition-all duration-75 ${pressedKey === key ? "translate-y-[3px] shadow-none" : ""}`}
                 >
                   {key === "back" ? <IconBackspace className="w-5 h-5 mx-auto" /> : key}
