@@ -564,10 +564,7 @@ export function setApp(app: Express, client: MongoClient) {
     });
 
     // Always respond the same way to avoid leaking whether an email exists
-    if (!user) {
-      console.log("[forgot-password] no user found for email:", normalized);
-      return res.status(200).json({ error: "" });
-    }
+    if (!user) return res.status(200).json({ error: "" });
 
     const token = randomBytes(32).toString("hex");
     const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
