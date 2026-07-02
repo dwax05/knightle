@@ -26,7 +26,12 @@ async function start() {
   await client.db().collection("Stats").createIndex({ userId: 1 }, { unique: true });
   await client.db().collection("Versus").createIndex(
     { createdAt: 1 },
-    { expireAfterSeconds: 4 * 60 * 60 } // 4 hours
+    { expireAfterSeconds: 4 * 60 * 60 }
+  );
+  await client.db().collection("PasswordResets").createIndex({ token: 1 }, { unique: true });
+  await client.db().collection("PasswordResets").createIndex(
+    { expiresAt: 1 },
+    { expireAfterSeconds: 0 } // MongoDB auto-deletes expired records
   );
 
   setApp(app, client);
