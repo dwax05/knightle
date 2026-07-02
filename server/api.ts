@@ -1,4 +1,4 @@
-import type { Express } from "express";
+import type { Express, Response } from "express";
 import type { MongoClient, Db } from "mongodb";
 import { randomUUID, randomBytes } from "crypto";
 import bcrypt from "bcrypt";
@@ -17,7 +17,21 @@ const MAX_GUESSES = 6;
 const REFRESH_COOKIE = "refresh_token";
 const IS_PROD = process.env.NODE_ENV === "production";
 
-function setRefreshCookie(res: any, token: string, rememberMe: boolean) {
+function randomAnswer(): string {
+  return randomAnswer();
+}
+
+// versus room codes are 4 uppercase letters; returns null if malformed
+function parseRoomCode(body: any): string | null {
+  const code = String(body?.code ?? "").toUpperCase();
+  return /^[A-Z]{4}$/.test(code) ? code : null;
+}
+
+function gameMode(game: any): "speed" | "precision" {
+  return game?.mode === "precision" ? "precision" : "speed";
+}
+
+function setRefreshCookie(res: Response, token: string, rememberMe: boolean) {
   res.cookie(REFRESH_COOKIE, token, {
     httpOnly: true,
     secure: IS_PROD,
@@ -139,7 +153,7 @@ export function setApp(app: Express, client: MongoClient) {
 
   // start a new game -> returns a gameId, answer stays server-side
   app.post("/api/newgame", requireAuth, async (req: AuthedRequest, res) => {
-    const answer = ANSWERS[Math.floor(Math.random() * ANSWERS.length)];
+    const answer = randomAnswer();
     const gameId = randomUUID();
     await db.collection("Games").insertOne({
       gameId,
@@ -299,9 +313,9 @@ export function setApp(app: Express, client: MongoClient) {
   // player 1 starts a room
   app.post("/api/versus/create", requireAuth, async (req: AuthedRequest, res) => {
     const code = await makeRoomCode(db);
-    const answer = ANSWERS[Math.floor(Math.random() * ANSWERS.length)];
+    const answer = randomAnswer();
     const uid = String(req.user!.userId);
-    const mode = req.body.mode === "precision" ? "precision" : "speed";
+    const mode = gameMode(req.body);
 
     await db.collection("Versus").insertOne({
       code,
@@ -320,8 +334,8 @@ export function setApp(app: Express, client: MongoClient) {
 
   // player 2 enters the code
   app.post("/api/versus/join", requireAuth, async (req: AuthedRequest, res) => {
-    const code = String(req.body.code ?? "").toUpperCase();
-    if (!/^[A-Z]{4}$/.test(code)) return res.status(200).json({ error: "Invalid code" });
+    const code = parseRoomCode(req.body);
+    if (!code) return res.status(200).json({ error: "Invalid code" });
 
     const uid = String(req.user!.userId);
     const game = await db.collection("Versus").findOne({ code: code });
@@ -330,7 +344,7 @@ export function setApp(app: Express, client: MongoClient) {
     if (game.status !== "waiting" && !game.players[uid])
       return res.status(200).json({ error: "Room is full or already started" });
     if (game.players[uid])
-      return res.status(200).json({ error: "", code: game.code, mode: game.mode ?? "speed" }); // rejoining own room
+      return res.status(200).json({ error: "", code: game.code, mode: gameMode(game) }); // rejoining own room
 
     await db.collection("Versus").updateOne(
       { code: game.code },
@@ -342,13 +356,13 @@ export function setApp(app: Express, client: MongoClient) {
       }
     );
 
-    res.status(200).json({ code: game.code, mode: game.mode ?? "speed", error: "" });
+    res.status(200).json({ code: game.code, mode: gameMode(game), error: "" });
   });
 
   // GUESS — score against the shared answer, record in this player's slot
   app.post("/api/versus/guess", requireAuth, async (req: AuthedRequest, res) => {
-    const code = String(req.body.code ?? "").toUpperCase();
-    if (!/^[A-Z]{4}$/.test(code)) return res.status(200).json({ error: "Invalid code" });
+    const code = parseRoomCode(req.body);
+    if (!code) return res.status(200).json({ error: "Invalid code" });
 
     const guess = req.body.guess;
     const uid = String(req.user!.userId);
@@ -367,7 +381,7 @@ export function setApp(app: Express, client: MongoClient) {
     const player = game.players[uid];
     const newGuessCount = player.guesses.length + 1;
     const finished = won || newGuessCount >= MAX_GUESSES;
-    const mode = game.mode ?? "speed";
+    const mode = gameMode(game);
 
     const update: any = {
       $push: { [`players.${uid}.guesses`]: g },
@@ -419,7 +433,7 @@ export function setApp(app: Express, client: MongoClient) {
       finished,
       guessNum: newGuessCount,
       round: updated!.round ?? 0,
-      mode: updated!.mode ?? "speed",
+      mode: gameMode(updated),
       answer: finished ? game.answer : undefined,
       opponent: opponentPublicState(updated, uid),
       winner: updated!.winner,
@@ -443,7 +457,7 @@ export function setApp(app: Express, client: MongoClient) {
       status: game.status,
       winner: game.winner,
       round: game.round ?? 0,
-      mode: game.mode ?? "speed",
+      mode: gameMode(game),
       answer: (game.status === "done" || player.finished) ? game.answer : undefined,
       opponent: opponentPublicState(game, uid),
       rematch: {
@@ -460,8 +474,8 @@ export function setApp(app: Express, client: MongoClient) {
   });
 
   app.post("/api/versus/rematch", requireAuth, async (req: AuthedRequest, res) => {
-    const code = String(req.body.code ?? "").toUpperCase();
-    if (!/^[A-Z]{4}$/.test(code)) return res.status(200).json({ error: "Invalid code" });
+    const code = parseRoomCode(req.body);
+    if (!code) return res.status(200).json({ error: "Invalid code" });
 
     const uid = String(req.user!.userId);
     const game = await db.collection("Versus").findOne({ code });
@@ -480,7 +494,7 @@ export function setApp(app: Express, client: MongoClient) {
     const allReady = playerIds.every((id) => updated!.rematch?.[id]);
 
     if (allReady) {
-      const newAnswer = ANSWERS[Math.floor(Math.random() * ANSWERS.length)];
+      const newAnswer = randomAnswer();
       const resetPlayers: any = {};
       for (const [id, p] of Object.entries(updated!.players)) {
         resetPlayers[id] = makePlayer((p as any).login);
@@ -493,7 +507,7 @@ export function setApp(app: Express, client: MongoClient) {
             players: resetPlayers,
             winner: null,
             status: "active",
-            mode: updated!.mode ?? "speed",
+            mode: gameMode(updated),
             createdAt: new Date(),
           },
           $unset: { rematch: "" },
@@ -506,8 +520,8 @@ export function setApp(app: Express, client: MongoClient) {
   });
 
   app.post("/api/versus/leave", requireAuth, async (req: AuthedRequest, res) => {
-    const code = String(req.body.code ?? "").toUpperCase();
-    if (!/^[A-Z]{4}$/.test(code)) return res.status(200).json({ error: "Invalid code" });
+    const code = parseRoomCode(req.body);
+    if (!code) return res.status(200).json({ error: "Invalid code" });
 
     const uid = String(req.user!.userId);
     const game = await db.collection("Versus").findOne({ code });
