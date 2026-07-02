@@ -40,6 +40,7 @@ jobs:
             cd /home/${{ secrets.SSH_USER }}/knightle
             git pull origin main
             docker compose build
-            docker compose up -d
+            docker compose up -d --wait --no-deps server
+            docker compose up -d --no-deps client
             docker system prune -f
             docker builder prune -f --keep-storage=2GB
