@@ -22,24 +22,26 @@ const NAV_ITEMS = [
   { view: "theme" as const, icon: <IconPalette className="w-4 h-4" />, label: "Theme" },
 ];
 
-function HamburgerMenu({ onNavigate, dropUp = false }: { onNavigate: (view: "theme" | "profile") => void; dropUp?: boolean }) {
+function HamburgerMenu({ onNavigate, onOpenChange, dropUp = false }: { onNavigate: (view: "theme" | "profile") => void; onOpenChange?: (open: boolean) => void; dropUp?: boolean }) {
   const [open, setOpen] = useState(false);
 
+  function toggle(v: boolean) { setOpen(v); onOpenChange?.(v); }
+
   useEffect(() => {
-    function onKey(e: KeyboardEvent) { if (e.key === "Escape") setOpen(false); }
+    function onKey(e: KeyboardEvent) { if (e.key === "Escape") toggle(false); }
     if (open) window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [open]);
 
   function navigate(view: "theme" | "profile") {
-    setOpen(false);
+    toggle(false);
     onNavigate(view);
   }
 
   return (
     <div className="relative">
       <button
-        onClick={(e) => { setOpen((o) => !o); (e.currentTarget as HTMLButtonElement).blur(); }}
+        onClick={(e) => { toggle(!open); (e.currentTarget as HTMLButtonElement).blur(); }}
         aria-label="Menu"
         className="w-10 h-10 flex flex-col items-center justify-center gap-1.5 bg-surface border border-border-app/50 rounded-xl shadow-[0_3px_0_rgba(0,0,0,0.4)] hover:brightness-110 active:translate-y-[2px] active:shadow-none transition-all duration-100"
       >
@@ -52,7 +54,7 @@ function HamburgerMenu({ onNavigate, dropUp = false }: { onNavigate: (view: "the
         {open && (
           <motion.div
             className="fixed inset-0 z-10 bg-black/30"
-            onClick={() => setOpen(false)}
+            onClick={() => toggle(false)}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -239,6 +241,7 @@ function Home() {
   const [versusCode, setVersusCode] = useState<string | null>(() => sessionStorage.getItem("versusCode"));
   const [versusMode, setVersusMode] = useState<VersusMode>(() => (sessionStorage.getItem("versusMode") as VersusMode) ?? "speed");
   const [lobbyOpen, setLobbyOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [view, setView] = useState<"game" | "theme" | "profile">("game");
   const [fullscreen, setFullscreen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
@@ -349,7 +352,7 @@ function Home() {
                               </button>
                             </div>
                           </div>
-                          <Game fullscreen={fullscreen} disabled={lobbyOpen || helpOpen} onGameEnd={() => setRefreshKey((k) => k + 1)} />
+                          <Game fullscreen={fullscreen} disabled={lobbyOpen || helpOpen || menuOpen} onGameEnd={() => setRefreshKey((k) => k + 1)} />
                         </>
                       )}
                     </motion.div>
@@ -366,7 +369,7 @@ function Home() {
 
             {/* Desktop hamburger — top-right */}
             <div className="hidden lg:block absolute top-4 right-4 z-10">
-              <HamburgerMenu onNavigate={setView} />
+              <HamburgerMenu onNavigate={setView} onOpenChange={setMenuOpen} />
             </div>
 
             <HomescreenPrompt />
@@ -388,7 +391,7 @@ function Home() {
                   >
                     <IconBarChart className="w-5 h-5" />
                   </button>
-                  <HamburgerMenu onNavigate={setView} dropUp />
+                  <HamburgerMenu onNavigate={setView} onOpenChange={setMenuOpen} dropUp />
                 </motion.div>
               )}
             </AnimatePresence>
