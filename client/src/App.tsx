@@ -405,6 +405,33 @@ function AuthGate() {
   return user ? <Home /> : <AuthForm />;
 }
 
+function UpdateBanner() {
+  useEffect(() => {
+    const id = setInterval(async () => {
+      try {
+        const res = await fetch("/api/health");
+        if (res.ok) window.location.reload();
+      } catch {}
+    }, 2000);
+    return () => clearInterval(id);
+  }, []);
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+      <div className="bg-surface border border-border-app/40 rounded-2xl shadow-2xl shadow-black/60 px-6 py-5 flex flex-col items-center gap-3">
+        <div className="w-5 h-5 border-2 border-muted border-t-fg rounded-full animate-spin" />
+        <p className="text-sm font-medium text-fg">Updating — back in a moment</p>
+      </div>
+    </div>
+  );
+}
+
+function OfflineWatcher() {
+  const { offline } = useAuth();
+  if (!offline) return null;
+  return <UpdateBanner />;
+}
+
 export default function App() {
   return (
     <AuthProvider>
@@ -414,6 +441,7 @@ export default function App() {
           <DotField glowColor="transparent" cursorRadius={150} returnSpeed={0.02} />
         </div>
         <AuthGate />
+        <OfflineWatcher />
       </main>
     </AuthProvider>
   );
