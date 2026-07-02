@@ -1,5 +1,12 @@
 import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "motion/react";
 import { useAuth } from "./auth";
+
+const SPRING = { type: "spring" as const, stiffness: 320, damping: 24 };
+const CARD_VARIANTS = {
+  hidden: { opacity: 0, scale: 0.88, transition: { duration: 0.2 } },
+  visible: { opacity: 1, scale: 1 },
+};
 
 type Mode = "login" | "register" | "forgot" | "reset";
 type Status = { type: "error" | "success"; message: string } | null;
@@ -114,8 +121,15 @@ export function AuthForm() {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4">
-      <div
+      <AnimatePresence mode="wait">
+      <motion.div
+        key={mode}
         className="w-full max-w-sm flex flex-col gap-4 p-8 rounded-2xl bg-surface border border-border-app/40 shadow-lg shadow-black/40"
+        variants={CARD_VARIANTS}
+        initial="hidden"
+        animate="visible"
+        exit="hidden"
+        transition={SPRING}
         onKeyDown={(e) => { if (e.key === "Enter" && !submitting) submit(); }}
       >
         <div className="text-center">
@@ -203,7 +217,8 @@ export function AuthForm() {
             Back to log in
           </button>
         )}
-      </div>
+      </motion.div>
+      </AnimatePresence>
     </div>
   );
 }
