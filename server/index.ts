@@ -34,6 +34,10 @@ async function start() {
     { expiresAt: 1 },
     { expireAfterSeconds: 0 } // MongoDB auto-deletes expired records
   );
+  await client.db().collection("DailyGames").createIndex(
+    { userId: 1, date: 1 },
+    { unique: true }
+  );
 
   // seed the user-id counter from the current max so registration can
   // allocate ids atomically with $inc ($setOnInsert makes this idempotent)

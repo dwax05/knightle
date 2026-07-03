@@ -5,7 +5,7 @@ import { randomUUID } from "crypto";
 import { requireAuth, type AuthedRequest } from "../auth";
 import { VALID_GUESSES } from "../words";
 import { scoreGuess, randomAnswer } from "../wordle";
-import { MAX_GUESSES } from "./shared";
+import { MAX_GUESSES, emptyStats } from "./shared";
 
 export function registerGameRoutes(app: Express, db: Db) {
   // return the user's most recent unfinished game (for page-refresh resumption)
@@ -146,10 +146,11 @@ export function registerGameRoutes(app: Express, db: Db) {
 
   // fetch the user's stats
   app.post("/api/stats", requireAuth, async (req: AuthedRequest, res) => {
-    const stats = await db
-      .collection("Stats")
-      .findOne({ userId: req.user!.userId });
-    res.status(200).json({ stats: stats ?? emptyStats(req.user!.userId), error: "" });
+    const found = await db.collection("Stats").findOne({ userId: req.user!.userId });
+    const base = emptyStats(req.user!.userId);
+    // merge with defaults so docs missing fields (e.g. created before daily stats were added) are always complete
+    const stats = found ? { ...base, ...found } : base;
+    res.status(200).json({ stats, error: "" });
   });
 
   app.post("/api/archive", requireAuth, async (req: AuthedRequest, res) => {
@@ -189,13 +190,3 @@ export function registerGameRoutes(app: Express, db: Db) {
   }
 }
 
-function emptyStats(userId: number) {
-  return {
-    userId,
-    played: 0,
-    wins: 0,
-    currentStreak: 0,
-    maxStreak: 0,
-    distribution: [0, 0, 0, 0, 0, 0], // index = guesses-1
-  };
-}

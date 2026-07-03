@@ -15,7 +15,10 @@ export function StatsPanel({ refreshKey }: { refreshKey: number }) {
   const [stats, setStats] = useState<Stats | null>(() => {
     try {
       const cached = localStorage.getItem("cache:stats");
-      return cached ? JSON.parse(cached) : null;
+      if (!cached) return null;
+      const parsed = JSON.parse(cached);
+      if (!Array.isArray(parsed?.distribution)) return null;
+      return parsed;
     } catch { return null; }
   });
 

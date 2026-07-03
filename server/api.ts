@@ -6,6 +6,7 @@ import { registerGameRoutes } from "./routes/game";
 import { registerThemeRoutes } from "./routes/theme";
 import { registerVersusRoutes } from "./routes/versus";
 import { registerAccountRoutes } from "./routes/account";
+import { registerDailyRoutes } from "./routes/daily";
 
 export function setApp(app: Express, client: MongoClient) {
   const db = client.db();
@@ -15,4 +16,5 @@ export function setApp(app: Express, client: MongoClient) {
   registerThemeRoutes(app, db);
   registerVersusRoutes(app, db);
   registerAccountRoutes(app, db);
+  registerDailyRoutes(app, db);
 }
