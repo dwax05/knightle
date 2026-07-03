@@ -5,7 +5,7 @@ import { randomUUID } from "crypto";
 import { requireAuth, type AuthedRequest } from "../auth";
 import { VALID_GUESSES } from "../words";
 import { scoreGuess, randomAnswer } from "../wordle";
-import { MAX_GUESSES } from "./shared";
+import { MAX_GUESSES, emptyStats } from "./shared";
 
 export function registerGameRoutes(app: Express, db: Db) {
   // return the user's most recent unfinished game (for page-refresh resumption)
@@ -190,13 +190,3 @@ export function registerGameRoutes(app: Express, db: Db) {
   }
 }
 
-function emptyStats(userId: number) {
-  return {
-    userId,
-    played: 0,
-    wins: 0,
-    currentStreak: 0,
-    maxStreak: 0,
-    distribution: [0, 0, 0, 0, 0, 0], // index = guesses-1
-  };
-}

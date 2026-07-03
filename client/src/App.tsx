@@ -331,7 +331,6 @@ function Home() {
   }, []);
 
   const handleDailyGameEnd = useCallback(async () => {
-    setRefreshKey((k) => k + 1);
     const s = await authedPost("/api/stats", {});
     if (s?.stats?.dailyCurrentStreak != null) {
       setDailyStreak(s.stats.dailyCurrentStreak);

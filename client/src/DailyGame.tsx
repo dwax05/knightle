@@ -7,6 +7,17 @@ import { IconArrowLeft, IconTrophy, IconSkull, IconClipboard, IconExpand, IconCo
 
 const REVEAL_TOTAL = (COLS - 1) * TILE_STAGGER + FLIP_DURATION + 50;
 
+function useCopied(ms = 2000): [boolean, () => void] {
+  const [copied, setCopied] = useState(false);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const trigger = useCallback(() => {
+    if (timer.current) clearTimeout(timer.current);
+    setCopied(true);
+    timer.current = setTimeout(() => setCopied(false), ms);
+  }, [ms]);
+  return [copied, trigger];
+}
+
 async function copyText(text: string): Promise<void> {
   if (navigator.clipboard?.writeText) {
     await navigator.clipboard.writeText(text);
@@ -58,15 +69,6 @@ function saveGuestState(date: string, state: GuestState) {
   try { localStorage.setItem(`daily:${date}`, JSON.stringify(state)); } catch {}
 }
 
-async function guestGuess(guess: string, guessNum: number) {
-  const res = await fetch("/api/daily/guest/guess", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ guess, guessNum }),
-  });
-  return res.json();
-}
-
 export function DailyGame({ onClose, onGameEnd, guest = false }: { onClose: () => void; onGameEnd?: () => void; guest?: boolean }) {
   const { authedPost } = useAuth();
   const [dayNumber, setDayNumber] = useState(0);
@@ -79,10 +81,8 @@ export function DailyGame({ onClose, onGameEnd, guest = false }: { onClose: () =
   const [fullscreen, setFullscreen] = useState(false);
   const [answer, setAnswer] = useState("");
   const [message, setMessage] = useState("");
-  const [copiedHeader, setCopiedHeader] = useState(false);
-  const [copiedOverlay, setCopiedOverlay] = useState(false);
-  const copiedHeaderTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const copiedOverlayTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [copiedHeader, triggerCopiedHeader] = useCopied();
+  const [copiedOverlay, triggerCopiedOverlay] = useCopied();
   const [shakingRow, setShakingRow] = useState(false);
   const shakingRowRef = useRef(false);
   const pendingShake = useRef(false);
@@ -138,7 +138,7 @@ export function DailyGame({ onClose, onGameEnd, guest = false }: { onClose: () =
     if (current.length !== COLS || done || revealingRow >= 0) return;
 
     const data = guest
-      ? await guestGuess(current, guesses.length + 1)
+      ? await fetch("/api/daily/guest/guess", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ guess: current, guessNum: guesses.length + 1 }) }).then((r) => r.json())
       : await authedPost("/api/daily/guess", { guess: current });
 
     if (data.error) {
@@ -222,15 +222,8 @@ export function DailyGame({ onClose, onGameEnd, guest = false }: { onClose: () =
     const text = buildShareText(dayNumber, done === "won", completedMarks.current);
     try {
       await copyText(text);
-      if (target === "header") {
-        if (copiedHeaderTimer.current) clearTimeout(copiedHeaderTimer.current);
-        setCopiedHeader(true);
-        copiedHeaderTimer.current = setTimeout(() => setCopiedHeader(false), 2000);
-      } else {
-        if (copiedOverlayTimer.current) clearTimeout(copiedOverlayTimer.current);
-        setCopiedOverlay(true);
-        copiedOverlayTimer.current = setTimeout(() => setCopiedOverlay(false), 2000);
-      }
+      if (target === "header") triggerCopiedHeader();
+      else triggerCopiedOverlay();
     } catch {
       setMessage("Copy failed — try manually");
     }

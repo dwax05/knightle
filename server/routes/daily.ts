@@ -3,27 +3,30 @@ import type { Db } from "mongodb";
 import { requireAuth, type AuthedRequest } from "../auth";
 import { ANSWERS, VALID_GUESSES } from "../words";
 import { scoreGuess } from "../wordle";
-import { MAX_GUESSES } from "./shared";
+import { MAX_GUESSES, emptyStats } from "./shared";
 
 const DAILY_EPOCH = "2026-07-02";
 
-function getEstDateString(): string {
+export function getEstDateString(): string {
   // EST = UTC-5; fixed offset, consistent with leaderboard "today" boundary (05:00 UTC)
   const est = new Date(Date.now() - 5 * 60 * 60 * 1000);
   return est.toISOString().slice(0, 10);
 }
 
-function getDayNumber(dateStr: string): number {
-  const epochMs = new Date(DAILY_EPOCH + "T00:00:00Z").getTime();
-  const dateMs = new Date(dateStr + "T00:00:00Z").getTime();
-  return Math.floor((dateMs - epochMs) / (1000 * 60 * 60 * 24)) + 1;
+const DAY_MS = 1000 * 60 * 60 * 24;
+const EPOCH_MS = new Date(DAILY_EPOCH + "T00:00:00Z").getTime();
+
+function getDayIndex(dateStr: string): number {
+  return Math.floor((new Date(dateStr + "T00:00:00Z").getTime() - EPOCH_MS) / DAY_MS);
+}
+
+export function getDayNumber(dateStr: string): number {
+  return getDayIndex(dateStr) + 1;
 }
 
 // mulberry32 PRNG — deterministic per day index
-function getDailyWord(dateStr: string): string {
-  const epochMs = new Date(DAILY_EPOCH + "T00:00:00Z").getTime();
-  const dateMs = new Date(dateStr + "T00:00:00Z").getTime();
-  const dayIndex = Math.floor((dateMs - epochMs) / (1000 * 60 * 60 * 24));
+export function getDailyWord(dateStr: string): string {
+  const dayIndex = getDayIndex(dateStr);
   let a = (dayIndex + 1337) | 0;
   a = (a + 0x6d2b79f5) | 0;
   let t = Math.imul(a ^ (a >>> 15), 1 | a);
@@ -73,34 +76,21 @@ export function registerDailyRoutes(app: Express, db: Db) {
     try {
       const date = getEstDateString();
       const dayNumber = getDayNumber(date);
-      const word = getDailyWord(date);
 
-      let game = await db.collection("DailyGames").findOne({
-        userId: req.user!.userId,
-        date,
-      });
-
-      if (!game) {
-        await db.collection("DailyGames").insertOne({
-          userId: req.user!.userId,
-          date,
-          word,
-          guesses: [],
-          marks: [],
-          done: false,
-          won: false,
-        });
-        return res.status(200).json({ dayNumber, date, guesses: [], marks: [], done: false, won: false, error: "" });
-      }
+      const game = await db.collection("DailyGames").findOneAndUpdate(
+        { userId: req.user!.userId, date },
+        { $setOnInsert: { userId: req.user!.userId, date, word: getDailyWord(date), guesses: [], marks: [], done: false, won: false } },
+        { upsert: true, returnDocument: "after" }
+      );
 
       res.status(200).json({
         dayNumber,
         date,
-        guesses: game.guesses,
-        marks: game.marks,
-        done: game.done,
-        won: game.won,
-        answer: game.done ? game.word : undefined,
+        guesses: game!.guesses,
+        marks: game!.marks,
+        done: game!.done,
+        won: game!.won,
+        answer: game!.done ? game!.word : undefined,
         error: "",
       });
     } catch {
@@ -153,45 +143,36 @@ export function registerDailyRoutes(app: Express, db: Db) {
   });
 
   async function updateDailyStats(userId: number, won: boolean, guessNum: number, date: string) {
-    const stats = (await db.collection("Stats").findOne({ userId })) ?? emptyStats(userId);
+    const stats = await db.collection("Stats").findOne({ userId });
 
     const yesterday = new Date(date + "T00:00:00Z");
     yesterday.setUTCDate(yesterday.getUTCDate() - 1);
     const yesterdayStr = yesterday.toISOString().slice(0, 10);
 
-    const prevStreak: number = (stats.dailyCurrentStreak as number) ?? 0;
-    const lastDate: string = (stats.lastDailyDate as string) ?? "";
-
+    const prevStreak: number = (stats?.dailyCurrentStreak as number) ?? 0;
+    const lastDate: string = (stats?.lastDailyDate as string) ?? "";
     const newStreak = won ? (lastDate === yesterdayStr ? prevStreak + 1 : 1) : 0;
 
-    const dist: number[] = (stats.dailyGuessDistribution as number[]) ?? [0, 0, 0, 0, 0, 0];
+    const dist: number[] = (stats?.dailyGuessDistribution as number[]) ?? [0, 0, 0, 0, 0, 0];
     if (won) dist[guessNum - 1] = (dist[guessNum - 1] ?? 0) + 1;
 
     await db.collection("Stats").updateOne(
       { userId },
       {
+        $inc: {
+          dailyPlayed: 1,
+          dailyWins: won ? 1 : 0,
+        },
+        $max: { dailyMaxStreak: newStreak },
         $set: {
-          ...stats,
-          dailyPlayed: ((stats.dailyPlayed as number) ?? 0) + 1,
-          dailyWins: ((stats.dailyWins as number) ?? 0) + (won ? 1 : 0),
           dailyCurrentStreak: newStreak,
-          dailyMaxStreak: Math.max((stats.dailyMaxStreak as number) ?? 0, newStreak),
           lastDailyDate: date,
           dailyGuessDistribution: dist,
         },
+        $setOnInsert: emptyStats(userId),
       },
       { upsert: true }
     );
   }
 }
 
-function emptyStats(userId: number) {
-  return {
-    userId,
-    played: 0,
-    wins: 0,
-    currentStreak: 0,
-    maxStreak: 0,
-    distribution: [0, 0, 0, 0, 0, 0],
-  };
-}
