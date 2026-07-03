@@ -128,6 +128,7 @@ export function registerAccountRoutes(app: Express, db: Db) {
       db.collection("Stats").deleteOne({ userId: req.user!.userId }),
       db.collection("Games").deleteMany({ userId: req.user!.userId }),
       db.collection("GameArchive").deleteMany({ userId: req.user!.userId }),
+      db.collection("DailyGames").deleteMany({ userId: req.user!.userId }),
     ]);
     res.status(200).json({ error: "" });
   });
@@ -147,6 +148,7 @@ export function registerAccountRoutes(app: Express, db: Db) {
       db.collection("Stats").deleteOne({ userId: req.user!.userId }),
       db.collection("Games").deleteMany({ userId: req.user!.userId }),
       db.collection("GameArchive").deleteMany({ userId: req.user!.userId }),
+      db.collection("DailyGames").deleteMany({ userId: req.user!.userId }),
       db.collection("Themes").deleteOne({ userId: req.user!.userId }),
     ]);
     res.status(200).json({ error: "" });

@@ -154,7 +154,7 @@ function Section({ title, action, children }: { title: string; action?: React.Re
   );
 }
 
-export function ProfilePage({ onClose }: { onClose: () => void }) {
+export function ProfilePage({ onClose, onClearData }: { onClose: () => void; onClearData?: () => void }) {
   const { user, logout, authedPost, deleteAccount } = useAuth();
 
   // password reset
@@ -216,6 +216,8 @@ export function ProfilePage({ onClose }: { onClose: () => void }) {
       setClearStatus({ type: "error", message: data.error });
     } else {
       setClearStatus({ type: "success", message: "Game data cleared" });
+      try { localStorage.removeItem("cache:stats"); } catch {}
+      onClearData?.();
     }
   }
 

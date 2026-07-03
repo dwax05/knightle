@@ -1,6 +1,6 @@
 # Knightle
 
-A full-stack Wordle clone with user accounts, stats tracking, a leaderboard, a custom CSS theme editor, and a 2-player versus mode.
+A full-stack Wordle clone with user accounts, stats tracking, a leaderboard, a custom CSS theme editor, a 2-player versus mode, and a daily challenge.
 
 ## Stack
 
@@ -21,6 +21,7 @@ A full-stack Wordle clone with user accounts, stats tracking, a leaderboard, a c
 - **Stats** — win rate, current/max streak, guess distribution
 - **Leaderboard** — top 5 players across three tabs: total wins, best streak, and wins today
 - **Versus mode** — create a room, share a 4-letter code, race a friend on the same word; two modes: **Speed** (first to solve wins) and **Precision** (fewest guesses wins); rematch support
+- **Daily challenge** — one shared word per day (EST reset); streaks, emoji grid sharing, guest play at `/daily` without an account, NYT-style clipboard sharing
 - **Theme editor** — choose from built-in color presets or customize individual color tokens; theme is saved per-user and applied on login (UCF Knights default)
 
 ## Local dev
@@ -93,6 +94,10 @@ All endpoints are `POST /api/*`. Auth-required routes expect `Authorization: Bea
 | `/api/send-password-reset` | ✓ | Send a reset link to the logged-in user's email on file (no email input needed) |
 | `/api/clear-game-data` | ✓ | Delete all stats and game history |
 | `/api/delete-account` | ✓ | Delete account and all associated data |
+| `/api/daily/info` | — | Today's day number and date (EST); guests use this to key localStorage |
+| `/api/daily/guest/guess` | — | Score a daily guess without an account |
+| `/api/daily/state` | ✓ | Load (or create) today's daily game state |
+| `/api/daily/guess` | ✓ | Submit a daily guess and update streak stats |
 | `/api/versus/create` | ✓ | Open a versus room |
 | `/api/versus/join` | ✓ | Join by room code |
 | `/api/versus/guess` | ✓ | Submit versus guess |

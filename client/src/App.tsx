@@ -5,13 +5,14 @@ import { AuthForm } from "./AuthForm";
 import { Game } from "./Game";
 import { StatsPanel } from "./StatsPanel";
 import { Leaderboard } from "./Leaderboard";
-import { IconUser, IconPalette, IconBarChart, IconLightning, IconTarget, IconExpand, IconCompress, IconQuestion, IconBackspace, IconGitHub } from "./icons";
+import { IconUser, IconPalette, IconBarChart, IconLightning, IconTarget, IconExpand, IconCompress, IconQuestion, IconBackspace, IconGitHub, IconCalendar } from "./icons";
 import { HelpModal } from "./HelpModal";
 import DotField from "./DotField";
 import { getDefaultPresetCss } from "./presets";
 import { applyTheme } from "./theme-apply";
 import { ThemeEditor } from "./ThemeEditor";
 import { ProfilePage } from "./ProfilePage";
+import { DailyGame } from "./DailyGame";
 import type { VersusMode } from "./Versus";
 
 const VersusLobbyModal = lazy(() => import("./Versus").then(m => ({ default: m.VersusLobbyModal })));
@@ -22,7 +23,7 @@ const NAV_ITEMS = [
   { view: "theme" as const, icon: <IconPalette className="w-4 h-4" />, label: "Theme" },
 ];
 
-function HamburgerMenu({ onNavigate, onOpenChange, dropUp = false }: { onNavigate: (view: "theme" | "profile") => void; onOpenChange?: (open: boolean) => void; dropUp?: boolean }) {
+function HamburgerMenu({ onNavigate, onOpenChange, dropUp = false }: { onNavigate: (view: "game" | "theme" | "profile" | "daily") => void; onOpenChange?: (open: boolean) => void; dropUp?: boolean }) {
   const [open, setOpen] = useState(false);
 
   const toggle = useCallback((v: boolean) => { setOpen(v); onOpenChange?.(v); }, [onOpenChange]);
@@ -33,7 +34,7 @@ function HamburgerMenu({ onNavigate, onOpenChange, dropUp = false }: { onNavigat
     return () => window.removeEventListener("keydown", onKey);
   }, [open, toggle]);
 
-  function navigate(view: "theme" | "profile") {
+  function navigate(view: "game" | "theme" | "profile" | "daily") {
     toggle(false);
     onNavigate(view);
   }
@@ -290,22 +291,53 @@ function GameSkeleton({ mode }: { mode: VersusMode }) {
 }
 
 function Home() {
-  const { reloadTheme } = useAuth();
+  const { reloadTheme, authedPost } = useAuth();
   const [refreshKey, setRefreshKey] = useState(0);
   const [statsOpen, setStatsOpen] = useState(false);
   const [versusCode, setVersusCode] = useState<string | null>(() => sessionStorage.getItem("versusCode"));
   const [versusMode, setVersusMode] = useState<VersusMode>(() => (sessionStorage.getItem("versusMode") as VersusMode) ?? "speed");
   const [lobbyOpen, setLobbyOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [view, setView] = useState<"game" | "theme" | "profile">("game");
+  const [view, setViewRaw] = useState<"game" | "theme" | "profile" | "daily">(() =>
+    window.location.pathname === "/daily" ? "daily" : "game"
+  );
   const [fullscreen, setFullscreen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [dailyStreak, setDailyStreak] = useState<number>(() => {
+    try {
+      const cached = localStorage.getItem("cache:stats");
+      return cached ? (JSON.parse(cached)?.dailyCurrentStreak ?? 0) : 0;
+    } catch { return 0; }
+  });
   useEffect(() => {
     if (localStorage.getItem("seenHelp")) return;
     const t = setTimeout(() => setHelpOpen(true), 1000);
     return () => clearTimeout(t);
   }, []);
   const mounted = useRef(false);
+
+  const setView = useCallback((v: "game" | "theme" | "profile" | "daily") => {
+    setViewRaw(v);
+    const path = v === "daily" ? "/daily" : "/";
+    if (window.location.pathname !== path) window.history.pushState({}, "", path);
+  }, []);
+
+  useEffect(() => {
+    function onPopState() {
+      setViewRaw(window.location.pathname === "/daily" ? "daily" : "game");
+    }
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, []);
+
+  const handleDailyGameEnd = useCallback(async () => {
+    setRefreshKey((k) => k + 1);
+    const s = await authedPost("/api/stats", {});
+    if (s?.stats?.dailyCurrentStreak != null) {
+      setDailyStreak(s.stats.dailyCurrentStreak);
+      try { localStorage.setItem("cache:stats", JSON.stringify(s.stats)); } catch {}
+    }
+  }, [authedPost]);
 
   useEffect(() => {
     if (!mounted.current) { mounted.current = true; return; }
@@ -322,7 +354,8 @@ function Home() {
         transition={{ duration: 0.2 }}
       >
         {view === "theme" && <ThemeEditor onClose={() => setView("game")} />}
-        {view === "profile" && <ProfilePage onClose={() => setView("game")} />}
+        {view === "profile" && <ProfilePage onClose={() => setView("game")} onClearData={() => setDailyStreak(0)} />}
+        {view === "daily" && <DailyGame onClose={() => setView("game")} onGameEnd={handleDailyGameEnd} />}
         {view === "game" && (
           <div className="max-w-4xl mx-auto px-4 py-6 relative">
             <Suspense fallback={null}>
@@ -422,11 +455,18 @@ function Home() {
               </div>
             </div>
 
-            {/* Desktop hamburger + GitHub — top-right */}
+            {/* Desktop hamburger + daily + GitHub — top-right */}
             <div className="hidden lg:flex flex-col items-center gap-2 fixed top-4 right-4 z-10">
               <div className="relative z-10">
                 <HamburgerMenu onNavigate={setView} onOpenChange={setMenuOpen} />
               </div>
+              <button
+                onClick={() => setView("daily")}
+                aria-label="Daily challenge"
+                className="w-10 h-10 flex items-center justify-center bg-surface border border-border-app/50 rounded-xl shadow-[0_3px_0_rgba(0,0,0,0.4)] hover:brightness-110 active:translate-y-[2px] active:shadow-none transition-all duration-100 text-muted hover:text-fg"
+              >
+                <IconCalendar className="w-5 h-5" streak={dailyStreak || undefined} />
+              </button>
               <GitHubStarButton bubbleSide="left" />
             </div>
 
@@ -464,6 +504,13 @@ function Home() {
                   >
                     <IconBarChart className="w-5 h-5" />
                   </button>
+                  <button
+                    onClick={() => setView("daily")}
+                    aria-label="Daily challenge"
+                    className="w-10 h-10 flex items-center justify-center bg-surface border border-border-app/50 rounded-xl shadow-[0_3px_0_rgba(0,0,0,0.4)] hover:brightness-110 active:translate-y-[2px] active:shadow-none transition-all duration-100"
+                  >
+                    <IconCalendar className="w-5 h-5" streak={dailyStreak || undefined} />
+                  </button>
                   <HamburgerMenu onNavigate={setView} onOpenChange={setMenuOpen} dropUp />
                 </motion.div>
               )}
@@ -477,8 +524,40 @@ function Home() {
 
 function AuthGate() {
   const { user, loading } = useAuth();
+  const [pathname, setPathname] = useState(window.location.pathname);
+  const prevUserRef = useRef<typeof user>(null);
+
+  useEffect(() => {
+    function onPop() { setPathname(window.location.pathname); }
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
+
+  // On logout, reset URL so a /daily path doesn't land on the guest game
+  useEffect(() => {
+    if (prevUserRef.current && !user && !loading) {
+      window.history.replaceState({}, "", "/");
+      setPathname("/");
+    }
+    prevUserRef.current = user;
+  }, [user, loading]);
+
   if (loading) return null;
-  return user ? <Home /> : <AuthForm />;
+  if (user) return <Home />;
+
+  if (pathname === "/daily") {
+    return (
+      <DailyGame
+        guest
+        onClose={() => {
+          window.history.pushState({}, "", "/");
+          setPathname("/");
+        }}
+      />
+    );
+  }
+
+  return <AuthForm />;
 }
 
 function UpdateBanner() {

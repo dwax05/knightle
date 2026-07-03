@@ -146,10 +146,11 @@ export function registerGameRoutes(app: Express, db: Db) {
 
   // fetch the user's stats
   app.post("/api/stats", requireAuth, async (req: AuthedRequest, res) => {
-    const stats = await db
-      .collection("Stats")
-      .findOne({ userId: req.user!.userId });
-    res.status(200).json({ stats: stats ?? emptyStats(req.user!.userId), error: "" });
+    const found = await db.collection("Stats").findOne({ userId: req.user!.userId });
+    const base = emptyStats(req.user!.userId);
+    // merge with defaults so docs missing fields (e.g. created before daily stats were added) are always complete
+    const stats = found ? { ...base, ...found } : base;
+    res.status(200).json({ stats, error: "" });
   });
 
   app.post("/api/archive", requireAuth, async (req: AuthedRequest, res) => {
